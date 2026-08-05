@@ -49,7 +49,7 @@ export default function SiteLayout() {
             האזור שלי
           </Button>
         ) : getToken() ? (
-          <Button type="button" className="btn btn-primary" onClick={() => navigate('/plans')}>
+          <Button type="button" className="btn btn-primary" onClick={() => navigate('/account/plans')}>
             בחרי מסלול
           </Button>
         ) : (

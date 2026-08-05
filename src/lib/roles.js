@@ -18,6 +18,6 @@ export function isStaff(state) {
 export function homePathForRole(role, subscribed = true) {
   if (role === 'admin') return '/admin/products';
   if (role === 'warehouse') return '/warehouse/orders';
-  if (!subscribed) return '/plans';
+  if (!subscribed) return '/account/plans';
   return '/account/shop';
 }

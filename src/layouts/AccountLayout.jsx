@@ -13,7 +13,11 @@ export default function AccountLayout() {
   const navigate = useNavigate();
   const cartCount = state?.cart?.length || 0;
 
+  const isPlansRoute = location.pathname === '/account/plans';
+  const needsPlan = !state?.subscribed;
+
   const isShopNav =
+    isPlansRoute ||
     location.pathname.startsWith('/account/shop') ||
     location.pathname.startsWith('/account/catalog') ||
     location.pathname.startsWith('/account/cart') ||
@@ -47,13 +51,21 @@ export default function AccountLayout() {
           <div className="brand" style={{ padding: '0 24px 20px', fontSize: 20 }}>
             SHINEDY
           </div>
-          <NavLink to="/account/shop" className={() => (isShopNav ? 'active' : '')}>
+          <NavLink
+            to={needsPlan ? '/account/plans' : '/account/shop'}
+            className={() => (isShopNav ? 'active' : '')}
+          >
             עמוד הבית
             {cartCount > 0 ? ` · סל (${cartCount})` : ''}
           </NavLink>
           <NavLink to="/account/me" className={() => (isPersonal ? 'active' : '')}>
             אזור אישי
           </NavLink>
+          {needsPlan ? (
+            <NavLink to="/account/plans" className={() => (isPlansRoute ? 'active' : '')}>
+              בחירת מסלול
+            </NavLink>
+          ) : null}
           {state?.subscribed ? (
             <div className="sidebar-points">
               <div className="sidebar-points-label">נקודות זמינות</div>
@@ -83,7 +95,13 @@ export default function AccountLayout() {
       </aside>
       <div className={`main-pane${isStoreHome ? ' main-pane-store' : ''}`}>
         <Flash />
-        {!state?.subscribed ? <Navigate to="/plans" replace /> : <Outlet />}
+        {needsPlan && !isPlansRoute ? (
+          <Navigate to="/account/plans" replace />
+        ) : state?.subscribed && isPlansRoute ? (
+          <Navigate to="/account/shop" replace />
+        ) : (
+          <Outlet />
+        )}
       </div>
     </div>
   );

@@ -58,6 +58,7 @@ export default function App() {
 
         <Route path="/account" element={<BlockStaffFromCustomer><AccountLayout /></BlockStaffFromCustomer>}>
           <Route index element={<Navigate to="shop" replace />} />
+          <Route path="plans" element={<PlansPage />} />
           <Route path="shop" element={<AccountCatalogPage />} />
           <Route path="catalog" element={<Navigate to="/account/shop" replace />} />
           <Route path="cart" element={<CartPage />} />
