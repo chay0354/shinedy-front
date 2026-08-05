@@ -1,0 +1,102 @@
+import { Navigate, Route, Routes } from 'react-router-dom';
+import RoleBar from './components/RoleBar';
+import { useApp } from './state/AppContext';
+import SiteLayout from './layouts/SiteLayout';
+import AccountLayout from './layouts/AccountLayout';
+import AdminLayout from './layouts/AdminLayout';
+import WarehouseLayout from './layouts/WarehouseLayout';
+import HomePage from './pages/site/HomePage';
+import HowPage from './pages/site/HowPage';
+import PlansPage from './pages/site/PlansPage';
+import CatalogPage from './pages/site/CatalogPage';
+import ProductPage from './pages/site/ProductPage';
+import LoginPage from './pages/site/LoginPage';
+import SignupPage from './pages/site/SignupPage';
+import InfoPage from './pages/site/InfoPage';
+import DashboardPage from './pages/account/DashboardPage';
+import AccountCatalogPage from './pages/account/AccountCatalogPage';
+import CartPage from './pages/account/CartPage';
+import ExchangePage from './pages/account/ExchangePage';
+import ReturnPouchPage from './pages/account/ReturnPouchPage';
+import HistoryPage from './pages/account/HistoryPage';
+import CustomersPage from './pages/admin/CustomersPage';
+import PlansAdminPage from './pages/admin/PlansAdminPage';
+import ProductsAdminPage from './pages/admin/ProductsAdminPage';
+import InventoryPage from './pages/admin/InventoryPage';
+import OrdersAdminPage from './pages/admin/OrdersAdminPage';
+import MoreAdminPage from './pages/admin/MoreAdminPage';
+import WarehouseOrdersPage from './pages/warehouse/WarehouseOrdersPage';
+import ReturnsPage from './pages/warehouse/ReturnsPage';
+import ReceivePage from './pages/warehouse/ReceivePage';
+
+const SHOW_STAFF = import.meta.env.VITE_ENABLE_STAFF === 'true';
+
+export default function App() {
+  const { loading, error, setError } = useApp();
+
+  if (loading) {
+    return (
+      <div className="app-shell">
+        <div className="loading">טוען…</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="app-shell">
+      <RoleBar />
+      {error && (
+        <div className="error-banner" onClick={() => setError(null)} style={{ cursor: 'pointer' }}>
+          {error} — ודאי שה־API רץ על פורט 4000
+        </div>
+      )}
+      <Routes>
+        <Route path="/" element={<SiteLayout />}>
+          <Route index element={<HomePage />} />
+          <Route path="how" element={<HowPage />} />
+          <Route path="plans" element={<PlansPage />} />
+          <Route path="catalog" element={<CatalogPage />} />
+          <Route path="catalog/:id" element={<ProductPage />} />
+          <Route path="login" element={<LoginPage />} />
+          <Route path="signup" element={<SignupPage />} />
+          <Route path="info" element={<InfoPage />} />
+        </Route>
+
+        <Route path="/account" element={<AccountLayout />}>
+          <Route index element={<Navigate to="shop" replace />} />
+          <Route path="shop" element={<AccountCatalogPage />} />
+          <Route path="catalog" element={<Navigate to="/account/shop" replace />} />
+          <Route path="cart" element={<CartPage />} />
+          <Route path="me" element={<DashboardPage />} />
+          <Route path="dashboard" element={<Navigate to="/account/me" replace />} />
+          <Route path="exchange" element={<ExchangePage />} />
+          <Route path="returns" element={<ReturnPouchPage />} />
+          <Route path="history" element={<HistoryPage />} />
+        </Route>
+
+        {SHOW_STAFF && (
+          <>
+            <Route path="/admin" element={<AdminLayout />}>
+              <Route index element={<Navigate to="customers" replace />} />
+              <Route path="customers" element={<CustomersPage />} />
+              <Route path="plans" element={<PlansAdminPage />} />
+              <Route path="products" element={<ProductsAdminPage />} />
+              <Route path="inventory" element={<InventoryPage />} />
+              <Route path="orders" element={<OrdersAdminPage />} />
+              <Route path="more" element={<MoreAdminPage />} />
+            </Route>
+
+            <Route path="/warehouse" element={<WarehouseLayout />}>
+              <Route index element={<Navigate to="orders" replace />} />
+              <Route path="orders" element={<WarehouseOrdersPage />} />
+              <Route path="returns" element={<ReturnsPage />} />
+              <Route path="receive" element={<ReceivePage />} />
+            </Route>
+          </>
+        )}
+
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </div>
+  );
+}
