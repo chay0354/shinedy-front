@@ -48,6 +48,10 @@ export default function SiteLayout() {
           <Button type="button" className="btn btn-primary" onClick={() => navigate('/account/me')}>
             האזור שלי
           </Button>
+        ) : getToken() ? (
+          <Button type="button" className="btn btn-primary" onClick={() => navigate('/plans')}>
+            בחרי מסלול
+          </Button>
         ) : (
           <Button type="button" className="btn btn-primary" onClick={() => navigate('/login')}>
             התחברות / הרשמה

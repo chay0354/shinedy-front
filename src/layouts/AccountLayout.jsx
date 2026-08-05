@@ -1,4 +1,4 @@
-import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { NavLink, Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { api } from '../api';
 import { useApp } from '../state/AppContext';
 import { clearSession } from '../lib/auth';
@@ -83,26 +83,7 @@ export default function AccountLayout() {
       </aside>
       <div className={`main-pane${isStoreHome ? ' main-pane-store' : ''}`}>
         <Flash />
-        {!state?.subscribed ? (
-          <div style={{ textAlign: 'center', padding: '80px 24px' }}>
-            <div className="display" style={{ fontSize: 26, marginBottom: 12 }}>
-              עדיין לא הצטרפת למסלול
-            </div>
-            <p className="muted" style={{ marginBottom: 24, maxWidth: 360, marginInline: 'auto' }}>
-              כדי להזמין תכשיטים מאזור האישי יש לבחור מסלול. אפשר גם לדפדף בחנות הציבורית.
-            </p>
-            <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
-              <NavLink to="/plans" className="btn btn-primary">
-                לבחירת מסלול
-              </NavLink>
-              <NavLink to="/" className="btn">
-                לחנות
-              </NavLink>
-            </div>
-          </div>
-        ) : (
-          <Outlet />
-        )}
+        {!state?.subscribed ? <Navigate to="/plans" replace /> : <Outlet />}
       </div>
     </div>
   );

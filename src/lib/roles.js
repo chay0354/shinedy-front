@@ -15,8 +15,9 @@ export function isStaff(state) {
   return role === 'admin' || role === 'warehouse';
 }
 
-export function homePathForRole(role) {
+export function homePathForRole(role, subscribed = true) {
   if (role === 'admin') return '/admin/products';
   if (role === 'warehouse') return '/warehouse/orders';
+  if (!subscribed) return '/plans';
   return '/account/shop';
 }

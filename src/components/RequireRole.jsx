@@ -24,7 +24,7 @@ export function RequireRole({ role, roles, children }) {
     if (!userRole) {
       return <Navigate to="/login" replace />;
     }
-    return <Navigate to={homePathForRole(userRole)} replace />;
+    return <Navigate to={homePathForRole(userRole, state?.subscribed)} replace />;
   }
 
   return children;
