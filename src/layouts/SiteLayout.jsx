@@ -1,12 +1,22 @@
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
 import { useApp } from '../state/AppContext';
 import Button from '../components/Button';
+import { isAdmin, isStaff } from '../lib/roles';
 
 export default function SiteLayout() {
   const { state } = useApp();
   const navigate = useNavigate();
   const location = useLocation();
   const isHome = location.pathname === '/';
+
+  useEffect(() => {
+    if (isAdmin(state)) {
+      navigate('/admin/products', { replace: true });
+    } else if (isStaff(state)) {
+      navigate('/warehouse/orders', { replace: true });
+    }
+  }, [state, navigate]);
 
   return (
     <>
@@ -23,7 +33,15 @@ export default function SiteLayout() {
           <NavLink to="/catalog">קטלוג</NavLink>
           <NavLink to="/info">מידע</NavLink>
         </nav>
-        {state?.subscribed ? (
+        {isAdmin(state) ? (
+          <Button type="button" className="btn btn-primary" onClick={() => navigate('/admin/products')}>
+            ניהול
+          </Button>
+        ) : isStaff(state) ? (
+          <Button type="button" className="btn btn-primary" onClick={() => navigate('/warehouse/orders')}>
+            מחסן
+          </Button>
+        ) : state?.subscribed ? (
           <Button type="button" className="btn btn-primary" onClick={() => navigate('/account/me')}>
             האזור שלי
           </Button>

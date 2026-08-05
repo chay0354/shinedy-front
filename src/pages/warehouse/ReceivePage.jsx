@@ -7,8 +7,11 @@ export default function ReceivePage() {
 
   return (
     <>
-      <div className="display" style={{ fontSize: 22, marginBottom: 20 }}>
-        קליטת מלאי חדש
+      <div className="display" style={{ fontSize: 22, marginBottom: 8 }}>
+        הוספת פריטים למלאי
+      </div>
+      <div className="muted" style={{ fontSize: 13, marginBottom: 20, maxWidth: 640, lineHeight: 1.6 }}>
+        קליטת יחידה חדשה לכל דגם — הפריט יופיע ב«ניהול מלאי» כזמין.
       </div>
       <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
         {(state.products || []).map((p) => (

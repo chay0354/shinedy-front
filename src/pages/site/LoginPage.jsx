@@ -4,6 +4,7 @@ import { api } from '../../api';
 import { useApp } from '../../state/AppContext';
 import { applySessionFromResponse } from '../../lib/auth';
 import Button from '../../components/Button';
+import { homePathForRole } from '../../lib/roles';
 
 export default function LoginPage() {
   const [tab, setTab] = useState('login');
@@ -21,7 +22,7 @@ export default function LoginPage() {
     setFormError('');
     const data = await run(() => api.login({ email: email.trim(), password }));
     applySessionFromResponse(data);
-    navigate('/account/shop');
+    navigate(homePathForRole(data.auth?.role));
   }
 
   return (

@@ -3,6 +3,7 @@ import { useApp } from './state/AppContext';
 import SiteLayout from './layouts/SiteLayout';
 import AccountLayout from './layouts/AccountLayout';
 import AdminLayout from './layouts/AdminLayout';
+import { BlockStaffFromCustomer } from './components/RequireRole';
 import WarehouseLayout from './layouts/WarehouseLayout';
 import HomePage from './pages/site/HomePage';
 import HowPage from './pages/site/HowPage';
@@ -18,17 +19,13 @@ import CartPage from './pages/account/CartPage';
 import ExchangePage from './pages/account/ExchangePage';
 import ReturnPouchPage from './pages/account/ReturnPouchPage';
 import HistoryPage from './pages/account/HistoryPage';
-import CustomersPage from './pages/admin/CustomersPage';
-import PlansAdminPage from './pages/admin/PlansAdminPage';
 import ProductsAdminPage from './pages/admin/ProductsAdminPage';
 import InventoryPage from './pages/admin/InventoryPage';
-import OrdersAdminPage from './pages/admin/OrdersAdminPage';
-import MoreAdminPage from './pages/admin/MoreAdminPage';
 import WarehouseOrdersPage from './pages/warehouse/WarehouseOrdersPage';
 import ReturnsPage from './pages/warehouse/ReturnsPage';
 import ReceivePage from './pages/warehouse/ReceivePage';
 
-const SHOW_STAFF = import.meta.env.VITE_ENABLE_STAFF === 'true';
+const SHOW_WAREHOUSE = import.meta.env.VITE_ENABLE_STAFF === 'true';
 
 export default function App() {
   const { loading, error, setError } = useApp();
@@ -60,7 +57,7 @@ export default function App() {
           <Route path="info" element={<InfoPage />} />
         </Route>
 
-        <Route path="/account" element={<AccountLayout />}>
+        <Route path="/account" element={<BlockStaffFromCustomer><AccountLayout /></BlockStaffFromCustomer>}>
           <Route index element={<Navigate to="shop" replace />} />
           <Route path="shop" element={<AccountCatalogPage />} />
           <Route path="catalog" element={<Navigate to="/account/shop" replace />} />
@@ -72,25 +69,20 @@ export default function App() {
           <Route path="history" element={<HistoryPage />} />
         </Route>
 
-        {SHOW_STAFF && (
-          <>
-            <Route path="/admin" element={<AdminLayout />}>
-              <Route index element={<Navigate to="customers" replace />} />
-              <Route path="customers" element={<CustomersPage />} />
-              <Route path="plans" element={<PlansAdminPage />} />
-              <Route path="products" element={<ProductsAdminPage />} />
-              <Route path="inventory" element={<InventoryPage />} />
-              <Route path="orders" element={<OrdersAdminPage />} />
-              <Route path="more" element={<MoreAdminPage />} />
-            </Route>
+        <Route path="/admin" element={<AdminLayout />}>
+          <Route index element={<Navigate to="products" replace />} />
+          <Route path="products" element={<ProductsAdminPage />} />
+          <Route path="inventory" element={<InventoryPage />} />
+          <Route path="receive" element={<ReceivePage />} />
+        </Route>
 
-            <Route path="/warehouse" element={<WarehouseLayout />}>
-              <Route index element={<Navigate to="orders" replace />} />
-              <Route path="orders" element={<WarehouseOrdersPage />} />
-              <Route path="returns" element={<ReturnsPage />} />
-              <Route path="receive" element={<ReceivePage />} />
-            </Route>
-          </>
+        {SHOW_WAREHOUSE && (
+          <Route path="/warehouse" element={<WarehouseLayout />}>
+            <Route index element={<Navigate to="orders" replace />} />
+            <Route path="orders" element={<WarehouseOrdersPage />} />
+            <Route path="returns" element={<ReturnsPage />} />
+            <Route path="receive" element={<Navigate to="/admin/receive" replace />} />
+          </Route>
         )}
 
         <Route path="*" element={<Navigate to="/" replace />} />

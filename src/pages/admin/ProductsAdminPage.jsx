@@ -7,8 +7,11 @@ export default function ProductsAdminPage() {
 
   return (
     <>
-      <div className="display" style={{ fontSize: 22, marginBottom: 20 }}>
-        מוצרים
+      <div className="display" style={{ fontSize: 22, marginBottom: 8 }}>
+        מוצרים בחנות
+      </div>
+      <div className="muted" style={{ fontSize: 13, marginBottom: 20, maxWidth: 640, lineHeight: 1.6 }}>
+        כאן רואים את כל הפריטים בקטלוג, מעדכנים נקודות ומחיר, ומוסיפים יחידות חדשות למלאי בלשונית «הוספת פריטים למלאי».
       </div>
       <table className="table">
         <thead>

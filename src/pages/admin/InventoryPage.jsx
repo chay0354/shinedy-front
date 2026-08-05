@@ -7,8 +7,11 @@ export default function InventoryPage() {
 
   return (
     <>
-      <div className="display" style={{ fontSize: 22, marginBottom: 20 }}>
-        מלאי וסטטוסים
+      <div className="display" style={{ fontSize: 22, marginBottom: 8 }}>
+        ניהול מלאי
+      </div>
+      <div className="muted" style={{ fontSize: 13, marginBottom: 20, maxWidth: 640, lineHeight: 1.6 }}>
+        כל היחידות במערכת וסטטוס כל פריט — זמין, אצל לקוחה, בניקוי ועוד.
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
         {(state.inventory || []).map((g) => (

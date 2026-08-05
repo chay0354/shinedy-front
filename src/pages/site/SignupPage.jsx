@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { api } from '../../api';
 import { useApp } from '../../state/AppContext';
 import Button from '../../components/Button';
+import { homePathForRole } from '../../lib/roles';
 
 export default function SignupPage() {
   const { run, error } = useApp();
@@ -19,7 +20,7 @@ export default function SignupPage() {
     if (submitting) return;
     setSubmitting(true);
     try {
-      await run(async () => {
+      const data = await run(async () => {
         if (!form.fullName.trim() || !form.email.trim() || !form.password) {
           throw new Error('יש למלא שם, דוא״ל וסיסמה');
         }
@@ -32,7 +33,7 @@ export default function SignupPage() {
           fullName: form.fullName.trim(),
         });
       });
-      navigate('/plans');
+      navigate(homePathForRole(data.auth?.role));
     } catch {
       /* error shown via AppContext */
     } finally {
