@@ -28,7 +28,6 @@ export default function AdminLayout() {
               ניהול מערכת
             </div>
             <NavLink to="/admin/products">מוצרים בחנות</NavLink>
-            <NavLink to="/admin/receive">הוספת פריטים למלאי</NavLink>
             <NavLink to="/admin/inventory">ניהול מלאי</NavLink>
           </div>
           <div className="sidebar-footer">

@@ -11,7 +11,7 @@ export default function ProductsAdminPage() {
         מוצרים בחנות
       </div>
       <div className="muted" style={{ fontSize: 13, marginBottom: 20, maxWidth: 640, lineHeight: 1.6 }}>
-        כאן רואים את כל הפריטים בקטלוג, מעדכנים נקודות ומחיר, ומוסיפים יחידות חדשות למלאי בלשונית «הוספת פריטים למלאי».
+        כאן רואים את כל הפריטים בקטלוג ומעדכנים נקודות ומחיר. להוספת יחידות למלאי — «ניהול מלאי».
       </div>
       <table className="table">
         <thead>

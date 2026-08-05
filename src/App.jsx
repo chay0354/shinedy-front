@@ -23,7 +23,6 @@ import ProductsAdminPage from './pages/admin/ProductsAdminPage';
 import InventoryPage from './pages/admin/InventoryPage';
 import WarehouseOrdersPage from './pages/warehouse/WarehouseOrdersPage';
 import ReturnsPage from './pages/warehouse/ReturnsPage';
-import ReceivePage from './pages/warehouse/ReceivePage';
 
 const SHOW_WAREHOUSE = import.meta.env.VITE_ENABLE_STAFF === 'true';
 
@@ -73,7 +72,7 @@ export default function App() {
           <Route index element={<Navigate to="products" replace />} />
           <Route path="products" element={<ProductsAdminPage />} />
           <Route path="inventory" element={<InventoryPage />} />
-          <Route path="receive" element={<ReceivePage />} />
+          <Route path="receive" element={<Navigate to="/admin/inventory" replace />} />
         </Route>
 
         {SHOW_WAREHOUSE && (
@@ -81,7 +80,7 @@ export default function App() {
             <Route index element={<Navigate to="orders" replace />} />
             <Route path="orders" element={<WarehouseOrdersPage />} />
             <Route path="returns" element={<ReturnsPage />} />
-            <Route path="receive" element={<Navigate to="/admin/receive" replace />} />
+            <Route path="receive" element={<Navigate to="/admin/inventory" replace />} />
           </Route>
         )}
 

@@ -592,6 +592,14 @@ button.is-loading {
   transition: width 0.2s ease;
 }
 
+.inventory-add-btn {
+  min-width: 40px;
+  padding: 6px 14px;
+  font-size: 20px;
+  line-height: 1;
+  font-weight: 400;
+}
+
 .sidebar-footer {
   padding: 16px 12px 8px;
   border-top: 1px solid var(--border);
