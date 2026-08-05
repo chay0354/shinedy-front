@@ -1,5 +1,6 @@
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useApp } from '../state/AppContext';
+import Button from '../components/Button';
 
 export default function SiteLayout() {
   const { state } = useApp();
@@ -23,13 +24,13 @@ export default function SiteLayout() {
           <NavLink to="/info">מידע</NavLink>
         </nav>
         {state?.subscribed ? (
-          <button type="button" className="btn btn-primary" onClick={() => navigate('/account/me')}>
+          <Button type="button" className="btn btn-primary" onClick={() => navigate('/account/me')}>
             האזור שלי
-          </button>
+          </Button>
         ) : (
-          <button type="button" className="btn btn-primary" onClick={() => navigate('/login')}>
+          <Button type="button" className="btn btn-primary" onClick={() => navigate('/login')}>
             התחברות / הרשמה
-          </button>
+          </Button>
         )}
       </header>
       <Outlet />

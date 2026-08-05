@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import ImageSlot from './ImageSlot';
 import { api } from '../api';
 import { useApp } from '../state/AppContext';
+import Button from './Button';
 
 const CATEGORIES = [
   { id: 'הכל', label: 'הכל' },
@@ -56,7 +57,11 @@ export default function StoreHome({ guest = false, hideHero = false }) {
       navigate('/plans');
       return;
     }
-    await run(() => api.addToCart(product.id));
+    try {
+      await run(() => api.addToCart(product.id));
+    } catch {
+      /* error shown via AppContext */
+    }
   }
 
   function buyLabel(p) {
@@ -91,7 +96,7 @@ export default function StoreHome({ guest = false, hideHero = false }) {
                   : 'בחרי מהקולקציה עד מכסת הנקודות של המסלול. כל פריט מגיע עם נוכחות, והחלפה כשמתחשק משהו חדש.'}
               </p>
               <div className="store-hero-actions">
-                <button
+                <Button
                   type="button"
                   className="btn btn-primary"
                   onClick={() =>
@@ -99,15 +104,15 @@ export default function StoreHome({ guest = false, hideHero = false }) {
                   }
                 >
                   לקטלוג
-                </button>
+                </Button>
                 {guest || !subscribed ? (
-                  <button type="button" className="btn" onClick={() => navigate('/plans')}>
+                  <Button type="button" className="btn" onClick={() => navigate('/plans')}>
                     לצפייה במסלולים
-                  </button>
+                  </Button>
                 ) : (
-                  <button type="button" className="btn" onClick={() => navigate('/account/cart')}>
+                  <Button type="button" className="btn" onClick={() => navigate('/account/cart')}>
                     הזמנה נוכחית ({cartCount})
-                  </button>
+                  </Button>
                 )}
               </div>
             </div>
@@ -130,14 +135,14 @@ export default function StoreHome({ guest = false, hideHero = false }) {
                       <span>מזמינים תכשיטים</span>
                     </div>
                   </div>
-                  <button
+                  <Button
                     type="button"
                     className="btn btn-primary"
                     style={{ width: '100%', marginTop: 18, background: '#d4b06a', color: '#1a1815' }}
                     onClick={() => navigate('/plans')}
                   >
                     בחרי מסלול
-                  </button>
+                  </Button>
                 </div>
               ) : (
                 <div className="store-points-card">
@@ -205,9 +210,9 @@ export default function StoreHome({ guest = false, hideHero = false }) {
           <div>
             נקודות זמינות: <b className="accent">{state.remaining}</b> / {state.pointsTotal}
           </div>
-          <button type="button" className="btn btn-sm" onClick={() => navigate('/account/cart')}>
+          <Button type="button" className="btn btn-sm" onClick={() => navigate('/account/cart')}>
             הזמנה נוכחית ({cartCount})
-          </button>
+          </Button>
         </div>
       )}
 
@@ -278,14 +283,15 @@ export default function StoreHome({ guest = false, hideHero = false }) {
                           {p.availLabel}
                         </div>
                       </div>
-                      <button
+                      <Button
                         type="button"
                         className={`btn btn-sm${p.inCart && subscribed && !guest ? ' btn-primary' : ''}`}
                         disabled={buyDisabled(p)}
+                        loadingText="מוסיפה…"
                         onClick={() => handleBuy(p)}
                       >
                         {buyLabel(p)}
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 </article>

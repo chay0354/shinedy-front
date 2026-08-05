@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../state/AppContext';
 import StoreHome from '../../components/StoreHome';
+import Button from '../../components/Button';
 
 function LandingHero({ subscribed }) {
   const navigate = useNavigate();
@@ -47,14 +48,14 @@ function LandingHero({ subscribed }) {
         <div className="home-cta">
           {subscribed ? (
             <>
-              <button
+              <Button
                 type="button"
                 className="btn btn-primary home-btn"
                 onClick={() => navigate('/account/shop')}
               >
                 לחנות שלי
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
                 className="btn home-btn-ghost"
                 onClick={() =>
@@ -62,18 +63,18 @@ function LandingHero({ subscribed }) {
                 }
               >
                 לקולקציה
-              </button>
+              </Button>
             </>
           ) : (
             <>
-              <button
+              <Button
                 type="button"
                 className="btn btn-primary home-btn"
                 onClick={() => navigate('/plans')}
               >
                 לצפייה במסלולים
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
                 className="btn home-btn-ghost"
                 onClick={() =>
@@ -81,7 +82,7 @@ function LandingHero({ subscribed }) {
                 }
               >
                 לקולקציה
-              </button>
+              </Button>
             </>
           )}
         </div>

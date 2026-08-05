@@ -1,6 +1,7 @@
 import ImageSlot from '../../components/ImageSlot';
 import { api } from '../../api';
 import { useApp } from '../../state/AppContext';
+import Button from '../../components/Button';
 
 export default function WarehouseOrdersPage() {
   const { state, run } = useApp();
@@ -27,14 +28,15 @@ export default function WarehouseOrdersPage() {
                   </div>
                 </div>
                 {col.key !== 'נשלח' && (
-                  <button
+                  <Button
                     type="button"
                     className="btn btn-sm"
                     style={{ marginTop: 10, width: '100%' }}
+                    loadingText="מעדכן…"
                     onClick={() => run(() => api.advanceOrder(o.id))}
                   >
                     {o.nextLabel}
-                  </button>
+                  </Button>
                 )}
                 {col.key === 'נשלח' && (
                   <div className="muted" style={{ marginTop: 10, fontSize: 11, textAlign: 'center' }}>

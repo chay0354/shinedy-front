@@ -2,6 +2,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import ImageSlot from '../../components/ImageSlot';
 import { api } from '../../api';
 import { useApp } from '../../state/AppContext';
+import Button from '../../components/Button';
 
 export default function ProductPage() {
   const { id } = useParams();
@@ -23,8 +24,12 @@ export default function ProductPage() {
       navigate('/plans');
       return;
     }
-    await run(() => api.addToCart(p.id));
-    navigate('/account/cart');
+    try {
+      await run(() => api.addToCart(p.id));
+      navigate('/account/cart');
+    } catch {
+      /* error shown via AppContext */
+    }
   }
 
   return (
@@ -88,14 +93,15 @@ export default function ProductPage() {
           </div>
         )}
 
-        <button
+        <Button
           type="button"
           className="btn btn-primary"
           style={{ marginTop: 24, padding: '16px 32px' }}
+          loadingText="מוסיפה…"
           onClick={handleBuy}
         >
           {subscribed ? 'הוסיפי להזמנה' : 'הצטרפי למסלול כדי להזמין'}
-        </button>
+        </Button>
       </div>
     </div>
   );

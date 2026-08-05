@@ -1,3 +1,5 @@
+import Button from '../../components/Button';
+
 export default function InfoPage() {
   const faqs = [
     {
@@ -50,9 +52,9 @@ export default function InfoPage() {
           <input className="field" placeholder="שם" />
           <input className="field" placeholder="דוא״ל" />
           <textarea className="field" placeholder="הודעה" style={{ minHeight: 80 }} />
-          <button type="button" className="btn btn-primary" style={{ padding: 14 }}>
+          <Button type="button" className="btn btn-primary" style={{ padding: 14 }}>
             שליחה
-          </button>
+          </Button>
         </div>
       </div>
     </div>

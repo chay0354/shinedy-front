@@ -1,28 +1,23 @@
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../api';
 import { getToken } from '../../lib/auth';
 import { useApp } from '../../state/AppContext';
+import Button from '../../components/Button';
 
 export default function PlansPage() {
   const { state, run } = useApp();
   const navigate = useNavigate();
-  const [subscribing, setSubscribing] = useState(null);
 
   async function subscribe(planId) {
-    if (subscribing) return;
     if (!getToken()) {
       navigate('/login');
       return;
     }
-    setSubscribing(planId);
     try {
       await run(() => api.subscribe(planId));
       navigate('/account/shop');
     } catch {
       /* error shown via AppContext */
-    } finally {
-      setSubscribing(null);
     }
   }
 
@@ -61,15 +56,15 @@ export default function PlansPage() {
               <div>{pl.exchanges} החלפות בחודש</div>
               <div>{pl.shippingLabel}</div>
             </div>
-            <button
+            <Button
               type="button"
               className="btn btn-primary"
               style={{ marginTop: 8, padding: 14 }}
-              disabled={Boolean(subscribing)}
+              loadingText="שומר…"
               onClick={() => subscribe(pl.id)}
             >
-              {subscribing === pl.id ? 'שומר…' : 'הצטרפי למסלול'}
-            </button>
+              הצטרפי למסלול
+            </Button>
           </div>
         ))}
       </div>

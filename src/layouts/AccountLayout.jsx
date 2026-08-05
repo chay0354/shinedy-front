@@ -3,6 +3,7 @@ import { api } from '../api';
 import { useApp } from '../state/AppContext';
 import { clearSession } from '../lib/auth';
 import Flash from '../components/Flash';
+import Button from '../components/Button';
 
 const PERSONAL_PATHS = ['/account/me', '/account/dashboard', '/account/exchange', '/account/returns', '/account/history'];
 
@@ -69,9 +70,9 @@ export default function AccountLayout() {
           ) : null}
         </div>
         <div className="sidebar-footer">
-          <button type="button" className="sidebar-logout" onClick={handleLogout}>
+          <Button type="button" className="sidebar-logout" onClick={handleLogout}>
             התנתקות
-          </button>
+          </Button>
         </div>
       </aside>
       <div className={`main-pane${isStoreHome ? ' main-pane-store' : ''}`}>

@@ -1,24 +1,19 @@
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ImageSlot from '../../components/ImageSlot';
 import { api } from '../../api';
 import { useApp } from '../../state/AppContext';
+import Button from '../../components/Button';
 
 export default function CartPage() {
   const { state, run } = useApp();
   const navigate = useNavigate();
-  const [confirming, setConfirming] = useState(false);
 
   async function confirm() {
-    if (confirming) return;
-    setConfirming(true);
     try {
       await run(() => api.confirmOrder());
       navigate('/account/shop');
     } catch {
       /* error shown via AppContext */
-    } finally {
-      setConfirming(false);
     }
   }
 
@@ -54,14 +49,15 @@ export default function CartPage() {
                   {p.points} נק׳
                 </div>
               </div>
-              <button
+              <Button
                 type="button"
                 className="accent"
                 style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 13 }}
+                loadingText="מסירה…"
                 onClick={() => run(() => api.removeFromCart(p.id))}
               >
                 הסרה
-              </button>
+              </Button>
             </div>
           ))}
           <div
@@ -78,15 +74,15 @@ export default function CartPage() {
               {state.cartTotal} / {state.pointsTotal}
             </b>
           </div>
-          <button
+          <Button
             type="button"
             className="btn btn-primary"
             style={{ padding: 16 }}
-            disabled={confirming}
+            loadingText="שולחת הזמנה…"
             onClick={confirm}
           >
-            {confirming ? 'שולחת הזמנה…' : 'אשרי הזמנה'}
-          </button>
+            אשרי הזמנה
+          </Button>
         </div>
       )}
     </>

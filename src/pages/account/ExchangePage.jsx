@@ -4,6 +4,7 @@ import ImageSlot from '../../components/ImageSlot';
 import { api } from '../../api';
 import { useApp } from '../../state/AppContext';
 import { customerStatusLabel } from '../../utils/customerStatus';
+import Button from '../../components/Button';
 
 export default function ExchangePage() {
   const { state, run, refresh } = useApp();
@@ -16,8 +17,12 @@ export default function ExchangePage() {
   const pointsBack = selectedReturns.reduce((sum, r) => sum + r.points, 0);
 
   async function confirm() {
-    await run(() => api.confirmExchange());
-    navigate('/account/returns');
+    try {
+      await run(() => api.confirmExchange());
+      navigate('/account/returns');
+    } catch {
+      /* error shown via AppContext */
+    }
   }
 
   return (
@@ -126,14 +131,15 @@ export default function ExchangePage() {
           <div className="muted" style={{ fontSize: 12, marginTop: 8, lineHeight: 1.5 }}>
             לאחר האישור הסטטוס יהיה «בתהליך החזרה». הנקודות ייזקפו רק כשהמחסן יאשר קבלה.
           </div>
-          <button
+          <Button
             type="button"
             className="btn btn-primary"
             style={{ marginTop: 18, width: '100%', padding: 16 }}
+            loadingText="מאשרת…"
             onClick={confirm}
           >
             אישור החזרה
-          </button>
+          </Button>
         </div>
       )}
     </>

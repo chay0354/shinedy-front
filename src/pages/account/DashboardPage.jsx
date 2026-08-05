@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import ImageSlot from '../../components/ImageSlot';
 import { useApp } from '../../state/AppContext';
 import { customerStatusLabel } from '../../utils/customerStatus';
+import Button from '../../components/Button';
 
 export default function DashboardPage() {
   const { state } = useApp();
@@ -203,13 +204,13 @@ export default function DashboardPage() {
               {state.myReturnPouches[0].statusLabel}
             </div>
           </div>
-          <button
+          <Button
             type="button"
             className="btn btn-sm"
             onClick={() => navigate('/account/returns')}
           >
             פרטי החזרה
-          </button>
+          </Button>
         </div>
       )}
 

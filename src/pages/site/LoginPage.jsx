@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { api } from '../../api';
 import { useApp } from '../../state/AppContext';
 import { applySessionFromResponse } from '../../lib/auth';
+import Button from '../../components/Button';
 
 export default function LoginPage() {
   const [tab, setTab] = useState('login');
@@ -63,14 +64,15 @@ export default function LoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
-            <button
+            <Button
               type="button"
               className="btn btn-primary"
               style={{ width: '100%', padding: 14 }}
+              loadingText="נכנסת…"
               onClick={enter}
             >
               כניסה
-            </button>
+            </Button>
           </div>
         ) : null}
       </div>

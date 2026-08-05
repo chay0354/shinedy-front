@@ -4,6 +4,7 @@ import { api } from '../../api';
 import { useApp } from '../../state/AppContext';
 import { customerStatusLabel } from '../../utils/customerStatus';
 import { RETURN_STARTED_MESSAGE } from '../../utils/returnMessages';
+import Button from '../../components/Button';
 
 export default function ReturnPouchPage() {
   const { state, run } = useApp();
@@ -26,14 +27,14 @@ export default function ReturnPouchPage() {
           החזרה
         </div>
         <div className="empty">אין החזרה פעילה. בצעי החזרה מתוך מסך החלפת תכשיטים.</div>
-        <button
+        <Button
           type="button"
           className="btn btn-primary"
           style={{ marginTop: 20 }}
           onClick={() => navigate('/account/exchange')}
         >
           להחזרת תכשיטים
-        </button>
+        </Button>
       </>
     );
   }
@@ -44,8 +45,12 @@ export default function ReturnPouchPage() {
     if (!pouch.canCancel) return;
     const ok = window.confirm('לבטל את ההחזרה? התכשיטים יישארו אצלך.');
     if (!ok) return;
-    await run(() => api.cancelReturn(pouch.id));
-    navigate('/account/me');
+    try {
+      await run(() => api.cancelReturn(pouch.id));
+      navigate('/account/me');
+    } catch {
+      /* error shown via AppContext */
+    }
   }
 
   return (
@@ -150,14 +155,15 @@ export default function ReturnPouchPage() {
               )}
 
               {pouch.canCancel && (
-                <button
+                <Button
                   type="button"
                   className="btn"
                   style={{ marginTop: 24, borderColor: 'var(--danger, #c44)' }}
+                  loadingText="מבטלת…"
                   onClick={() => handleCancel(pouch)}
                 >
                   ביטול החזרה
-                </button>
+                </Button>
               )}
             </div>
           </div>

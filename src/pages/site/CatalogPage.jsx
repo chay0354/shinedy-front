@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import ImageSlot from '../../components/ImageSlot';
 import { api } from '../../api';
 import { useApp } from '../../state/AppContext';
+import Button from '../../components/Button';
 
 const CATEGORIES = [
   { id: 'הכל', label: 'הכל' },
@@ -45,8 +46,12 @@ export default function CatalogPage() {
       navigate('/plans');
       return;
     }
-    await run(() => api.addToCart(p.id));
-    navigate('/account/cart');
+    try {
+      await run(() => api.addToCart(p.id));
+      navigate('/account/cart');
+    } catch {
+      /* error shown via AppContext */
+    }
   }
 
   return (
@@ -112,14 +117,15 @@ export default function CatalogPage() {
                         {p.availLabel}
                       </div>
                     </div>
-                    <button
+                    <Button
                       type="button"
                       className="btn btn-sm"
                       disabled={subscribed ? p.addDisabled : false}
+                      loadingText="מוסיפה…"
                       onClick={() => handleBuy(p)}
                     >
                       {subscribed ? p.buttonLabel || 'הוסיפי לסל' : 'הצטרפי כדי להזמין'}
-                    </button>
+                    </Button>
                   </div>
                 </div>
               </article>

@@ -3,6 +3,7 @@ import ImageSlot from '../../components/ImageSlot';
 import QrCard from '../../components/QrCard';
 import { api } from '../../api';
 import { useApp } from '../../state/AppContext';
+import Button from '../../components/Button';
 
 export default function ReturnsPage() {
   const { state, run } = useApp();
@@ -43,14 +44,15 @@ export default function ReturnsPage() {
               if (e.key === 'Enter' && qrInput.trim()) handleScan(qrInput);
             }}
           />
-          <button
+          <Button
             type="button"
             className="btn btn-primary"
             disabled={!qrInput.trim()}
+            loadingText="סורק…"
             onClick={() => handleScan(qrInput)}
           >
             סריקה
-          </button>
+          </Button>
         </div>
         {scanError && (
           <div style={{ color: '#8C4A34', fontSize: 13, marginTop: 10 }}>{scanError}</div>
@@ -96,13 +98,14 @@ export default function ReturnsPage() {
                 </div>
 
                 {pouch.status === 'in_transit' && (
-                  <button
+                  <Button
                     type="button"
                     className="btn btn-primary btn-sm"
+                    loadingText="סורק…"
                     onClick={() => handleScan(pouch.qr)}
                   >
                     סריקת QR
-                  </button>
+                  </Button>
                 )}
               </div>
 
@@ -141,14 +144,15 @@ export default function ReturnsPage() {
                       </div>
                     ))}
                   </div>
-                  <button
+                  <Button
                     type="button"
                     className="btn btn-primary"
+                    loadingText="מאשר…"
                     onClick={() => run(() => api.confirmPouchContents(pouch.id))}
                   >
                     אישור קבלת הפריטים
                     {pouch.pendingPoints ? ` (+${pouch.pendingPoints} נק׳ ללקוחה)` : ''}
-                  </button>
+                  </Button>
                 </div>
               )}
 
@@ -193,24 +197,26 @@ export default function ReturnsPage() {
                           </span>
                           {pending && (
                             <div style={{ display: 'flex', gap: 8 }}>
-                              <button
+                              <Button
                                 type="button"
                                 className="btn btn-primary btn-sm"
+                                loadingText="שומר…"
                                 onClick={() =>
                                   run(() => api.pouchItemQC(pouch.id, it.unitId, 'ok'))
                                 }
                               >
                                 תקין → לניקוי
-                              </button>
-                              <button
+                              </Button>
+                              <Button
                                 type="button"
                                 className="btn btn-sm"
+                                loadingText="שומר…"
                                 onClick={() =>
                                   run(() => api.pouchItemQC(pouch.id, it.unitId, 'repair'))
                                 }
                               >
                                 דורש תיקון
-                              </button>
+                              </Button>
                             </div>
                           )}
                         </div>
@@ -248,13 +254,14 @@ export default function ReturnsPage() {
               <span style={{ fontSize: 13 }}>
                 {c.name} · {c.unitId}
               </span>
-              <button
+              <Button
                 type="button"
                 className="btn btn-sm"
+                loadingText="שומר…"
                 onClick={() => run(() => api.markClean(c.unitId))}
               >
                 זמין במלאי
-              </button>
+              </Button>
             </div>
           ))}
         </div>

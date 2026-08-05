@@ -1,5 +1,6 @@
 import { api } from '../../api';
 import { useApp } from '../../state/AppContext';
+import Button from '../../components/Button';
 
 export default function ReceivePage() {
   const { state, run } = useApp();
@@ -19,13 +20,14 @@ export default function ReceivePage() {
             <span style={{ fontSize: 13 }}>
               {p.id} — {p.name}
             </span>
-            <button
+            <Button
               type="button"
               className="btn btn-sm"
+              loadingText="קולט…"
               onClick={() => run(() => api.receiveUnit(p.id))}
             >
               קליטת יחידה
-            </button>
+            </Button>
           </div>
         ))}
       </div>

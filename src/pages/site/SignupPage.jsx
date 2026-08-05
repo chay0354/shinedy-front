@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../api';
 import { useApp } from '../../state/AppContext';
+import Button from '../../components/Button';
 
 export default function SignupPage() {
   const { run, error } = useApp();
@@ -84,15 +85,17 @@ export default function SignupPage() {
           onChange={(e) => setForm({ ...form, passwordConfirm: e.target.value })}
         />
 
-        <button
+        <Button
           type="button"
           className="btn btn-primary"
           style={{ width: '100%', padding: 14, marginTop: 8 }}
+          loading={submitting}
+          loadingText="נרשמת…"
           disabled={submitting}
           onClick={submit}
         >
-          {submitting ? 'נרשמת…' : 'הרשמה'}
-        </button>
+          הרשמה
+        </Button>
 
         <button
           type="button"
