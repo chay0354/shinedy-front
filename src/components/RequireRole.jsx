@@ -21,6 +21,9 @@ export function RequireRole({ role, roles, children }) {
 
   const userRole = state?.auth?.role;
   if (!userRole || !allowed.includes(userRole)) {
+    if (!userRole) {
+      return <Navigate to="/login" replace />;
+    }
     return <Navigate to={homePathForRole(userRole)} replace />;
   }
 
@@ -38,7 +41,10 @@ export function BlockStaffFromCustomer({ children }) {
     );
   }
 
-  if (state?.auth?.role === 'admin' || state?.auth?.role === 'warehouse') {
+  if (
+    getToken() &&
+    (state?.auth?.role === 'admin' || state?.auth?.role === 'warehouse')
+  ) {
     return <Navigate to={homePathForRole(state.auth.role)} replace />;
   }
 

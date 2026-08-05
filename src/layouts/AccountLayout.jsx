@@ -8,7 +8,7 @@ import Button from '../components/Button';
 const PERSONAL_PATHS = ['/account/me', '/account/dashboard', '/account/exchange', '/account/returns', '/account/history'];
 
 export default function AccountLayout() {
-  const { state, run } = useApp();
+  const { state, run, refresh } = useApp();
   const location = useLocation();
   const navigate = useNavigate();
   const cartCount = state?.cart?.length || 0;
@@ -35,7 +35,8 @@ export default function AccountLayout() {
       /* ignore */
     } finally {
       clearSession();
-      navigate('/login');
+      await refresh();
+      navigate('/login', { replace: true });
     }
   }
 

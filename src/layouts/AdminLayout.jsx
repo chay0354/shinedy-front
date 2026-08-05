@@ -6,7 +6,7 @@ import Button from '../components/Button';
 import { RequireRole } from '../components/RequireRole';
 
 export default function AdminLayout() {
-  const { run } = useApp();
+  const { run, refresh } = useApp();
   const navigate = useNavigate();
 
   async function handleLogout() {
@@ -16,7 +16,8 @@ export default function AdminLayout() {
       /* ignore */
     } finally {
       clearSession();
-      navigate('/login');
+      await refresh();
+      navigate('/login', { replace: true });
     }
   }
 

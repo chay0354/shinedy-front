@@ -3,20 +3,23 @@ import { useEffect } from 'react';
 import { useApp } from '../state/AppContext';
 import Button from '../components/Button';
 import { isAdmin, isStaff } from '../lib/roles';
+import { getToken } from '../lib/auth';
 
 export default function SiteLayout() {
   const { state } = useApp();
   const navigate = useNavigate();
   const location = useLocation();
   const isHome = location.pathname === '/';
+  const isAuthPage = location.pathname === '/login' || location.pathname === '/signup';
 
   useEffect(() => {
+    if (!getToken() || isAuthPage) return;
     if (isAdmin(state)) {
       navigate('/admin/products', { replace: true });
     } else if (isStaff(state)) {
       navigate('/warehouse/orders', { replace: true });
     }
-  }, [state, navigate]);
+  }, [state, navigate, isAuthPage]);
 
   return (
     <>
@@ -33,11 +36,11 @@ export default function SiteLayout() {
           <NavLink to="/catalog">קטלוג</NavLink>
           <NavLink to="/info">מידע</NavLink>
         </nav>
-        {isAdmin(state) ? (
+        {getToken() && isAdmin(state) ? (
           <Button type="button" className="btn btn-primary" onClick={() => navigate('/admin/products')}>
             ניהול
           </Button>
-        ) : isStaff(state) ? (
+        ) : getToken() && isStaff(state) ? (
           <Button type="button" className="btn btn-primary" onClick={() => navigate('/warehouse/orders')}>
             מחסן
           </Button>
