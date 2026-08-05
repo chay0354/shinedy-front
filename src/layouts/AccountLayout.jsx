@@ -61,11 +61,6 @@ export default function AccountLayout() {
           <NavLink to="/account/me" className={() => (isPersonal ? 'active' : '')}>
             אזור אישי
           </NavLink>
-          {needsPlan ? (
-            <NavLink to="/account/plans" className={() => (isPlansRoute ? 'active' : '')}>
-              בחירת מסלול
-            </NavLink>
-          ) : null}
           {state?.subscribed ? (
             <div className="sidebar-points">
               <div className="sidebar-points-label">נקודות זמינות</div>

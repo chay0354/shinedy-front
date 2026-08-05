@@ -16,10 +16,17 @@ export default function SiteLayout() {
     if (!getToken() || isAuthPage) return;
     if (isAdmin(state)) {
       navigate('/admin/products', { replace: true });
-    } else if (isStaff(state)) {
-      navigate('/warehouse/orders', { replace: true });
+      return;
     }
-  }, [state, navigate, isAuthPage]);
+    if (isStaff(state)) {
+      navigate('/warehouse/orders', { replace: true });
+      return;
+    }
+    // Logged-in customers: plan selection stays inside account layout (with sidebar)
+    if (location.pathname === '/plans' && state && !state.subscribed) {
+      navigate('/account/plans', { replace: true });
+    }
+  }, [state, navigate, isAuthPage, location.pathname]);
 
   return (
     <>

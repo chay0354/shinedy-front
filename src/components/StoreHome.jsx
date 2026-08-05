@@ -52,9 +52,13 @@ export default function StoreHome({ guest = false, hideHero = false }) {
     ? Math.round(((state.remaining ?? 0) / state.pointsTotal) * 100)
     : 0;
 
+  function goToPlans() {
+    navigate(guest ? '/plans' : '/account/plans');
+  }
+
   async function handleBuy(product) {
     if (!subscribed || guest) {
-      navigate('/plans');
+      goToPlans();
       return;
     }
     await run(() => api.addToCart(product.id));
@@ -102,7 +106,7 @@ export default function StoreHome({ guest = false, hideHero = false }) {
                   לקטלוג
                 </Button>
                 {guest || !subscribed ? (
-                  <Button type="button" className="btn" onClick={() => navigate('/plans')}>
+                  <Button type="button" className="btn" onClick={goToPlans}>
                     לצפייה במסלולים
                   </Button>
                 ) : (
@@ -135,7 +139,7 @@ export default function StoreHome({ guest = false, hideHero = false }) {
                     type="button"
                     className="btn btn-primary"
                     style={{ width: '100%', marginTop: 18, background: '#d4b06a', color: '#1a1815' }}
-                    onClick={() => navigate('/plans')}
+                    onClick={goToPlans}
                   >
                     בחרי מסלול
                   </Button>
