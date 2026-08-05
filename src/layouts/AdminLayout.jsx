@@ -2,7 +2,6 @@ import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { api } from '../api';
 import { useApp } from '../state/AppContext';
 import { clearSession } from '../lib/auth';
-import Flash from '../components/Flash';
 import Button from '../components/Button';
 import { RequireRole } from '../components/RequireRole';
 
@@ -37,7 +36,6 @@ export default function AdminLayout() {
           </div>
         </aside>
         <div className="main-pane">
-          <Flash />
           <Outlet />
         </div>
       </div>
