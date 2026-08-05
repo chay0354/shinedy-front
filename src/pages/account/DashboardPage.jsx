@@ -9,7 +9,7 @@ export default function DashboardPage() {
   const actions = [
     {
       title: 'החזרת תכשיטים',
-      text: 'סמני מה להחזיר — יווצר QR לנרתיק; הנקודות יחזרו אחרי אישור במחסן',
+      text: 'סמני מה להחזיר — הנקודות יחזרו אחרי אישור המחסן',
       to: '/account/exchange',
       primary: true,
     },
@@ -198,9 +198,9 @@ export default function DashboardPage() {
           }}
         >
           <div>
-            <div style={{ fontWeight: 600 }}>נרתיק החזרה פעיל</div>
+            <div style={{ fontWeight: 600 }}>החזרה פעילה</div>
             <div className="muted" style={{ fontSize: 13, marginTop: 4 }}>
-              {state.myReturnPouches[0].qr} · {state.myReturnPouches[0].statusLabel}
+              {state.myReturnPouches[0].statusLabel}
             </div>
           </div>
           <button
@@ -208,7 +208,7 @@ export default function DashboardPage() {
             className="btn btn-sm"
             onClick={() => navigate('/account/returns')}
           >
-            הצג QR
+            פרטי החזרה
           </button>
         </div>
       )}

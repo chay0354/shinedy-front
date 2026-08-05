@@ -41,8 +41,7 @@ export default function ExchangePage() {
         החזרת תכשיטים
       </div>
       <div className="muted" style={{ fontSize: 13, marginBottom: 24, maxWidth: 560, lineHeight: 1.6 }}>
-        סמני מה להחזיר וצרי נרתיק עם QR. הסטטוס יהיה <b>בתהליך החזרה</b>. הנקודות יחזרו
-        ליתרה רק אחרי שהמחסן יסרוק ויאשר את התכולה.
+        סמני מה להחזיר ואשרי את ההחזרה. הסטטוס יהיה <b>בתהליך החזרה</b>.
       </div>
 
       <div style={{ fontWeight: 600, marginBottom: 12 }}>סמני אילו תכשיטים להחזיר</div>
@@ -95,7 +94,7 @@ export default function ExchangePage() {
       {selectedReturns.length > 0 && (
         <div className="panel" style={{ maxWidth: 520, padding: 20 }}>
           <div className="muted" style={{ fontSize: 12, marginBottom: 10 }}>
-            סיכום — לפני יצירת QR
+            סיכום — לפני אישור ההחזרה
           </div>
           {selectedReturns.map((r) => (
             <div
@@ -125,8 +124,7 @@ export default function ExchangePage() {
             <span className="accent">{pointsBack} נקודות</span>
           </div>
           <div className="muted" style={{ fontSize: 12, marginTop: 8, lineHeight: 1.5 }}>
-            אחרי יצירת ה־QR הסטטוס יהיה «בתהליך החזרה». הנקודות ייזקפו רק כשהמחסן יאשר
-            קבלה.
+            לאחר האישור הסטטוס יהיה «בתהליך החזרה». הנקודות ייזקפו רק כשהמחסן יאשר קבלה.
           </div>
           <button
             type="button"
@@ -134,7 +132,7 @@ export default function ExchangePage() {
             style={{ marginTop: 18, width: '100%', padding: 16 }}
             onClick={confirm}
           >
-            צרי QR לנרתיק החזרה
+            אישור החזרה
           </button>
         </div>
       )}

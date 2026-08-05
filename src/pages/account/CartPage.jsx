@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ImageSlot from '../../components/ImageSlot';
 import { api } from '../../api';
@@ -6,6 +7,20 @@ import { useApp } from '../../state/AppContext';
 export default function CartPage() {
   const { state, run } = useApp();
   const navigate = useNavigate();
+  const [confirming, setConfirming] = useState(false);
+
+  async function confirm() {
+    if (confirming) return;
+    setConfirming(true);
+    try {
+      await run(() => api.confirmOrder());
+      navigate('/account/shop');
+    } catch {
+      /* error shown via AppContext */
+    } finally {
+      setConfirming(false);
+    }
+  }
 
   return (
     <>
@@ -67,9 +82,10 @@ export default function CartPage() {
             type="button"
             className="btn btn-primary"
             style={{ padding: 16 }}
-            onClick={() => run(() => api.confirmOrder())}
+            disabled={confirming}
+            onClick={confirm}
           >
-            אשרי הזמנה
+            {confirming ? 'שולחת הזמנה…' : 'אשרי הזמנה'}
           </button>
         </div>
       )}

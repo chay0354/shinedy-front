@@ -35,12 +35,10 @@ export default function HistoryPage() {
                 <div className="muted" style={{ fontSize: 12 }}>
                   {o.itemsLabel}
                 </div>
-                {o.qr && (
+                {o.pouchId && (
                   <div style={{ fontSize: 12, marginTop: 6 }}>
-                    QR נרתיק: <b className="accent">{o.qr}</b>
-                    {' · '}
                     <Link to="/account/returns" className="accent">
-                      לצפייה בנרתיק
+                      לצפייה בהחזרה
                     </Link>
                   </div>
                 )}

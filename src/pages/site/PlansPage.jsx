@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../api';
 import { useApp } from '../../state/AppContext';
@@ -5,10 +6,19 @@ import { useApp } from '../../state/AppContext';
 export default function PlansPage() {
   const { state, run } = useApp();
   const navigate = useNavigate();
+  const [subscribing, setSubscribing] = useState(null);
 
   async function subscribe(planId) {
-    await run(() => api.subscribe(planId));
-    navigate('/account/shop');
+    if (subscribing) return;
+    setSubscribing(planId);
+    try {
+      await run(() => api.subscribe(planId));
+      navigate('/account/shop');
+    } catch {
+      /* error shown via AppContext */
+    } finally {
+      setSubscribing(null);
+    }
   }
 
   return (
@@ -24,9 +34,6 @@ export default function PlansPage() {
           <div key={pl.id} className="plan-card">
             <div className="display" style={{ fontSize: 24 }}>
               {pl.name}
-            </div>
-            <div className="accent" style={{ fontSize: 13 }}>
-              {pl.tagline}
             </div>
             <div style={{ fontSize: 32, fontWeight: 600 }}>
               ₪{pl.price}
@@ -53,9 +60,10 @@ export default function PlansPage() {
               type="button"
               className="btn btn-primary"
               style={{ marginTop: 8, padding: 14 }}
+              disabled={Boolean(subscribing)}
               onClick={() => subscribe(pl.id)}
             >
-              הצטרפי למסלול
+              {subscribing === pl.id ? 'שומר…' : 'הצטרפי למסלול'}
             </button>
           </div>
         ))}
