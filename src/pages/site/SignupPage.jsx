@@ -33,9 +33,8 @@ export default function SignupPage() {
           fullName: form.fullName.trim(),
         });
       });
+      if (!data) return;
       navigate(homePathForRole(data.auth?.role));
-    } catch {
-      /* error shown via AppContext */
     } finally {
       setSubmitting(false);
     }

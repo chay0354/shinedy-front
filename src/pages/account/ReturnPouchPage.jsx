@@ -45,12 +45,9 @@ export default function ReturnPouchPage() {
     if (!pouch.canCancel) return;
     const ok = window.confirm('לבטל את ההחזרה? התכשיטים יישארו אצלך.');
     if (!ok) return;
-    try {
-      await run(() => api.cancelReturn(pouch.id));
-      navigate('/account/me');
-    } catch {
-      /* error shown via AppContext */
-    }
+    const data = await run(() => api.cancelReturn(pouch.id));
+    if (!data) return;
+    navigate('/account/me');
   }
 
   return (

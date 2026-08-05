@@ -57,11 +57,7 @@ export default function StoreHome({ guest = false, hideHero = false }) {
       navigate('/plans');
       return;
     }
-    try {
-      await run(() => api.addToCart(product.id));
-    } catch {
-      /* error shown via AppContext */
-    }
+    await run(() => api.addToCart(product.id));
   }
 
   function buyLabel(p) {

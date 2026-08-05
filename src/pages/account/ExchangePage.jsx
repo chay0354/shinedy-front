@@ -17,12 +17,9 @@ export default function ExchangePage() {
   const pointsBack = selectedReturns.reduce((sum, r) => sum + r.points, 0);
 
   async function confirm() {
-    try {
-      await run(() => api.confirmExchange());
-      navigate('/account/returns');
-    } catch {
-      /* error shown via AppContext */
-    }
+    const data = await run(() => api.confirmExchange());
+    if (!data) return;
+    navigate('/account/returns');
   }
 
   return (
@@ -66,7 +63,7 @@ export default function ExchangePage() {
               className="panel"
               onClick={() => {
                 if (!it.unitId) return;
-                void run(() => api.toggleReturn(it.unitId)).catch(() => {});
+                void run(() => api.toggleReturn(it.unitId));
               }}
               style={{
                 cursor: 'pointer',

@@ -21,6 +21,7 @@ export default function LoginPage() {
     }
     setFormError('');
     const data = await run(() => api.login({ email: email.trim(), password }));
+    if (!data) return;
     applySessionFromResponse(data);
     navigate(homePathForRole(data.auth?.role));
   }

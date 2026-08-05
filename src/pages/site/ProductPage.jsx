@@ -24,12 +24,9 @@ export default function ProductPage() {
       navigate('/plans');
       return;
     }
-    try {
-      await run(() => api.addToCart(p.id));
-      navigate('/account/cart');
-    } catch {
-      /* error shown via AppContext */
-    }
+    const data = await run(() => api.addToCart(p.id));
+    if (!data) return;
+    navigate('/account/cart');
   }
 
   return (

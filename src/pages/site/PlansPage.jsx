@@ -13,12 +13,9 @@ export default function PlansPage() {
       navigate('/login');
       return;
     }
-    try {
-      await run(() => api.subscribe(planId));
-      navigate('/account/shop');
-    } catch {
-      /* error shown via AppContext */
-    }
+    const data = await run(() => api.subscribe(planId));
+    if (!data) return;
+    navigate('/account/shop');
   }
 
   return (

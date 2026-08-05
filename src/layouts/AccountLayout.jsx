@@ -29,9 +29,14 @@ export default function AccountLayout() {
   );
 
   async function handleLogout() {
-    clearSession();
-    await run(() => api.logout());
-    navigate('/login');
+    try {
+      await run(() => api.logout());
+    } catch {
+      /* ignore */
+    } finally {
+      clearSession();
+      navigate('/login');
+    }
   }
 
   return (

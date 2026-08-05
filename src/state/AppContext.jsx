@@ -36,7 +36,7 @@ export function AppProvider({ children }) {
       } catch {
         /* keep last known state if refresh fails */
       }
-      throw e;
+      return null;
     }
   }, []);
 

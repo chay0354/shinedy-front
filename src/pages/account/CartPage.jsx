@@ -9,12 +9,9 @@ export default function CartPage() {
   const navigate = useNavigate();
 
   async function confirm() {
-    try {
-      await run(() => api.confirmOrder());
-      navigate('/account/shop');
-    } catch {
-      /* error shown via AppContext */
-    }
+    const data = await run(() => api.confirmOrder());
+    if (!data) return;
+    navigate('/account/shop');
   }
 
   return (
