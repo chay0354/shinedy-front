@@ -47,6 +47,26 @@ export default function AccountLayout() {
           <NavLink to="/account/me" className={() => (isPersonal ? 'active' : '')}>
             אזור אישי
           </NavLink>
+          {state?.subscribed ? (
+            <div className="sidebar-points">
+              <div className="sidebar-points-label">נקודות זמינות</div>
+              <div className="sidebar-points-value">
+                {state.remaining ?? 0}
+                <span>/ {state.pointsTotal ?? 0}</span>
+              </div>
+              {state.pointsTotal > 0 ? (
+                <div className="sidebar-points-bar">
+                  <div
+                    style={{
+                      width: `${Math.round(
+                        ((state.remaining ?? 0) / state.pointsTotal) * 100,
+                      )}%`,
+                    }}
+                  />
+                </div>
+              ) : null}
+            </div>
+          ) : null}
         </div>
         <div className="sidebar-footer">
           <button type="button" className="sidebar-logout" onClick={handleLogout}>

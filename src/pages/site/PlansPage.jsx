@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../api';
+import { getToken } from '../../lib/auth';
 import { useApp } from '../../state/AppContext';
 
 export default function PlansPage() {
@@ -10,6 +11,10 @@ export default function PlansPage() {
 
   async function subscribe(planId) {
     if (subscribing) return;
+    if (!getToken()) {
+      navigate('/login');
+      return;
+    }
     setSubscribing(planId);
     try {
       await run(() => api.subscribe(planId));

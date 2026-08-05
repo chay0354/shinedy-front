@@ -4,19 +4,21 @@ import { api } from '../../api';
 import { useApp } from '../../state/AppContext';
 import { applySessionFromResponse } from '../../lib/auth';
 
-const USE_DB = import.meta.env.VITE_USE_DATABASE === 'true';
-
 export default function LoginPage() {
   const [tab, setTab] = useState('login');
-  const [email, setEmail] = useState('demo@shinedy.co.il');
-  const [password, setPassword] = useState('demo');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [formError, setFormError] = useState('');
   const { run } = useApp();
   const navigate = useNavigate();
 
   async function enter() {
-    const data = await run(() =>
-      api.login(USE_DB ? { email, password } : undefined),
-    );
+    if (!email.trim() || !password) {
+      setFormError('נא למלא דוא״ל וסיסמה');
+      return;
+    }
+    setFormError('');
+    const data = await run(() => api.login({ email: email.trim(), password }));
     applySessionFromResponse(data);
     navigate('/account/shop');
   }
@@ -43,6 +45,11 @@ export default function LoginPage() {
 
         {tab === 'login' ? (
           <div>
+            {formError ? (
+              <div className="error-banner" style={{ marginBottom: 12 }}>
+                {formError}
+              </div>
+            ) : null}
             <input
               className="field"
               placeholder="דוא״ל"

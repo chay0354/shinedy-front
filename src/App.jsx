@@ -1,5 +1,4 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
-import RoleBar from './components/RoleBar';
 import { useApp } from './state/AppContext';
 import SiteLayout from './layouts/SiteLayout';
 import AccountLayout from './layouts/AccountLayout';
@@ -44,7 +43,6 @@ export default function App() {
 
   return (
     <div className="app-shell">
-      <RoleBar />
       {error && (
         <div className="error-banner" onClick={() => setError(null)} style={{ cursor: 'pointer' }}>
           {error} — ודאי שה־API רץ על פורט 4000

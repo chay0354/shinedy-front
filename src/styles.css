@@ -487,11 +487,59 @@ a {
 .sidebar-account {
   display: flex;
   flex-direction: column;
-  min-height: calc(100vh - 45px);
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
+  height: 100vh;
+  max-height: 100vh;
+  overflow: hidden;
 }
 
 .sidebar-top {
-  flex: 1;
+  flex: 0 0 auto;
+}
+
+.sidebar-points {
+  margin: 8px 12px 0;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+}
+
+.sidebar-points-label {
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.sidebar-points-value {
+  font-family: var(--font-display);
+  font-size: 22px;
+  line-height: 1.2;
+  color: var(--accent);
+}
+
+.sidebar-points-value span {
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.sidebar-points-bar {
+  margin-top: 10px;
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.sidebar-points-bar > div {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 2px;
+  transition: width 0.2s ease;
 }
 
 .sidebar-footer {
@@ -779,6 +827,14 @@ a {
     flex-direction: row;
     flex-wrap: wrap;
     align-items: center;
+    position: static;
+    height: auto;
+    max-height: none;
+    overflow-x: auto;
+  }
+
+  .sidebar-points {
+    display: none;
   }
 
   .sidebar-top {
