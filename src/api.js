@@ -28,12 +28,20 @@ async function request(path, options = {}) {
       headers: authHeaders(options.headers),
     });
   } catch {
-    throw new Error('לא ניתן להתחבר לשרת — ודאי שה-backend רץ (npm run dev בתיקיית backend)');
+    throw new Error(
+      import.meta.env.DEV
+        ? 'לא ניתן להתחבר לשרת — ודאי שה-backend רץ (npm run dev בתיקיית backend)'
+        : 'לא ניתן להתחבר לשרת כרגע. נסי שוב בעוד רגע.',
+    );
   }
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
-    if (res.status === 404) {
-      throw new Error('נתיב API לא נמצא — ודאי שה-backend רץ על פורט 4000');
+    if (res.status === 404 && !data.error) {
+      throw new Error(
+        import.meta.env.DEV
+          ? 'נתיב API לא נמצא — ודאי שה-backend רץ על פורט 4000'
+          : 'הפעולה לא זמינה כרגע. נסי שוב בעוד רגע.',
+      );
     }
     throw new Error(data.error || 'בקשה נכשלה');
   }

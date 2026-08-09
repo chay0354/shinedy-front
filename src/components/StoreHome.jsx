@@ -263,7 +263,7 @@ export default function StoreHome({ guest = false, hideHero = false }) {
                     {filter === 'הכל' ? null : (
                       <div className="store-card-tag">{p.category}</div>
                     )}
-                    {p.availCount === 0 && <div className="store-card-sold">אזל מהמלאי</div>}
+                    {p.inStock === false && <div className="store-card-sold">אזל מהמלאי</div>}
                   </div>
                   <div className="store-card-body">
                     <h3

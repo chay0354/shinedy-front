@@ -41,7 +41,7 @@ export default function App() {
     <div className="app-shell">
       {error && (
         <div className="error-banner" onClick={() => setError(null)} style={{ cursor: 'pointer' }}>
-          {error} — ודאי שה־API רץ על פורט 4000
+          {error}
         </div>
       )}
       <Routes>

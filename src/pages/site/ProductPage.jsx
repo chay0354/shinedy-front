@@ -87,10 +87,6 @@ export default function ProductPage() {
                 <IconCheck />
                 קטגוריה: {p.category}
               </li>
-              <li>
-                <IconCheck />
-                זמינות: {p.availCount ?? 0} יחידות
-              </li>
             </ul>
 
             <div className="pdp-actions">
