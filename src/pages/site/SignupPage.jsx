@@ -4,6 +4,7 @@ import { api } from '../../api';
 import { useApp } from '../../state/AppContext';
 import Button from '../../components/Button';
 import { homePathForRole } from '../../lib/roles';
+import { JewelArt } from '../../components/icons';
 
 export default function SignupPage() {
   const { run, error } = useApp();
@@ -12,9 +13,15 @@ export default function SignupPage() {
   const [form, setForm] = useState({
     fullName: '',
     email: '',
+    phone: '',
     password: '',
     passwordConfirm: '',
+    terms: false,
   });
+
+  function set(key, value) {
+    setForm((prev) => ({ ...prev, [key]: value }));
+  }
 
   async function submit() {
     if (submitting) return;
@@ -26,6 +33,9 @@ export default function SignupPage() {
         }
         if (form.password !== form.passwordConfirm) {
           throw new Error('הסיסמאות אינן תואמות');
+        }
+        if (!form.terms) {
+          throw new Error('יש לאשר את תנאי השימוש');
         }
         return api.register({
           email: form.email.trim(),
@@ -41,78 +51,104 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="page" style={{ display: 'flex', justifyContent: 'center' }}>
-      <div className="auth-box">
-        <div className="display" style={{ fontSize: 22, marginBottom: 20 }}>
-          הרשמה ל-Shinedy
+    <div className="auth-page">
+      <div className="auth-split">
+        <div className="auth-visual" aria-hidden="true">
+          <JewelArt variant="bracelet" />
         </div>
 
-        {error && (
-          <div className="muted" style={{ fontSize: 13, marginBottom: 12, color: 'var(--accent)' }}>
-            {error}
-          </div>
-        )}
+        <div className="auth-form">
+          <h1 className="auth-title">יצירת חשבון</h1>
+          <p className="auth-sub">הצטרפי לעולם של תכשיטים יוקרתיים</p>
 
-        <input
-          className="field"
-          placeholder="שם מלא"
-          value={form.fullName}
-          disabled={submitting}
-          onChange={(e) => setForm({ ...form, fullName: e.target.value })}
-        />
-        <input
-          className="field"
-          placeholder="דוא״ל"
-          type="email"
-          value={form.email}
-          disabled={submitting}
-          onChange={(e) => setForm({ ...form, email: e.target.value })}
-        />
-        <input
-          className="field"
-          placeholder="סיסמה"
-          type="password"
-          value={form.password}
-          disabled={submitting}
-          onChange={(e) => setForm({ ...form, password: e.target.value })}
-        />
-        <input
-          className="field"
-          placeholder="אימות סיסמה"
-          type="password"
-          value={form.passwordConfirm}
-          disabled={submitting}
-          onChange={(e) => setForm({ ...form, passwordConfirm: e.target.value })}
-        />
+          {error ? <div className="auth-error">{error}</div> : null}
 
-        <Button
-          type="button"
-          className="btn btn-primary"
-          style={{ width: '100%', padding: 14, marginTop: 8 }}
-          loading={submitting}
-          loadingText="נרשמת…"
-          disabled={submitting}
-          onClick={submit}
-        >
-          הרשמה
-        </Button>
+          <label className="form-field">
+            <span>שם מלא</span>
+            <input
+              className="input"
+              placeholder="השם שלך"
+              value={form.fullName}
+              disabled={submitting}
+              onChange={(e) => set('fullName', e.target.value)}
+            />
+          </label>
 
-        <button
-          type="button"
-          className="accent"
-          style={{
-            border: 'none',
-            background: 'transparent',
-            cursor: 'pointer',
-            fontSize: 13,
-            marginTop: 16,
-            width: '100%',
-          }}
-          disabled={submitting}
-          onClick={() => navigate('/login')}
-        >
-          כבר יש לך חשבון? התחברי
-        </button>
+          <label className="form-field">
+            <span>דוא״ל</span>
+            <input
+              className="input"
+              type="email"
+              placeholder="name@email.com"
+              value={form.email}
+              disabled={submitting}
+              onChange={(e) => set('email', e.target.value)}
+            />
+          </label>
+
+          <label className="form-field">
+            <span>טלפון</span>
+            <input
+              className="input"
+              placeholder="050-0000000"
+              value={form.phone}
+              disabled={submitting}
+              onChange={(e) => set('phone', e.target.value)}
+            />
+          </label>
+
+          <label className="form-field">
+            <span>סיסמה</span>
+            <input
+              className="input"
+              type="password"
+              placeholder="••••••••"
+              value={form.password}
+              disabled={submitting}
+              onChange={(e) => set('password', e.target.value)}
+            />
+          </label>
+
+          <label className="form-field">
+            <span>אימות סיסמה</span>
+            <input
+              className="input"
+              type="password"
+              placeholder="••••••••"
+              value={form.passwordConfirm}
+              disabled={submitting}
+              onChange={(e) => set('passwordConfirm', e.target.value)}
+            />
+          </label>
+
+          <label className="form-check">
+            <input
+              type="checkbox"
+              checked={form.terms}
+              disabled={submitting}
+              onChange={(e) => set('terms', e.target.checked)}
+            />
+            אני מאשרת את תנאי השימוש ומדיניות הפרטיות
+          </label>
+
+          <Button
+            type="button"
+            className="btn-ink btn-block"
+            loading={submitting}
+            loadingText="נרשמת…"
+            disabled={submitting}
+            onClick={submit}
+          >
+            הרשמה
+          </Button>
+
+          <p className="auth-alt">
+            כבר יש לך חשבון?{' '}
+            <button type="button" className="btn-link" onClick={() => navigate('/login')}>
+              להתחברות
+            </button>
+          </p>
+        </div>
       </div>
     </div>
   );

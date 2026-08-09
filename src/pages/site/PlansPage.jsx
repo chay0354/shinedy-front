@@ -3,10 +3,22 @@ import { api } from '../../api';
 import { getToken } from '../../lib/auth';
 import { useApp } from '../../state/AppContext';
 import Button from '../../components/Button';
+import { IconCheck } from '../../components/icons';
+
+function planFeatures(plan) {
+  return [
+    `${plan.points} נקודות בחודש`,
+    `עד ${plan.maxItems} תכשיטים במקביל`,
+    `${plan.exchanges} החלפות בחודש`,
+    plan.shippingLabel || (plan.shipping ? 'משלוח חינם' : 'משלוח בתשלום'),
+  ];
+}
 
 export default function PlansPage() {
   const { state, run } = useApp();
   const navigate = useNavigate();
+  const plans = state?.plans || [];
+  const featuredIndex = plans.length > 1 ? 1 : 0;
 
   async function subscribe(planId) {
     if (!getToken()) {
@@ -19,52 +31,47 @@ export default function PlansPage() {
   }
 
   return (
-    <div className="page">
-      <div className="display" style={{ fontSize: 34, marginBottom: 8, textAlign: 'center' }}>
-        מסלולי מנוי
+    <section className="site-section">
+      <div className="shell">
+        <div className="section-head">
+          <h2 className="section-title">מסלולי מנוי</h2>
+          <p className="section-sub">בחרי את המסלול שמתאים לך — אפשר לשדרג בכל שלב</p>
+        </div>
+
+        <div className="plans-grid">
+          {plans.map((plan, i) => {
+            const featured = i === featuredIndex;
+            return (
+              <div key={plan.id} className={`plan-tile${featured ? ' plan-tile-featured' : ''}`}>
+                {featured ? <span className="plan-badge">הכי פופולרי</span> : null}
+                <h3 className="plan-name">{plan.name}</h3>
+                <p className="plan-price">
+                  ₪{plan.price}
+                  <small>לחודש</small>
+                </p>
+                <ul className="plan-feats">
+                  {planFeatures(plan).map((f) => (
+                    <li key={f}>
+                      <IconCheck />
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+                <Button
+                  type="button"
+                  className={featured ? 'btn-gold btn-block' : 'btn-ink btn-block'}
+                  loadingText="שומר…"
+                  onClick={() => subscribe(plan.id)}
+                >
+                  אני בוחרת
+                </Button>
+              </div>
+            );
+          })}
+        </div>
+
+        <p className="plan-note">ללא התחייבות · ניתן לבטל בכל עת</p>
       </div>
-      <div className="muted" style={{ textAlign: 'center', marginBottom: 40 }}>
-        בחרי את המסלול שמתאים לך
-      </div>
-      <div className="plan-grid">
-        {(state?.plans || []).map((pl) => (
-          <div key={pl.id} className="plan-card">
-            <div className="display" style={{ fontSize: 24 }}>
-              {pl.name}
-            </div>
-            <div style={{ fontSize: 32, fontWeight: 600 }}>
-              ₪{pl.price}
-              <span className="muted" style={{ fontSize: 14 }}>
-                /חודש
-              </span>
-            </div>
-            <div
-              style={{
-                borderTop: '1px solid var(--border)',
-                paddingTop: 16,
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 8,
-                fontSize: 14,
-              }}
-            >
-              <div>{pl.points} נקודות בחודש</div>
-              <div>עד {pl.maxItems} תכשיטים במקביל</div>
-              <div>{pl.exchanges} החלפות בחודש</div>
-              <div>{pl.shippingLabel}</div>
-            </div>
-            <Button
-              type="button"
-              className="btn btn-primary"
-              style={{ marginTop: 8, padding: 14 }}
-              loadingText="שומר…"
-              onClick={() => subscribe(pl.id)}
-            >
-              הצטרפי למסלול
-            </Button>
-          </div>
-        ))}
-      </div>
-    </div>
+    </section>
   );
 }

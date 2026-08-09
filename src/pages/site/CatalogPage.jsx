@@ -3,22 +3,24 @@ import { useNavigate } from 'react-router-dom';
 import ImageSlot from '../../components/ImageSlot';
 import { api } from '../../api';
 import { useApp } from '../../state/AppContext';
-import Button from '../../components/Button';
 
-const CATEGORIES = [
-  { id: 'הכל', label: 'הכל' },
-  { id: 'טבעות', label: 'טבעות' },
-  { id: 'שרשראות', label: 'שרשראות' },
-  { id: 'עגילים', label: 'עגילים' },
-  { id: 'צמידים', label: 'צמידים' },
+const CATEGORIES = ['הכל', 'עגילים', 'טבעות', 'שרשראות', 'צמידים'];
+
+const SORTS = [
+  { id: 'default', label: 'מיון' },
+  { id: 'points-asc', label: 'נקודות: מהנמוך' },
+  { id: 'points-desc', label: 'נקודות: מהגבוה' },
+  { id: 'name', label: 'לפי שם' },
 ];
 
-const CATEGORY_ORDER = CATEGORIES.filter((c) => c.id !== 'הכל').map((c) => c.id);
+const METALS = ['הכל', 'זהב צהוב', 'זהב רוזה', 'כסף'];
 
 export default function CatalogPage() {
   const { state, run } = useApp();
   const navigate = useNavigate();
   const [filter, setFilter] = useState('הכל');
+  const [metal, setMetal] = useState('הכל');
+  const [sort, setSort] = useState('default');
   const subscribed = Boolean(state?.subscribed);
 
   const productList = subscribed
@@ -26,22 +28,16 @@ export default function CatalogPage() {
     : state?.products || [];
 
   const products = useMemo(() => {
-    return filter === 'הכל' ? productList : productList.filter((p) => p.category === filter);
-  }, [productList, filter]);
+    let list = [...productList];
+    if (filter !== 'הכל') list = list.filter((p) => p.category === filter);
+    if (metal !== 'הכל') list = list.filter((p) => p.metal === metal);
+    if (sort === 'points-asc') list.sort((a, b) => a.points - b.points);
+    if (sort === 'points-desc') list.sort((a, b) => b.points - a.points);
+    if (sort === 'name') list.sort((a, b) => a.name.localeCompare(b.name, 'he'));
+    return list;
+  }, [productList, filter, metal, sort]);
 
-  const groupedSections = useMemo(() => {
-    if (filter !== 'הכל') {
-      return [{ category: filter, items: products }];
-    }
-    return CATEGORY_ORDER
-      .map((category) => ({
-        category,
-        items: productList.filter((p) => p.category === category),
-      }))
-      .filter((section) => section.items.length > 0);
-  }, [filter, products, productList]);
-
-  async function handleBuy(p) {
+  async function handleAdd(p) {
     if (!subscribed) {
       navigate('/plans');
       return;
@@ -52,84 +48,83 @@ export default function CatalogPage() {
   }
 
   return (
-    <div className="page store-catalog" style={{ paddingTop: 36 }}>
-      <div className="store-catalog-head">
-        <div>
-          <h2 className="store-section-title">קטלוג</h2>
-          <p className="muted" style={{ margin: '6px 0 0', fontSize: 14 }}>
+    <section className="site-section">
+      <div className="shell">
+        <div className="section-head">
+          <h2 className="section-title">קטלוג תכשיטים</h2>
+          <p className="section-sub">
             {subscribed
-              ? `נקודות זמינות: ${state.remaining} / ${state.pointsTotal}`
+              ? `נקודות זמינות: ${state.remaining} מתוך ${state.pointsTotal}`
               : 'להזמנה יש לבחור מסלול מנוי'}
           </p>
         </div>
-        <div className="store-filters">
-          {CATEGORIES.map((c) => (
-            <button
-              key={c.id}
-              type="button"
-              className={`store-filter${filter === c.id ? ' active' : ''}`}
-              onClick={() => setFilter(c.id)}
-            >
-              {c.label}
-            </button>
-          ))}
-        </div>
-      </div>
 
-      {groupedSections.map((section) => (
-        <div key={section.category} className="store-category-block">
-          <div className="store-category-header">
-            <h3 className="store-category-title">{section.category}</h3>
-            <span className="muted" style={{ fontSize: 13 }}>
-              {section.items.length} פריטים
-            </span>
-          </div>
-          <div className="store-grid">
-            {section.items.map((p, i) => (
-              <article
-                key={p.id}
-                className="store-card"
-                style={{ animationDelay: `${(i % 8) * 0.05}s` }}
+        <div className="catalog-toolbar">
+          <div className="chip-row">
+            {CATEGORIES.map((c) => (
+              <button
+                key={c}
+                type="button"
+                className={`chip${filter === c ? ' active' : ''}`}
+                onClick={() => setFilter(c)}
               >
-                <div
-                  className="store-card-media"
-                  style={{ cursor: 'pointer' }}
-                  onClick={() => navigate(`/catalog/${p.id}`)}
-                >
+                {c}
+              </button>
+            ))}
+          </div>
+          <div className="select-row">
+            <select className="select" value={metal} onChange={(e) => setMetal(e.target.value)}>
+              {METALS.map((m) => (
+                <option key={m} value={m}>
+                  {m === 'הכל' ? 'חומר' : m}
+                </option>
+              ))}
+            </select>
+            <select className="select" value={sort} onChange={(e) => setSort(e.target.value)}>
+              {SORTS.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {products.length === 0 ? (
+          <div className="empty">לא נמצאו תכשיטים בסינון הנוכחי</div>
+        ) : (
+          <div className="product-grid">
+            {products.map((p) => (
+              <article key={p.id} className="product-card">
+                <div className="product-media" onClick={() => navigate(`/catalog/${p.id}`)}>
                   <ImageSlot label={p.name} category={p.category} productId={p.id} />
-                  {filter !== 'הכל' && <div className="store-card-tag">{p.category}</div>}
                 </div>
-                <div className="store-card-body">
-                  <h3 style={{ cursor: 'pointer' }} onClick={() => navigate(`/catalog/${p.id}`)}>
+                <div className="product-body">
+                  <h3 className="product-name" onClick={() => navigate(`/catalog/${p.id}`)}>
                     {p.name}
                   </h3>
-                  <p>
+                  <p className="product-meta">
                     {p.metal} · {p.stone}
                   </p>
-                  <div className="store-card-foot">
-                    <div>
-                      <span className="store-card-points">{p.points}</span>
-                      <span className="muted"> נקודות</span>
-                      <div className="muted" style={{ fontSize: 11, marginTop: 2 }}>
-                        {p.availLabel}
-                      </div>
+                  <div className="product-foot">
+                    <div className="product-points">
+                      {p.points} <span>נקודות</span>
                     </div>
-                    <Button
+                    <button
                       type="button"
-                      className="btn btn-sm"
+                      className="btn-mini"
                       disabled={subscribed ? p.addDisabled : false}
-                      loadingText="מוסיפה…"
-                      onClick={() => handleBuy(p)}
+                      onClick={() => handleAdd(p)}
                     >
-                      {subscribed ? p.buttonLabel || 'הוסיפי לסל' : 'הצטרפי כדי להזמין'}
-                    </Button>
+                      {subscribed ? p.buttonLabel || 'הוסיפי לסל' : 'הצטרפי'}
+                    </button>
                   </div>
                 </div>
               </article>
             ))}
           </div>
-        </div>
-      ))}
-    </div>
+        )}
+      </div>
+    </section>
   );
 }

@@ -1,53 +1,62 @@
+import { useNavigate } from 'react-router-dom';
+import Button from '../../components/Button';
+import { IconBox, IconDiamond, IconNecklace, IconPhone } from '../../components/icons';
+
+const STEPS = [
+  {
+    n: 1,
+    icon: <IconPhone />,
+    title: 'בוחרים מסלול',
+    text: 'מנוי חודשי שמתאים לך',
+  },
+  {
+    n: 2,
+    icon: <IconDiamond />,
+    title: 'בוחרים תכשיטים',
+    text: 'מכל הקטלוג במסגרת הנקודות שלך',
+  },
+  {
+    n: 3,
+    icon: <IconNecklace />,
+    title: 'עונדים ונהנים',
+    text: 'מחליפים אחת לחודש, בלי התחייבות',
+  },
+  {
+    n: 4,
+    icon: <IconBox />,
+    title: 'מחזירים ומחליפים',
+    text: 'משלוח חינם בשני הכיוונים',
+  },
+];
+
 export default function HowPage() {
-  const steps = [
-    {
-      n: 1,
-      title: 'בוחרים מסלול מנוי',
-      text: 'כל מסלול נותן מכסת נקודות חודשית, מספר תכשיטים מקסימלי, ומספר החלפות.',
-    },
-    {
-      n: 2,
-      title: 'בוחרים תכשיטים בנקודות',
-      text: 'לכל תכשיט ערך נקודות. ניתן לבחור תכשיטים עד למכסת הנקודות של המסלול.',
-    },
-    {
-      n: 3,
-      title: 'מחליפים כשרוצים',
-      text: 'מחזירים תכשיט, הנקודות חוזרות ליתרה, ובוחרים תכשיט חדש. אנחנו שולחים נרתיק החזרה עם קוד QR.',
-    },
-  ];
+  const navigate = useNavigate();
 
   return (
-    <div className="page page-narrow">
-      <div className="display" style={{ fontSize: 34, marginBottom: 32 }}>
-        איך זה עובד
-      </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-        {steps.map((s) => (
-          <div
-            key={s.n}
-            className="panel"
-            style={{ display: 'flex', gap: 20, padding: 20 }}
-          >
-            <div className="display accent" style={{ fontSize: 22 }}>
-              {s.n}
+    <section className="site-section">
+      <div className="shell">
+        <div className="section-head">
+          <h2 className="section-title">איך זה עובד?</h2>
+          <p className="section-sub">פשוט. גמיש. מותאם לך.</p>
+        </div>
+
+        <div className="step-grid">
+          {STEPS.map((s) => (
+            <div key={s.n} className="step-card">
+              <span className="step-num">{s.n}</span>
+              <div className="step-icon">{s.icon}</div>
+              <h3 className="step-title">{s.title}</h3>
+              <p className="step-text">{s.text}</p>
             </div>
-            <div>
-              <div style={{ fontWeight: 600 }}>{s.title}</div>
-              <div className="muted" style={{ fontSize: 14, marginTop: 4 }}>
-                {s.text}
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-      <div className="callout">
-        <div style={{ fontWeight: 600, marginBottom: 8 }}>נקודות מול קרדיטים</div>
-        <div className="muted" style={{ fontSize: 14, lineHeight: 1.7 }}>
-          נקודות הן המכסה החודשית שקובעת אילו תכשיטים אפשר לבחור במסגרת המנוי. קרדיטים
-          הם סכום שמצטבר לאורך המנוי וניתן לממש אותו לרכישת תכשיט לצמיתות במחיר מוזל.
+          ))}
+        </div>
+
+        <div className="section-cta">
+          <Button type="button" className="btn-gold" onClick={() => navigate('/plans')}>
+            למסלולים
+          </Button>
         </div>
       </div>
-    </div>
+    </section>
   );
 }

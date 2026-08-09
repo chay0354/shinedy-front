@@ -1,21 +1,33 @@
+import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import ImageSlot from '../../components/ImageSlot';
 import { api } from '../../api';
 import { useApp } from '../../state/AppContext';
 import Button from '../../components/Button';
+import { IconCheck, IconRefresh, IconShield, IconSparkle, IconTruck } from '../../components/icons';
+
+const PERKS = [
+  { icon: <IconTruck />, label: 'משלוח חינם' },
+  { icon: <IconRefresh />, label: 'החלפה ללא הגבלה' },
+  { icon: <IconShield />, label: 'ביטוח מלא' },
+  { icon: <IconSparkle />, label: 'ניקוי מקצועי' },
+];
 
 export default function ProductPage() {
   const { id } = useParams();
   const { state, run } = useApp();
   const navigate = useNavigate();
+  const [activeThumb, setActiveThumb] = useState(0);
   const subscribed = Boolean(state?.subscribed);
   const p = (state?.products || []).find((x) => x.id === id);
 
   if (!p) {
     return (
-      <div className="page">
-        <div className="empty">המוצר לא נמצא</div>
-      </div>
+      <section className="site-section">
+        <div className="shell">
+          <div className="empty">המוצר לא נמצא</div>
+        </div>
+      </section>
     );
   }
 
@@ -30,76 +42,86 @@ export default function ProductPage() {
   }
 
   return (
-    <div className="page" style={{ display: 'flex', gap: 56, flexWrap: 'wrap' }}>
-      <div style={{ flex: 1, minWidth: 280, height: 480 }}>
-        <ImageSlot label={p.name} category={p.category} productId={p.id} />
-      </div>
-      <div style={{ flex: 1, maxWidth: 420 }}>
-        <button
-          type="button"
-          className="accent"
-          style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 12 }}
-          onClick={() => navigate('/catalog')}
-        >
-          ← חזרה לקטלוג
-        </button>
-        <div className="display" style={{ fontSize: 30, marginTop: 12 }}>
-          {p.name}
-        </div>
-        <div className="muted" style={{ marginTop: 8 }}>
-          {p.category} · {p.metal} · {p.stone}
-        </div>
-        <div
-          style={{
-            display: 'flex',
-            gap: 24,
-            marginTop: 24,
-            borderTop: '1px solid var(--border)',
-            borderBottom: '1px solid var(--border)',
-            padding: '16px 0',
-          }}
-        >
-          <div>
-            <div className="muted" style={{ fontSize: 12 }}>
-              בנקודות
-            </div>
-            <div className="accent" style={{ fontSize: 20, fontWeight: 600 }}>
-              {p.points}
-            </div>
+    <section className="site-section">
+      <div className="shell">
+        <div className="pdp">
+          <div className="pdp-thumbs">
+            {[0, 1, 2, 3].map((i) => (
+              <button
+                key={i}
+                type="button"
+                className={`pdp-thumb${activeThumb === i ? ' active' : ''}`}
+                aria-label={`תצוגה ${i + 1}`}
+                onClick={() => setActiveThumb(i)}
+              >
+                <ImageSlot label={p.name} category={p.category} />
+              </button>
+            ))}
           </div>
-          <div>
-            <div className="muted" style={{ fontSize: 12 }}>
-              מחיר רכישה
-            </div>
-            <div style={{ fontSize: 20, fontWeight: 600 }}>₪{p.price}</div>
-          </div>
-          <div>
-            <div className="muted" style={{ fontSize: 12 }}>
-              זמינות
-            </div>
-            <div style={{ fontSize: 20, fontWeight: 600 }}>{p.availCount} יחידות</div>
-          </div>
-        </div>
 
-        {!subscribed && (
-          <div
-            className="callout"
-            style={{ marginTop: 20, marginBottom: 0, padding: 16, fontSize: 13 }}
-          >
-            כדי להזמין את הפריט יש לבחור מסלול מנוי ולקבל נקודות.
+          <div className="pdp-main">
+            <ImageSlot label={p.name} category={p.category} productId={p.id} />
           </div>
-        )}
 
-        <Button
-          type="button"
-          className="btn btn-primary"
-          style={{ marginTop: 24, padding: '16px 32px' }}
-          loadingText="מוסיפה…"
-          onClick={handleBuy}
-        >
-          {subscribed ? 'הוסיפי להזמנה' : 'הצטרפי למסלול כדי להזמין'}
-        </Button>
+          <div className="pdp-info">
+            <button type="button" className="btn-link" onClick={() => navigate('/catalog')}>
+              ← חזרה לקטלוג
+            </button>
+
+            <h1 className="pdp-title">{p.name}</h1>
+            <div className="pdp-points">
+              {p.points} נקודות לחודש
+              <small>או ₪{p.price} לרכישה מלאה</small>
+            </div>
+
+            <ul className="pdp-specs">
+              <li>
+                <IconCheck />
+                חומר: {p.metal}
+              </li>
+              <li>
+                <IconCheck />
+                אבן: {p.stone}
+              </li>
+              <li>
+                <IconCheck />
+                קטגוריה: {p.category}
+              </li>
+              <li>
+                <IconCheck />
+                זמינות: {p.availCount ?? 0} יחידות
+              </li>
+            </ul>
+
+            <div className="pdp-actions">
+              <Button
+                type="button"
+                className="btn-ink btn-block"
+                loadingText="מוסיפה…"
+                onClick={handleBuy}
+              >
+                {subscribed ? 'הוספה לסל' : 'הצטרפי כדי להזמין'}
+              </Button>
+              <Button
+                type="button"
+                className="btn-outline btn-block"
+                onClick={() => navigate('/info')}
+              >
+                פרטים נוספים
+              </Button>
+            </div>
+
+            <div className="pdp-perks">
+              {PERKS.map((perk) => (
+                <div key={perk.label}>
+                  {perk.icon}
+                  <span>{perk.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
+    </section>
   );
 }

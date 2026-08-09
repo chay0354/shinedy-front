@@ -5,13 +5,13 @@ import { useApp } from '../../state/AppContext';
 import { applySessionFromResponse } from '../../lib/auth';
 import Button from '../../components/Button';
 import { homePathForRole } from '../../lib/roles';
+import { JewelArt } from '../../components/icons';
 
 export default function LoginPage() {
-  const [tab, setTab] = useState('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [formError, setFormError] = useState('');
-  const { run } = useApp();
+  const { run, error } = useApp();
   const navigate = useNavigate();
 
   async function enter() {
@@ -26,57 +26,60 @@ export default function LoginPage() {
     navigate(homePathForRole(data.auth?.role, data.subscribed));
   }
 
-  return (
-    <div className="page" style={{ display: 'flex', justifyContent: 'center' }}>
-      <div className="auth-box">
-        <div className="tabs">
-          <button
-            type="button"
-            className={tab === 'login' ? 'active' : ''}
-            onClick={() => setTab('login')}
-          >
-            התחברות
-          </button>
-          <button
-            type="button"
-            className={tab === 'signup' ? 'active' : ''}
-            onClick={() => navigate('/signup')}
-          >
-            הרשמה
-          </button>
-        </div>
+  const message = formError || error;
 
-        {tab === 'login' ? (
-          <div>
-            {formError ? (
-              <div className="error-banner" style={{ marginBottom: 12 }}>
-                {formError}
-              </div>
-            ) : null}
+  return (
+    <div className="auth-page">
+      <div className="auth-split">
+        <div className="auth-form">
+          <h1 className="auth-title">התחברות</h1>
+          <p className="auth-sub">ברוכה הבאה חזרה</p>
+
+          {message ? <div className="auth-error">{message}</div> : null}
+
+          <label className="form-field">
+            <span>דוא״ל</span>
             <input
-              className="field"
-              placeholder="דוא״ל"
+              className="input"
+              type="email"
+              placeholder="name@email.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
+          </label>
+
+          <label className="form-field">
+            <span>סיסמה</span>
             <input
-              className="field"
-              placeholder="סיסמה"
+              className="input"
               type="password"
+              placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && enter()}
             />
-            <Button
-              type="button"
-              className="btn btn-primary"
-              style={{ width: '100%', padding: 14 }}
-              loadingText="נכנסת…"
-              onClick={enter}
-            >
-              כניסה
-            </Button>
-          </div>
-        ) : null}
+          </label>
+
+          <Button
+            type="button"
+            className="btn-ink btn-block"
+            loadingText="נכנסת…"
+            onClick={enter}
+          >
+            התחברות
+          </Button>
+
+          <p className="auth-alt">
+            אין לך חשבון?{' '}
+            <button type="button" className="btn-link" onClick={() => navigate('/signup')}>
+              להרשמה
+            </button>
+          </p>
+        </div>
+
+        <div className="auth-visual" aria-hidden="true">
+          <JewelArt variant="necklace" />
+        </div>
       </div>
     </div>
   );

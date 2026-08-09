@@ -1,16 +1,24 @@
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import { useApp } from '../state/AppContext';
-import Button from '../components/Button';
 import { isAdmin, isStaff } from '../lib/roles';
 import { getToken } from '../lib/auth';
+import { IconBag, IconUser } from '../components/icons';
+
+const NAV = [
+  { to: '/', label: 'דף הבית', end: true },
+  { to: '/how', label: 'איך זה עובד' },
+  { to: '/plans', label: 'מסלולים' },
+  { to: '/catalog', label: 'קטלוג' },
+  { to: '/info', label: 'שאלות נפוצות' },
+];
 
 export default function SiteLayout() {
   const { state } = useApp();
   const navigate = useNavigate();
   const location = useLocation();
-  const isHome = location.pathname === '/';
   const isAuthPage = location.pathname === '/login' || location.pathname === '/signup';
+  const cartCount = state?.cart?.length || 0;
 
   useEffect(() => {
     if (!getToken() || isAuthPage) return;
@@ -28,50 +36,63 @@ export default function SiteLayout() {
     }
   }, [state, navigate, isAuthPage, location.pathname]);
 
+  function goToAccount() {
+    if (!getToken()) {
+      navigate('/login');
+      return;
+    }
+    navigate(state?.subscribed ? '/account/me' : '/account/plans');
+  }
+
+  function goToCart() {
+    navigate(getToken() && state?.subscribed ? '/account/cart' : '/plans');
+  }
+
   return (
     <>
-      <header className={`site-header${isHome ? ' site-header-home' : ''}`}>
-        <div className="brand" style={{ cursor: 'pointer' }} onClick={() => navigate('/')}>
-          SHINEDY
+      <header className="site-header">
+        <div className="site-topbar">
+          <button type="button" className="site-brand" onClick={() => navigate('/')}>
+            SHINEDY
+          </button>
+          <div className="site-actions">
+            <button type="button" className="icon-btn" aria-label="אזור אישי" onClick={goToAccount}>
+              <IconUser />
+            </button>
+            <button
+              type="button"
+              className="icon-btn icon-btn-badge"
+              aria-label="סל הקניות"
+              onClick={goToCart}
+            >
+              <IconBag />
+              {cartCount > 0 ? <span>{cartCount}</span> : null}
+            </button>
+          </div>
         </div>
-        <nav className="nav-links">
-          <NavLink to="/" end>
-            בית
-          </NavLink>
-          <NavLink to="/how">איך זה עובד</NavLink>
-          <NavLink to="/plans">מסלולים</NavLink>
-          <NavLink to="/catalog">קטלוג</NavLink>
-          <NavLink to="/info">מידע</NavLink>
+        <nav className="site-nav">
+          {NAV.map((item) => (
+            <NavLink key={item.to} to={item.to} end={item.end}>
+              {item.label}
+            </NavLink>
+          ))}
         </nav>
-        {getToken() && isAdmin(state) ? (
-          <Button type="button" className="btn btn-primary" onClick={() => navigate('/admin/products')}>
-            ניהול
-          </Button>
-        ) : getToken() && isStaff(state) ? (
-          <Button type="button" className="btn btn-primary" onClick={() => navigate('/warehouse/orders')}>
-            מחסן
-          </Button>
-        ) : state?.subscribed ? (
-          <Button type="button" className="btn btn-primary" onClick={() => navigate('/account/me')}>
-            האזור שלי
-          </Button>
-        ) : getToken() ? (
-          <Button type="button" className="btn btn-primary" onClick={() => navigate('/account/plans')}>
-            בחרי מסלול
-          </Button>
-        ) : (
-          <Button type="button" className="btn btn-primary" onClick={() => navigate('/login')}>
-            התחברות / הרשמה
-          </Button>
-        )}
       </header>
-      <Outlet />
+
+      <main className="site-main">
+        <Outlet />
+      </main>
+
       <footer className="footer">
-        <div>© 2026 Shinedy</div>
-        <div style={{ display: 'flex', gap: 20 }}>
-          <NavLink to="/info">שאלות נפוצות</NavLink>
-          <NavLink to="/info">אודות</NavLink>
-          <NavLink to="/info">צור קשר</NavLink>
+        <div className="footer-inner">
+          <div className="footer-brand">SHINEDY</div>
+          <div className="footer-links">
+            <NavLink to="/how">איך זה עובד</NavLink>
+            <NavLink to="/plans">מסלולים</NavLink>
+            <NavLink to="/catalog">קטלוג</NavLink>
+            <NavLink to="/info">שאלות נפוצות</NavLink>
+          </div>
+          <div className="footer-copy">© 2026 Shinedy</div>
         </div>
       </footer>
     </>

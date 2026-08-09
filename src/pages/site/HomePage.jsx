@@ -1,117 +1,114 @@
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../state/AppContext';
-import StoreHome from '../../components/StoreHome';
+import ImageSlot from '../../components/ImageSlot';
 import Button from '../../components/Button';
+import {
+  IconCalendar,
+  IconDiamond,
+  IconRefresh,
+  IconTruck,
+  JewelArt,
+} from '../../components/icons';
 
-function LandingHero({ subscribed }) {
-  const navigate = useNavigate();
-
-  return (
-    <section className="home-landing">
-      <div className="home-atmosphere" aria-hidden="true">
-        <div className="home-mesh" />
-        <div className="home-orb home-orb-a" />
-        <div className="home-orb home-orb-b" />
-        <div className="home-orb home-orb-c" />
-        <div className="home-sheen" />
-        <div className="home-spark home-spark-1" />
-        <div className="home-spark home-spark-2" />
-        <div className="home-spark home-spark-3" />
-        <svg className="home-ring home-ring-1" viewBox="0 0 200 200" fill="none">
-          <circle cx="100" cy="100" r="78" stroke="currentColor" strokeWidth="0.6" />
-          <circle cx="100" cy="100" r="58" stroke="currentColor" strokeWidth="0.4" opacity="0.5" />
-        </svg>
-        <svg className="home-ring home-ring-2" viewBox="0 0 200 200" fill="none">
-          <ellipse cx="100" cy="100" rx="70" ry="40" stroke="currentColor" strokeWidth="0.5" />
-        </svg>
-        <svg className="home-jewel" viewBox="0 0 80 80" fill="none">
-          <path
-            d="M40 12 L58 28 L40 68 L22 28 Z"
-            stroke="currentColor"
-            strokeWidth="1.2"
-            opacity="0.35"
-          />
-          <path d="M22 28 H58" stroke="currentColor" strokeWidth="0.8" opacity="0.3" />
-        </svg>
-      </div>
-
-      <div className="home-landing-inner">
-        <p className="home-brand">SHINEDY</p>
-        <h1 className="home-headline">
-          תכשיטים במנוי.
-          <br />
-          לובשים, מחליפים, נהנים.
-        </h1>
-        <p className="home-sub">
-          מסלול חודשי, נקודות לבחירה, והחלפה בכל רגע — חוויית תכשיטים בלי התחייבות לרכישה.
-        </p>
-        <div className="home-cta">
-          {subscribed ? (
-            <>
-              <Button
-                type="button"
-                className="btn btn-primary home-btn"
-                onClick={() => navigate('/account/shop')}
-              >
-                לחנות שלי
-              </Button>
-              <Button
-                type="button"
-                className="btn home-btn-ghost"
-                onClick={() =>
-                  document.getElementById('home-collection')?.scrollIntoView({ behavior: 'smooth' })
-                }
-              >
-                לקולקציה
-              </Button>
-            </>
-          ) : (
-            <>
-              <Button
-                type="button"
-                className="btn btn-primary home-btn"
-                onClick={() => navigate('/plans')}
-              >
-                לצפייה במסלולים
-              </Button>
-              <Button
-                type="button"
-                className="btn home-btn-ghost"
-                onClick={() =>
-                  document.getElementById('home-collection')?.scrollIntoView({ behavior: 'smooth' })
-                }
-              >
-                לקולקציה
-              </Button>
-            </>
-          )}
-        </div>
-      </div>
-
-      <button
-        type="button"
-        className="home-scroll"
-        aria-label="גללי לקולקציה"
-        onClick={() =>
-          document.getElementById('home-collection')?.scrollIntoView({ behavior: 'smooth' })
-        }
-      >
-        <span />
-      </button>
-    </section>
-  );
-}
+const VALUES = [
+  { icon: <IconDiamond />, label: 'מגוון אינסופי של תכשיטים' },
+  { icon: <IconCalendar />, label: 'מוצר חדש בכל חודש' },
+  { icon: <IconTruck />, label: 'משלוח והחזרה ללא עלות' },
+  { icon: <IconRefresh />, label: 'החלפה ללא הגבלה' },
+];
 
 export default function HomePage() {
   const { state } = useApp();
+  const navigate = useNavigate();
   const subscribed = Boolean(state?.subscribed);
+  const featured = (state?.products || []).slice(0, 8);
 
   return (
     <div className="home-page">
-      <LandingHero subscribed={subscribed} />
-      <div id="home-collection" className="home-collection main-pane-store">
-        <StoreHome guest={!subscribed} hideHero />
+      <section className="hero-banner">
+        <div className="hero-photo" aria-hidden="true" />
+        <div className="hero-figure" aria-hidden="true">
+          <JewelArt variant="necklace" />
+        </div>
+        <div className="hero-inner">
+          <div className="hero-copy">
+            <h1 className="hero-title">
+              תכשיטים יוקרתיים.
+              <br />
+              לכל רגע. כל הזמן.
+            </h1>
+            <p className="hero-sub">מנוי חודשי גמיש · החלפות ללא הגבלה</p>
+            <div className="hero-actions">
+              <Button
+                type="button"
+                className="btn-gold"
+                onClick={() => navigate(subscribed ? '/account/shop' : '/plans')}
+              >
+                {subscribed ? 'לחנות שלי' : 'לצפייה במסלולים'}
+              </Button>
+              <Button type="button" className="btn-outline" onClick={() => navigate('/catalog')}>
+                לקטלוג
+              </Button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div className="value-strip">
+        <div className="value-strip-inner">
+          {VALUES.map((v) => (
+            <div key={v.label} className="value-item">
+              {v.icon}
+              <span>{v.label}</span>
+            </div>
+          ))}
+        </div>
       </div>
+
+      <section className="site-section">
+        <div className="shell">
+          <div className="section-head">
+            <h2 className="section-title">הקולקציה שלנו</h2>
+            <p className="section-sub">תכשיטים נבחרים שמתחלפים בכל חודש</p>
+          </div>
+
+          <div className="product-grid">
+            {featured.map((p) => (
+              <article key={p.id} className="product-card">
+                <div className="product-media" onClick={() => navigate(`/catalog/${p.id}`)}>
+                  <ImageSlot label={p.name} category={p.category} productId={p.id} />
+                </div>
+                <div className="product-body">
+                  <h3 className="product-name" onClick={() => navigate(`/catalog/${p.id}`)}>
+                    {p.name}
+                  </h3>
+                  <p className="product-meta">
+                    {p.metal} · {p.stone}
+                  </p>
+                  <div className="product-foot">
+                    <div className="product-points">
+                      {p.points} <span>נקודות</span>
+                    </div>
+                    <button
+                      type="button"
+                      className="btn-mini"
+                      onClick={() => navigate(`/catalog/${p.id}`)}
+                    >
+                      לפרטים
+                    </button>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+
+          <div className="section-cta">
+            <Button type="button" className="btn-ink" onClick={() => navigate('/catalog')}>
+              לכל הקטלוג
+            </Button>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

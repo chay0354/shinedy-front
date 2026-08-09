@@ -1,6 +1,14 @@
 import { getToken } from './lib/auth.js';
 
-const BASE = import.meta.env.VITE_API_URL || 'http://localhost:4000/api';
+const DEV_API = 'http://127.0.0.1:4000/api';
+
+function apiBase() {
+  // Always hit backend directly in dev — avoids flaky Vite proxy / stale .env
+  if (import.meta.env.DEV) return DEV_API;
+  const configured = import.meta.env.VITE_API_URL?.trim();
+  if (configured) return configured.replace(/\/+$/, '');
+  return DEV_API;
+}
 
 function authHeaders(extra = {}) {
   const token = getToken();
@@ -12,12 +20,23 @@ function authHeaders(extra = {}) {
 }
 
 async function request(path, options = {}) {
-  const res = await fetch(`${BASE}${path}`, {
-    ...options,
-    headers: authHeaders(options.headers),
-  });
+  const url = `${apiBase()}${path.startsWith('/') ? path : `/${path}`}`;
+  let res;
+  try {
+    res = await fetch(url, {
+      ...options,
+      headers: authHeaders(options.headers),
+    });
+  } catch {
+    throw new Error('לא ניתן להתחבר לשרת — ודאי שה-backend רץ (npm run dev בתיקיית backend)');
+  }
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.error || 'בקשה נכשלה');
+  if (!res.ok) {
+    if (res.status === 404) {
+      throw new Error('נתיב API לא נמצא — ודאי שה-backend רץ על פורט 4000');
+    }
+    throw new Error(data.error || 'בקשה נכשלה');
+  }
   return data;
 }
 
