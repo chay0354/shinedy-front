@@ -1,12 +1,24 @@
 import { useNavigate } from 'react-router-dom';
 import ImageSlot from '../../components/ImageSlot';
+import { api } from '../../api';
 import { useApp } from '../../state/AppContext';
 import { customerStatusLabel } from '../../utils/customerStatus';
 import Button from '../../components/Button';
 
 export default function DashboardPage() {
-  const { state } = useApp();
+  const { state, run } = useApp();
   const navigate = useNavigate();
+
+  async function handleCancelSubscription() {
+    const ok = window.confirm(
+      'לבטל את המנוי?\n\nלא תוכלי להזמין תכשיטים עד שתבחרי מסלול מחדש. אין התחייבות — אפשר לחזור בכל עת.',
+    );
+    if (!ok) return;
+    const data = await run(() => api.cancelSubscription());
+    if (!data) return;
+    navigate('/account/plans');
+  }
+
   const actions = [
     {
       title: 'החזרת תכשיטים',
@@ -19,6 +31,16 @@ export default function DashboardPage() {
       text: 'השכרות, החלפות וחשבוניות קודמות',
       to: '/account/history',
     },
+    ...(state.subscribed
+      ? [
+          {
+            title: 'ביטול מנוי',
+            text: 'ללא התחייבות — אפשר לחזור ולהצטרף בכל עת',
+            onClick: handleCancelSubscription,
+            danger: true,
+          },
+        ]
+      : []),
   ];
 
   return (
@@ -156,17 +178,17 @@ export default function DashboardPage() {
       >
         {actions.map((a) => (
           <button
-            key={a.to}
+            key={a.title}
             type="button"
             className="panel"
-            onClick={() => navigate(a.to)}
+            onClick={() => (a.onClick ? a.onClick() : navigate(a.to))}
             style={{
               textAlign: 'right',
               cursor: 'pointer',
               padding: 18,
-              borderColor: a.primary ? 'var(--ink)' : undefined,
-              background: a.primary ? 'var(--ink)' : undefined,
-              color: a.primary ? 'var(--bg)' : undefined,
+              borderColor: a.danger ? '#c9a0a0' : a.primary ? 'var(--ink)' : undefined,
+              background: a.primary ? 'var(--ink)' : a.danger ? '#fdf8f8' : undefined,
+              color: a.primary ? 'var(--bg)' : a.danger ? '#8c4a34' : undefined,
             }}
           >
             <div style={{ fontWeight: 600, fontSize: 15 }}>{a.title}</div>
@@ -175,7 +197,7 @@ export default function DashboardPage() {
                 fontSize: 12,
                 marginTop: 6,
                 opacity: a.primary ? 0.75 : 1,
-                color: a.primary ? undefined : 'var(--muted)',
+                color: a.primary ? undefined : a.danger ? '#a06858' : 'var(--muted)',
               }}
             >
               {a.text}

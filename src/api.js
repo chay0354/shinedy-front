@@ -55,6 +55,7 @@ export const api = {
     request('/auth/registration', { method: 'PATCH', body: JSON.stringify(patch) }),
   subscribe: (planId) =>
     request('/subscribe', { method: 'POST', body: JSON.stringify({ planId }) }),
+  cancelSubscription: () => request('/subscribe/cancel', { method: 'POST', body: '{}' }),
   addToCart: (productId) =>
     request('/cart/add', { method: 'POST', body: JSON.stringify({ productId }) }),
   removeFromCart: (productId) =>
