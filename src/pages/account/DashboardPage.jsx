@@ -124,7 +124,7 @@ export default function DashboardPage() {
 
                 {o.inTransitItems?.length > 0 && (
                   <div className="muted" style={{ fontSize: 12, marginBottom: 10 }}>
-                    בדרך אליי ({o.inTransitItems.length})
+                    בדרך ({o.inTransitItems.length})
                   </div>
                 )}
 

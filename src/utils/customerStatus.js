@@ -1,7 +1,7 @@
 /** Status copy for the customer account (first-person). Staff UI keeps original labels. */
 const CUSTOMER_STATUS = {
   'אצל לקוחה': 'הפריט אצלי',
-  'בדרך ללקוחה': 'בדרך אליי',
+  'בדרך ללקוחה': 'בדרך',
   'בדרך חזרה': 'בתהליך החזרה',
   זמין: 'זמין',
   שמור: 'שמור',
