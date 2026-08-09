@@ -23,7 +23,7 @@ export default function LoginPage() {
     const data = await run(() => api.login({ email: email.trim(), password }));
     if (!data) return;
     applySessionFromResponse(data);
-    navigate(homePathForRole(data.auth?.role, data.subscribed));
+    navigate(homePathForRole(data.auth?.role, data.subscribed, data.planId));
   }
 
   const message = formError || error;

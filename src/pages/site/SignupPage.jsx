@@ -44,7 +44,7 @@ export default function SignupPage() {
         });
       });
       if (!data) return;
-      navigate(homePathForRole(data.auth?.role, data.subscribed));
+      navigate(homePathForRole(data.auth?.role, data.subscribed, data.planId));
     } finally {
       setSubmitting(false);
     }

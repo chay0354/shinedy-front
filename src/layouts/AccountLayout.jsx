@@ -1,7 +1,8 @@
 import { NavLink, Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { api } from '../api';
 import { useApp } from '../state/AppContext';
-import { clearSession } from '../lib/auth';
+import { clearSession, getToken } from '../lib/auth';
+import { hasActivePlan } from '../lib/roles';
 import Flash from '../components/Flash';
 import Button from '../components/Button';
 
@@ -14,7 +15,11 @@ export default function AccountLayout() {
   const cartCount = state?.cart?.length || 0;
 
   const isPlansRoute = location.pathname === '/account/plans';
-  const needsPlan = !state?.subscribed;
+  const token = getToken();
+  // After login, React may navigate before context state catches up — wait for hydration.
+  const sessionReady = !token || Boolean(state?.auth?.userId);
+  const subscribed = hasActivePlan(state);
+  const needsPlan = sessionReady && !subscribed;
 
   const isShopNav =
     isPlansRoute ||
@@ -61,7 +66,7 @@ export default function AccountLayout() {
           <NavLink to="/account/me" className={() => (isPersonal ? 'active' : '')}>
             אזור אישי
           </NavLink>
-          {state?.subscribed ? (
+          {subscribed ? (
             <div className="sidebar-points">
               <div className="sidebar-points-label">נקודות זמינות</div>
               <div className="sidebar-points-value">
@@ -90,9 +95,11 @@ export default function AccountLayout() {
       </aside>
       <div className={`main-pane${isStoreHome ? ' main-pane-store' : ''}`}>
         <Flash />
-        {needsPlan && !isPlansRoute ? (
+        {!sessionReady ? (
+          <div className="loading">טוען…</div>
+        ) : needsPlan && !isPlansRoute ? (
           <Navigate to="/account/plans" replace />
-        ) : state?.subscribed && isPlansRoute ? (
+        ) : subscribed && isPlansRoute ? (
           <Navigate to="/account/shop" replace />
         ) : (
           <Outlet />

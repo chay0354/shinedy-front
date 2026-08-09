@@ -1,7 +1,7 @@
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import { useApp } from '../state/AppContext';
-import { isAdmin, isStaff } from '../lib/roles';
+import { isAdmin, isStaff, hasActivePlan } from '../lib/roles';
 import { getToken } from '../lib/auth';
 import { IconBag, IconUser } from '../components/icons';
 
@@ -31,7 +31,7 @@ export default function SiteLayout() {
       return;
     }
     // Logged-in customers: plan selection stays inside account layout (with sidebar)
-    if (location.pathname === '/plans' && state && !state.subscribed) {
+    if (location.pathname === '/plans' && state && !hasActivePlan(state)) {
       navigate('/account/plans', { replace: true });
     }
   }, [state, navigate, isAuthPage, location.pathname]);
@@ -41,11 +41,11 @@ export default function SiteLayout() {
       navigate('/login');
       return;
     }
-    navigate(state?.subscribed ? '/account/me' : '/account/plans');
+    navigate(hasActivePlan(state) ? '/account/me' : '/account/plans');
   }
 
   function goToCart() {
-    navigate(getToken() && state?.subscribed ? '/account/cart' : '/plans');
+    navigate(getToken() && hasActivePlan(state) ? '/account/cart' : '/plans');
   }
 
   return (
