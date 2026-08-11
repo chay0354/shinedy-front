@@ -110,6 +110,9 @@ export default function HomePage() {
               </div>
             ))}
           </div>
+          <div className="plans-note-line">
+            ללא התחייבות<span className="dot">•</span>ניתן לבטל בכל עת
+          </div>
         </div>
       </section>
 
