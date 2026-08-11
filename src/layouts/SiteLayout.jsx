@@ -1,16 +1,19 @@
-import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import { useApp } from '../state/AppContext';
-import { isAdmin, isStaff, hasActivePlan } from '../lib/roles';
 import { getToken } from '../lib/auth';
+import { hasActivePlan, isAdmin, isStaff } from '../lib/roles';
 import { IconBag, IconUser } from '../components/icons';
+import PointsBar from '../components/PointsBar';
+import ScrollToTop from '../components/ScrollToTop';
 
 const NAV = [
-  { to: '/', label: 'דף הבית', end: true },
   { to: '/how', label: 'איך זה עובד' },
-  { to: '/plans', label: 'מסלולים' },
-  { to: '/catalog', label: 'קטלוג' },
-  { to: '/info', label: 'שאלות נפוצות' },
+  { to: '/plans', label: 'מסלולי מנוי' },
+  { to: '/catalog', label: 'קטלוג תכשיטים' },
+  { to: '/faq', label: 'שאלות נפוצות' },
+  { to: '/about', label: 'אודות' },
+  { to: '/contact', label: 'יצירת קשר' },
 ];
 
 export default function SiteLayout() {
@@ -19,81 +22,94 @@ export default function SiteLayout() {
   const location = useLocation();
   const isAuthPage = location.pathname === '/login' || location.pathname === '/signup';
   const cartCount = state?.cart?.length || 0;
+  const userName = state?.registration?.name;
 
   useEffect(() => {
     if (!getToken() || isAuthPage) return;
     if (isAdmin(state)) {
-      navigate('/admin/products', { replace: true });
+      navigate('/admin', { replace: true });
       return;
     }
     if (isStaff(state)) {
-      navigate('/warehouse/orders', { replace: true });
-      return;
+      navigate('/admin/warehouse', { replace: true });
     }
-    // Logged-in customers: plan selection stays inside account layout (with sidebar)
-    if (location.pathname === '/plans' && state && !hasActivePlan(state)) {
-      navigate('/account/plans', { replace: true });
-    }
-  }, [state, navigate, isAuthPage, location.pathname]);
+  }, [state, navigate, isAuthPage]);
 
-  function goToAccount() {
-    if (!getToken()) {
-      navigate('/login');
-      return;
-    }
-    navigate(hasActivePlan(state) ? '/account/me' : '/account/plans');
+  function accountPath() {
+    if (!getToken()) return '/login';
+    if (!hasActivePlan(state)) return '/account/plans';
+    return '/account/me';
   }
 
-  function goToCart() {
-    navigate(getToken() && hasActivePlan(state) ? '/account/cart' : '/plans');
+  function boxPath() {
+    if (!getToken()) return '/login';
+    if (!hasActivePlan(state)) return '/account/plans';
+    return '/box';
   }
 
   return (
     <>
+      <ScrollToTop />
       <header className="site-header">
-        <div className="site-topbar">
-          <button type="button" className="site-brand" onClick={() => navigate('/')}>
-            SHINEDY
-          </button>
-          <div className="site-actions">
-            <button type="button" className="icon-btn" aria-label="אזור אישי" onClick={goToAccount}>
-              <IconUser />
-            </button>
-            <button
-              type="button"
-              className="icon-btn icon-btn-badge"
-              aria-label="סל הקניות"
-              onClick={goToCart}
+        <div className="header-top">
+          <Link to="/" className="brand" aria-label="Shinedy — דף הבית">
+            <img src="/brand/name-black.png" alt="SHINEDY" />
+          </Link>
+          <div className="header-icons">
+            <Link
+              to={accountPath()}
+              className="icon-link"
+              aria-label={getToken() ? 'האזור האישי שלי' : 'התחברות'}
+              title={userName ? `שלום, ${userName}` : 'התחברות'}
             >
-              <IconBag />
-              {cartCount > 0 ? <span>{cartCount}</span> : null}
-            </button>
+              <IconUser size={22} />
+            </Link>
+            <Link to={boxPath()} className="icon-link" aria-label="הקופסה שלי" title="הקופסה שלי">
+              <IconBag size={22} />
+              {cartCount > 0 && <span className="badge-count">{cartCount}</span>}
+            </Link>
           </div>
         </div>
-        <nav className="site-nav">
-          {NAV.map((item) => (
-            <NavLink key={item.to} to={item.to} end={item.end}>
-              {item.label}
+        <nav className="main-nav">
+          {NAV.map((n) => (
+            <NavLink key={n.to} to={n.to} className={({ isActive }) => (isActive ? 'active' : '')}>
+              {n.label}
             </NavLink>
           ))}
         </nav>
+        <PointsBar />
       </header>
 
-      <main className="site-main">
+      <main>
         <Outlet />
       </main>
 
-      <footer className="footer">
-        <div className="footer-inner">
-          <div className="footer-brand">SHINEDY</div>
-          <div className="footer-links">
-            <NavLink to="/how">איך זה עובד</NavLink>
-            <NavLink to="/plans">מסלולים</NavLink>
-            <NavLink to="/catalog">קטלוג</NavLink>
-            <NavLink to="/info">שאלות נפוצות</NavLink>
+      <footer className="site-footer">
+        <div className="container">
+          <div>
+            <img src="/brand/name-white.png" alt="SHINEDY" />
+            <p style={{ fontSize: '0.93rem', maxWidth: 320, fontWeight: 300 }}>
+              תכשיטים יוקרתיים במודל מנוי — בוחרות, עונדות, מחליפות.
+              <br />
+              NEW LOOK. SAME YOU.
+            </p>
           </div>
-          <div className="footer-copy">© 2026 Shinedy</div>
+          <div>
+            <h4>ניווט</h4>
+            {NAV.slice(0, 4).map((n) => (
+              <Link key={n.to} to={n.to}>
+                {n.label}
+              </Link>
+            ))}
+          </div>
+          <div>
+            <h4>חשבון</h4>
+            <Link to="/signup">הרשמה</Link>
+            <Link to="/login">התחברות</Link>
+            <Link to={accountPath()}>אזור אישי</Link>
+          </div>
         </div>
+        <div className="fine">© Shinedy 2026 · כל הזכויות שמורות</div>
       </footer>
     </>
   );

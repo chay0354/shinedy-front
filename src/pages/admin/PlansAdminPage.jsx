@@ -1,60 +1,68 @@
 import { api } from '../../api';
 import { useApp } from '../../state/AppContext';
+import { SHARED_TERMS } from '../../lib/site';
+import { enrichPlan } from '../../lib/plans';
 
 export default function PlansAdminPage() {
   const { state, run } = useApp();
+  const plans = (state.plans || []).map(enrichPlan);
 
   return (
     <>
-      <div className="display" style={{ fontSize: 22, marginBottom: 20 }}>
-        מסלולים וקרדיטים
+      <h1>מנויים</h1>
+      <p className="admin-sub">עריכת מחיר ונקודות לכל מסלול — השינוי נשמר במערכת.</p>
+
+      <div className="admin-section">
+        <div className="table-wrap">
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th>מסלול</th>
+                <th>מחיר (₪)</th>
+                <th>נקודות</th>
+                <th>משלוח</th>
+              </tr>
+            </thead>
+            <tbody>
+              {plans.map((pl) => (
+                <tr key={pl.id}>
+                  <td>
+                    <strong>{pl.latin}</strong>
+                    <br />
+                    <span className="cell-sub">{pl.name}</span>
+                  </td>
+                  <td>
+                    <input
+                      className="num-input"
+                      value={pl.price}
+                      onChange={(e) => run(() => api.updatePlan(pl.id, 'price', e.target.value))}
+                    />
+                  </td>
+                  <td>
+                    <input
+                      className="num-input"
+                      value={pl.points}
+                      onChange={(e) => run(() => api.updatePlan(pl.id, 'points', e.target.value))}
+                    />
+                  </td>
+                  <td>{pl.shippingLabel || (pl.shipping ? 'כלול' : 'בתשלום')}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
-      <table className="table">
-        <thead>
-          <tr>
-            <th>מסלול</th>
-            <th>מחיר</th>
-            <th>נקודות</th>
-            <th>מקס׳ תכשיטים</th>
-            <th>החלפות</th>
-            <th>משלוח</th>
-          </tr>
-        </thead>
-        <tbody>
-          {(state.plans || []).map((pl) => (
-            <tr key={pl.id}>
-              <td>{pl.name}</td>
-              <td>
-                <input
-                  value={pl.price}
-                  onChange={(e) => run(() => api.updatePlan(pl.id, 'price', e.target.value))}
-                />
-              </td>
-              <td>
-                <input
-                  value={pl.points}
-                  onChange={(e) => run(() => api.updatePlan(pl.id, 'points', e.target.value))}
-                />
-              </td>
-              <td>
-                <input
-                  style={{ width: 50 }}
-                  value={pl.maxItems}
-                  onChange={(e) => run(() => api.updatePlan(pl.id, 'maxItems', e.target.value))}
-                />
-              </td>
-              <td>
-                <input
-                  style={{ width: 50 }}
-                  value={pl.exchanges}
-                  onChange={(e) => run(() => api.updatePlan(pl.id, 'exchanges', e.target.value))}
-                />
-              </td>
-              <td>{pl.shippingLabel}</td>
-            </tr>
+
+      <div className="admin-section admin-terms">
+        <strong>תנאים:</strong>
+        <ul style={{ margin: '10px 0 0 0', paddingInlineStart: 22 }}>
+          {SHARED_TERMS.map((t) => (
+            <li key={t} style={{ marginBottom: 6 }}>
+              {t}
+            </li>
           ))}
-        </tbody>
-      </table>
+        </ul>
+      </div>
     </>
   );
 }

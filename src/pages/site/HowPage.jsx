@@ -1,62 +1,78 @@
-import { useNavigate } from 'react-router-dom';
-import Button from '../../components/Button';
-import { IconBox, IconDiamond, IconNecklace, IconPhone } from '../../components/icons';
+import { Link } from 'react-router-dom';
+import { IconBox, IconDiamond, IconList, IconNecklace } from '../../components/icons';
 
 const STEPS = [
-  {
-    n: 1,
-    icon: <IconPhone />,
-    title: 'בוחרים מסלול',
-    text: 'מנוי חודשי שמתאים לך',
-  },
-  {
-    n: 2,
-    icon: <IconDiamond />,
-    title: 'בוחרים תכשיטים',
-    text: 'מכל הקטלוג במסגרת הנקודות שלך',
-  },
-  {
-    n: 3,
-    icon: <IconNecklace />,
-    title: 'עונדים ונהנים',
-    text: 'מחליפים אחת לחודש, בלי התחייבות',
-  },
-  {
-    n: 4,
-    icon: <IconBox />,
-    title: 'מחזירים ומחליפים',
-    text: 'משלוח חינם בשני הכיוונים',
-  },
+  { icon: IconList, t: 'בחרי מסלול', d: 'מצאי את המסלול שמתאים לך ולסגנון שלך' },
+  { icon: IconDiamond, t: 'בחרי תכשיטים', d: 'בחרי מהקטלוג עד מכסת הנקודות שלך' },
+  { icon: IconNecklace, t: 'ענדי ותהני', d: 'משלוח עד הבית — עונדות בלי דאגות, בלאי סביר עלינו' },
+  { icon: IconBox, t: 'החזירי והחליפי', d: 'ללא הגבלת החלפות — משלוח דו-חודשי כלול, נוסף ב-₪65' },
+];
+
+const JOIN = [
+  { t: 'פתיחת חשבון', d: 'שם, דוא"ל וסיסמה' },
+  { t: 'אימות טלפון ודוא"ל', d: 'קוד חד-פעמי וקישור אימות' },
+  { t: 'אימות זהות', d: 'העלאה מאובטחת של תעודת זהות' },
+  { t: 'חתימה דיגיטלית', d: 'על הסכם המנוי' },
+  { t: 'אמצעי תשלום', d: 'כרטיס אשראי לחיוב חודשי' },
+  { t: 'בחירת מסלול', d: 'ומתחילות לבחור תכשיטים!' },
 ];
 
 export default function HowPage() {
-  const navigate = useNavigate();
-
   return (
-    <section className="site-section">
-      <div className="shell">
-        <div className="section-head">
-          <h2 className="section-title">איך זה עובד?</h2>
-          <p className="section-sub">פשוט. גמיש. מותאם לך.</p>
-        </div>
-
-        <div className="step-grid">
-          {STEPS.map((s) => (
-            <div key={s.n} className="step-card">
-              <span className="step-num">{s.n}</span>
-              <div className="step-icon">{s.icon}</div>
-              <h3 className="step-title">{s.title}</h3>
-              <p className="step-text">{s.text}</p>
-            </div>
-          ))}
-        </div>
-
-        <div className="section-cta">
-          <Button type="button" className="btn-gold" onClick={() => navigate('/plans')}>
-            למסלולים
-          </Button>
-        </div>
+    <>
+      <div className="page-head container">
+        <h1>איך זה עובד?</h1>
+        <p>פשוט. גמיש. מותאם לך.</p>
       </div>
-    </section>
+
+      <section className="section" style={{ paddingTop: 48 }}>
+        <div className="container">
+          <div className="how-steps">
+            {STEPS.map((s, i) => (
+              <div className="how-step" key={s.t}>
+                <div className="circle">
+                  <s.icon size={38} />
+                  <span className="n">{i + 1}</span>
+                </div>
+                <h3>{s.t}</h3>
+                <p>{s.d}</p>
+              </div>
+            ))}
+          </div>
+          <div style={{ textAlign: 'center', marginTop: 48 }}>
+            <Link to="/plans" className="btn btn-tan">
+              מתחילות
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      <section className="section alt">
+        <div className="container" style={{ maxWidth: 900 }}>
+          <div className="section-head">
+            <h2>והקרדיטים?</h2>
+            <p>
+              לאורך המנוי נצברים לזכותך קרדיטים. התאהבת בתכשיט מסוים? אפשר להשתמש בקרדיטים להנחה ברכישתו — והוא
+              נשאר אצלך לתמיד.
+            </p>
+          </div>
+          <div className="section-head" style={{ marginBottom: 20 }}>
+            <h2>תהליך ההצטרפות</h2>
+            <p>כדי לשמור על התכשיטים ועל הלקוחות שלנו, ההצטרפות כוללת אימות קצר:</p>
+          </div>
+          <div className="stepper" style={{ maxWidth: 520, margin: '0 auto' }}>
+            {JOIN.map((s, i) => (
+              <div className="s" key={s.t}>
+                <div className="dot">{i + 1}</div>
+                <div>
+                  <strong>{s.t}</strong>
+                  <p>{s.d}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    </>
   );
 }

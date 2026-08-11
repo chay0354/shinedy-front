@@ -1,114 +1,129 @@
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useApp } from '../../state/AppContext';
-import ImageSlot from '../../components/ImageSlot';
-import Button from '../../components/Button';
-import {
-  IconCalendar,
-  IconDiamond,
-  IconRefresh,
-  IconTruck,
-  JewelArt,
-} from '../../components/icons';
+import { enrichPlan } from '../../lib/plans';
+import Art from '../../components/Art';
+import { IconDiamond, IconRefresh, IconShield, IconTruck } from '../../components/icons';
 
-const VALUES = [
-  { icon: <IconDiamond />, label: 'מגוון אינסופי של תכשיטים' },
-  { icon: <IconCalendar />, label: 'מוצר חדש בכל חודש' },
-  { icon: <IconTruck />, label: 'משלוח והחזרה ללא עלות' },
-  { icon: <IconRefresh />, label: 'החלפה ללא הגבלה' },
+const HERO_BENEFITS = [
+  { icon: IconDiamond, t: 'תכשיטי יוקרה' },
+  { icon: IconRefresh, t: 'החלפה חופשית' },
+  { icon: IconTruck, t: 'משלוח עד הבית' },
+  { icon: IconShield, t: 'ביטוח בלאי סביר' },
 ];
 
 export default function HomePage() {
   const { state } = useApp();
-  const navigate = useNavigate();
-  const subscribed = Boolean(state?.subscribed);
-  const featured = (state?.products || []).slice(0, 8);
+  const featured = (state?.products || []).slice(0, 4);
+  const plans = (state?.plans || []).map(enrichPlan);
 
   return (
-    <div className="home-page">
-      <section className="hero-banner">
-        <div className="hero-photo" aria-hidden="true" />
-        <div className="hero-figure" aria-hidden="true">
-          <JewelArt variant="necklace" />
-        </div>
-        <div className="hero-inner">
-          <div className="hero-copy">
-            <h1 className="hero-title">
-              תכשיטים יוקרתיים.
-              <br />
-              לכל רגע. כל הזמן.
-            </h1>
-            <p className="hero-sub">מנוי חודשי גמיש · החלפות ללא הגבלה</p>
-            <div className="hero-actions">
-              <Button
-                type="button"
-                className="btn-gold"
-                onClick={() => navigate(subscribed ? '/account/shop' : '/plans')}
-              >
-                {subscribed ? 'לחנות שלי' : 'לצפייה במסלולים'}
-              </Button>
-              <Button type="button" className="btn-outline" onClick={() => navigate('/catalog')}>
-                לקטלוג
-              </Button>
-            </div>
+    <>
+      <Link to="/signup" className="hero-band" aria-label="תכשיטים יוקרתיים במנוי חודשי — הצטרפי עכשיו">
+        <img className="hb-mobile" src="/photos/hero-full2.jpg" alt="" />
+        <div className="hb-text">
+          <span className="hb-kicker" dir="ltr">
+            NEW LOOK. SAME YOU.
+          </span>
+          <h1>
+            תכשיטים יוקרתיים.
+            <br />
+            לכל רגע. כל הזמן.
+          </h1>
+          <div className="hb-divider">
+            <span className="ln" />
+            <img src="/brand/symbol-gold.png" alt="" />
+            <span className="ln" />
           </div>
-        </div>
-      </section>
-
-      <div className="value-strip">
-        <div className="value-strip-inner">
-          {VALUES.map((v) => (
-            <div key={v.label} className="value-item">
-              {v.icon}
-              <span>{v.label}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <section className="site-section">
-        <div className="shell">
-          <div className="section-head">
-            <h2 className="section-title">הקולקציה שלנו</h2>
-            <p className="section-sub">תכשיטים נבחרים שמתחלפים בכל חודש</p>
-          </div>
-
-          <div className="product-grid">
-            {featured.map((p) => (
-              <article key={p.id} className="product-card">
-                <div className="product-media" onClick={() => navigate(`/catalog/${p.id}`)}>
-                  <ImageSlot label={p.name} category={p.category} productId={p.id} />
-                </div>
-                <div className="product-body">
-                  <h3 className="product-name" onClick={() => navigate(`/catalog/${p.id}`)}>
-                    {p.name}
-                  </h3>
-                  <p className="product-meta">
-                    {p.metal} · {p.stone}
-                  </p>
-                  <div className="product-foot">
-                    <div className="product-points">
-                      {p.points} <span>נקודות</span>
-                    </div>
-                    <button
-                      type="button"
-                      className="btn-mini"
-                      onClick={() => navigate(`/catalog/${p.id}`)}
-                    >
-                      לפרטים
-                    </button>
-                  </div>
-                </div>
-              </article>
+          <p>
+            מגוון מתחדש של תכשיטים יוקרתיים
+            <br />
+            במנוי חודשי ללא התחייבות.
+          </p>
+          <div className="hb-benefits">
+            {HERO_BENEFITS.map((b) => (
+              <span className="hb-benefit" key={b.t}>
+                <b.icon size={34} />
+                <span>{b.t}</span>
+              </span>
             ))}
           </div>
+          <span className="btn btn-tan hb-cta">אני רוצה להתחיל</span>
+        </div>
+      </Link>
 
-          <div className="section-cta">
-            <Button type="button" className="btn-ink" onClick={() => navigate('/catalog')}>
-              לכל הקטלוג
-            </Button>
+      <section className="section">
+        <div className="container">
+          <div className="section-head">
+            <h2>מהקטלוג שלנו</h2>
+            <p>טעימה קטנה ממה שמחכה לך בפנים.</p>
+          </div>
+          <div className="products-grid">
+            {featured.map((p) => (
+              <Link to={`/catalog/${p.id}`} key={p.id} className="product-card">
+                <div className="art">
+                  <Art product={p} />
+                </div>
+                <div className="info">
+                  <div className="name">{p.name}</div>
+                  <div className="meta">
+                    {p.metal} · {p.stone}
+                  </div>
+                  <div className="row">
+                    <span className="points-badge">{p.points} נק׳</span>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+          <div style={{ textAlign: 'center', marginTop: 40 }}>
+            <Link to="/catalog" className="btn btn-outline">
+              לקטלוג המלא
+            </Link>
           </div>
         </div>
       </section>
-    </div>
+
+      <section className="section alt">
+        <div className="container">
+          <div className="section-head">
+            <h2>מסלולי מנוי</h2>
+            <p>בחרי את המסלול שהכי מתאים לך — אפשר לשדרג או לבטל בכל עת.</p>
+          </div>
+          <div className="plans-grid">
+            {plans.map((plan) => (
+              <div key={plan.id} className={`plan-card${plan.featured ? ' featured' : ''}`}>
+                {plan.featured && <div className="flag">הכי פופולרי</div>}
+                <div className="plan-name">{plan.latin}</div>
+                <div className="price">
+                  ₪{plan.price}
+                  <small> לחודש</small>
+                </div>
+                <div className="materials">{plan.materials}</div>
+                <ul>
+                  {plan.perks.slice(0, 3).map((perk) => (
+                    <li key={perk}>{perk}</li>
+                  ))}
+                </ul>
+                <Link to="/plans" className={`btn${plan.featured ? ' btn-tan' : ''}`}>
+                  אני בוחרת
+                </Link>
+              </div>
+            ))}
+          </div>
+          <div className="plans-note-line">
+            ללא התחייבות<span className="dot">•</span>ניתן לבטל בכל עת
+          </div>
+        </div>
+      </section>
+
+      <section className="cta-band" style={{ backgroundImage: 'url(/photos/bg-cream.jpg)' }}>
+        <div className="tagline">NEW LOOK. SAME YOU.</div>
+        <h2>מוכנה להתחיל לנצנץ?</h2>
+        <p>ההרשמה לוקחת כמה דקות — והתכשיטים הראשונים כבר בדרך אלייך.</p>
+        <Link to="/signup" className="btn">
+          הצטרפי עכשיו
+        </Link>
+      </section>
+    </>
   );
 }

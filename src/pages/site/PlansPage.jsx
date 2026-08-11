@@ -1,77 +1,79 @@
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { api } from '../../api';
 import { getToken } from '../../lib/auth';
 import { useApp } from '../../state/AppContext';
-import Button from '../../components/Button';
-import { IconCheck } from '../../components/icons';
-
-function planFeatures(plan) {
-  return [
-    `${plan.points} נקודות בחודש`,
-    `עד ${plan.maxItems} תכשיטים במקביל`,
-    `${plan.exchanges} החלפות בחודש`,
-    plan.shippingLabel || (plan.shipping ? 'משלוח חינם' : 'משלוח בתשלום'),
-  ];
-}
+import { SHARED_TERMS } from '../../lib/site';
+import { enrichPlan } from '../../lib/plans';
 
 export default function PlansPage() {
   const { state, run } = useApp();
   const navigate = useNavigate();
-  const plans = state?.plans || [];
-  const featuredIndex = plans.length > 1 ? 1 : 0;
+  const plans = (state?.plans || []).map(enrichPlan);
+  const inAccount = window.location.pathname.startsWith('/account');
 
-  async function subscribe(planId) {
+  async function pickPlan(planId) {
     if (!getToken()) {
-      navigate('/login');
+      navigate(`/signup?plan=${planId}`);
       return;
     }
     const data = await run(() => api.subscribe(planId));
     if (!data) return;
-    navigate('/account/shop');
+    navigate(inAccount ? '/account/me' : '/catalog');
   }
 
   return (
-    <section className="site-section">
-      <div className="shell">
-        <div className="section-head">
-          <h2 className="section-title">מסלולי מנוי</h2>
-          <p className="section-sub">בחרי את המסלול שמתאים לך — אפשר לשדרג בכל שלב</p>
-        </div>
+    <>
+      <div className="page-head container">
+        <h1>מסלולי מנוי</h1>
+        <p>בחרי את המסלול שהכי מתאים לך</p>
+      </div>
 
-        <div className="plans-grid">
-          {plans.map((plan, i) => {
-            const featured = i === featuredIndex;
-            return (
-              <div key={plan.id} className={`plan-tile${featured ? ' plan-tile-featured' : ''}`}>
-                {featured ? <span className="plan-badge">הכי פופולרי</span> : null}
-                <h3 className="plan-name">{plan.name}</h3>
-                <p className="plan-price">
+      <section className="section" style={{ paddingTop: 48 }}>
+        <div className="container">
+          <div className="plans-grid">
+            {plans.map((plan) => (
+              <div key={plan.id} className={`plan-card${plan.featured ? ' featured' : ''}`}>
+                {plan.featured && <div className="flag">הכי פופולרי</div>}
+                <div className="plan-name">{plan.latin}</div>
+                <div className="price">
                   ₪{plan.price}
-                  <small>לחודש</small>
-                </p>
-                <ul className="plan-feats">
-                  {planFeatures(plan).map((f) => (
-                    <li key={f}>
-                      <IconCheck />
-                      {f}
-                    </li>
+                  <small> לחודש</small>
+                </div>
+                <div className="materials">{plan.materials}</div>
+                <ul>
+                  {plan.perks.map((perk) => (
+                    <li key={perk}>{perk}</li>
                   ))}
                 </ul>
-                <Button
-                  type="button"
-                  className={featured ? 'btn-gold btn-block' : 'btn-ink btn-block'}
-                  loadingText="שומר…"
-                  onClick={() => subscribe(plan.id)}
-                >
-                  אני בוחרת
-                </Button>
+                {getToken() ? (
+                  <button type="button" className={`btn${plan.featured ? ' btn-tan' : ''}`} onClick={() => pickPlan(plan.id)}>
+                    אני בוחרת
+                  </button>
+                ) : (
+                  <Link to={`/signup?plan=${plan.id}`} className={`btn${plan.featured ? ' btn-tan' : ''}`}>
+                    אני בוחרת
+                  </Link>
+                )}
               </div>
-            );
-          })}
-        </div>
+            ))}
+          </div>
 
-        <p className="plan-note">ללא התחייבות · ניתן לבטל בכל עת</p>
-      </div>
-    </section>
+          <div className="plans-note-line">
+            ללא התחייבות<span className="dot">•</span>ניתן לבטל בכל עת
+          </div>
+
+          <div className="plans-terms">
+            <strong>טוב לדעת:</strong>
+            <ul style={{ margin: '10px 0 0 0', paddingInlineStart: 22 }}>
+              {SHARED_TERMS.map((t) => (
+                <li key={t} style={{ marginBottom: 6 }}>
+                  {t}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </section>
+    </>
   );
 }

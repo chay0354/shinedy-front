@@ -1,9 +1,19 @@
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { api } from '../api';
 import { useApp } from '../state/AppContext';
 import { clearSession } from '../lib/auth';
-import Button from '../components/Button';
 import { RequireRole } from '../components/RequireRole';
+
+const TABS = [
+  { to: '/admin', label: 'לוח בקרה', end: true },
+  { to: '/admin/warehouse', label: 'הזמנות מחסן' },
+  { to: '/admin/rentals', label: 'ניהול השכרות' },
+  { to: '/admin/inventory', label: 'ניהול מלאי' },
+  { to: '/admin/customers', label: 'ניהול לקוחות' },
+  { to: '/admin/subscriptions', label: 'מנויים' },
+  { to: '/admin/expenses', label: 'הוצאות ותעריפים' },
+  { to: '/admin/reports', label: 'דוחות' },
+];
 
 export default function AdminLayout() {
   const { run, refresh } = useApp();
@@ -22,26 +32,29 @@ export default function AdminLayout() {
   }
 
   return (
-    <RequireRole role="admin">
-      <div className="layout-split">
-        <aside className="sidebar sidebar-account">
-          <div className="sidebar-top">
-            <div className="brand" style={{ padding: '0 24px 20px', fontSize: 20 }}>
-              SHINEDY
-            </div>
-            <div className="muted" style={{ padding: '0 24px 12px', fontSize: 12 }}>
-              ניהול מערכת
-            </div>
-            <NavLink to="/admin/products">מוצרים בחנות</NavLink>
-            <NavLink to="/admin/inventory">ניהול מלאי</NavLink>
+    <RequireRole roles={['admin', 'warehouse']}>
+      <div className="admin-app">
+        <div className="admin-bar">
+          <div className="admin-bar-inner">
+            <img src="/brand/name-white.png" alt="SHINEDY" />
+            <span className="admin-title">מערכת ניהול</span>
+            <span style={{ flex: 1 }} />
+            <Link to="/" className="admin-bar-link">
+              לאתר ↗
+            </Link>
+            <button type="button" className="admin-bar-link link-btn-plain" onClick={handleLogout}>
+              יציאה
+            </button>
           </div>
-          <div className="sidebar-footer">
-            <Button type="button" className="sidebar-logout" onClick={handleLogout}>
-              התנתקות
-            </Button>
-          </div>
-        </aside>
-        <div className="main-pane">
+        </div>
+        <nav className="admin-tabs">
+          {TABS.map((t) => (
+            <NavLink key={t.to} to={t.to} end={t.end} className={({ isActive }) => (isActive ? 'on' : '')}>
+              {t.label}
+            </NavLink>
+          ))}
+        </nav>
+        <div className="admin-content">
           <Outlet />
         </div>
       </div>

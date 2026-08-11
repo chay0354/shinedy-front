@@ -1,102 +1,92 @@
-import ImageSlot from '../../components/ImageSlot';
 import { api } from '../../api';
 import { useApp } from '../../state/AppContext';
-import Button from '../../components/Button';
+import Art from '../../components/Art';
 
 export default function InventoryPage() {
   const { state, run } = useApp();
+  const inventory = state.inventory || [];
 
   return (
     <>
-      <div className="display" style={{ fontSize: 22, marginBottom: 8 }}>
-        ניהול מלאי
+      <div className="admin-head-row">
+        <h1>מלאי וקטלוג</h1>
       </div>
-      <div className="muted" style={{ fontSize: 13, marginBottom: 20, maxWidth: 640, lineHeight: 1.6 }}>
-        כל היחידות במערכת וסטטוס כל פריט. לחצי + ליד דגם כדי להוסיף יחידה חדשה למלאי.
+      <p className="admin-sub">
+        ניהול יחידות במלאי וסטטוס כל פריט. לחצי + להוספת יחידה, או שנהי סטטוס ישירות.
+      </p>
+
+      <div className="admin-section">
+        <div className="table-wrap">
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th>תמונה</th>
+                <th>דגם</th>
+                <th>קטגוריה</th>
+                <th>נק׳</th>
+                <th>יח׳</th>
+                <th>זמין</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {inventory.map((g) => {
+                const p = (state.products || []).find((x) => x.id === g.id) || g;
+                const avail = g.units.filter((u) => u.status === 'זמין').length;
+                return (
+                  <tr key={g.id}>
+                    <td>
+                      <div className="mini-art">
+                        <Art product={p} />
+                      </div>
+                    </td>
+                    <td>{g.name}</td>
+                    <td>{g.category}</td>
+                    <td>{p.points}</td>
+                    <td>{g.units.length}</td>
+                    <td>{avail}</td>
+                    <td>
+                      <button type="button" className="btn-mini" onClick={() => run(() => api.receiveUnit(g.id))}>
+                        + יחידה
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-        {(state.inventory || []).map((g) => (
-          <div key={g.id} className="panel" style={{ padding: 18 }}>
-            <div
-              style={{
-                display: 'flex',
-                gap: 10,
-                alignItems: 'center',
-                marginBottom: 10,
-                justifyContent: 'space-between',
-                flexWrap: 'wrap',
-              }}
-            >
-              <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                <div className="thumb" style={{ width: 36, height: 36 }}>
-                  <ImageSlot label={g.name} category={g.category} productId={g.id} className="compact" />
-                </div>
-                <div>
-                  <div style={{ fontWeight: 600 }}>
-                    {g.id} — {g.name}
-                  </div>
-                  <div className="muted" style={{ fontSize: 12, marginTop: 2 }}>
-                    {g.units.length} יחידות
-                  </div>
-                </div>
-              </div>
-              <Button
-                type="button"
-                className="btn btn-sm inventory-add-btn"
-                loadingText="מוסיף…"
-                aria-label={`הוספת יחידה — ${g.name}`}
-                title="הוספת יחידה למלאי"
-                onClick={() => run(() => api.receiveUnit(g.id))}
-              >
-                +
-              </Button>
-            </div>
-            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-              {g.units.length === 0 ? (
-                <div className="muted" style={{ fontSize: 13 }}>
-                  אין יחידות — לחצי + להוספה
-                </div>
-              ) : (
-                g.units.map((u) => (
-                  <div
-                    key={u.id}
-                    style={{
-                      border: '1px solid var(--border)',
-                      padding: '10px 14px',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: 6,
-                      minWidth: 150,
-                    }}
+
+      {inventory.map((g) => (
+        <div key={`units-${g.id}`} className="admin-section">
+          <h2>
+            {g.id} — {g.name}
+          </h2>
+          <div className="units-cell">
+            {g.units.length === 0 ? (
+              <span style={{ color: 'var(--muted)' }}>אין יחידות</span>
+            ) : (
+              g.units.map((u) => (
+                <span key={u.id} className={`unit-chip ${u.status === 'זמין' ? 'ok' : 'out'}`}>
+                  <span dir="ltr">{u.id}</span>
+                  <select
+                    value={u.status}
+                    onChange={(e) => run(() => api.setUnitStatus(u.id, e.target.value))}
+                    style={{ fontSize: '0.75rem', marginTop: 4 }}
                   >
-                    <span className="muted" style={{ fontSize: 12 }}>
-                      {u.id}
-                    </span>
-                    <select
-                      value={u.status}
-                      onChange={(e) => run(() => api.setUnitStatus(u.id, e.target.value))}
-                      style={{
-                        background: u.badgeBg,
-                        color: u.badgeFg,
-                        border: 'none',
-                        padding: '6px 8px',
-                        fontSize: 12,
-                        fontWeight: 600,
-                      }}
-                    >
-                      {(state.statuses || []).map((st) => (
-                        <option key={st} value={st}>
-                          {st}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                ))
-              )}
-            </div>
+                    {(state.statuses || []).map((st) => (
+                      <option key={st} value={st}>
+                        {st}
+                      </option>
+                    ))}
+                  </select>
+                </span>
+              ))
+            )}
           </div>
-        ))}
-      </div>
+        </div>
+      ))}
     </>
   );
 }

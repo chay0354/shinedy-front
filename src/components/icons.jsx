@@ -1,226 +1,74 @@
-/* Thin line icons matching the boutique design language. */
-
+// אייקוני קו דקים בסגנון המוקאפים — stroke יחיד, ללא מילוי
 const base = {
   fill: 'none',
   stroke: 'currentColor',
   strokeWidth: 1.5,
   strokeLinecap: 'round',
   strokeLinejoin: 'round',
-};
-
-export function IconUser(props) {
-  return (
-    <svg viewBox="0 0 24 24" {...base} {...props}>
-      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-      <circle cx="12" cy="7" r="4" />
-    </svg>
-  );
 }
 
-export function IconBag(props) {
-  return (
-    <svg viewBox="0 0 24 24" {...base} {...props}>
-      <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
-      <path d="M3 6h18" />
-      <path d="M16 10a4 4 0 0 1-8 0" />
-    </svg>
-  );
-}
+const Svg = ({ children, size = 26 }) => (
+  <svg viewBox="0 0 24 24" width={size} height={size} {...base} aria-hidden="true">{children}</svg>
+)
 
-export function IconDiamond(props) {
-  return (
-    <svg viewBox="0 0 24 24" {...base} {...props}>
-      <path d="M6 3h12l4 6-10 12L2 9Z" />
-      <path d="M2 9h20" />
-      <path d="M12 21 8 9l2-6" />
-      <path d="m12 21 4-12-2-6" />
-    </svg>
-  );
-}
+export const IconDiamond = (p) => (
+  <Svg {...p}><path d="M7 3h10l4 6-9 12L3 9l4-6Z" /><path d="M3 9h18M9.5 9 12 21 14.5 9M7 3l2.5 6M17 3l-2.5 6" /></Svg>
+)
 
-export function IconCalendar(props) {
-  return (
-    <svg viewBox="0 0 24 24" {...base} {...props}>
-      <rect x="3" y="5" width="18" height="16" rx="2" />
-      <path d="M16 3v4M8 3v4M3 11h18" />
-    </svg>
-  );
-}
+export const IconInfinity = (p) => (
+  <Svg {...p}><path d="M8.5 15.5C6.6 15.5 5 13.9 5 12s1.6-3.5 3.5-3.5c3.5 0 3.5 7 7 7 1.9 0 3.5-1.6 3.5-3.5s-1.6-3.5-3.5-3.5c-3.5 0-3.5 7-7 7Z" /></Svg>
+)
 
-export function IconTruck(props) {
-  return (
-    <svg viewBox="0 0 24 24" {...base} {...props}>
-      <path d="M3 16V6a1 1 0 0 1 1-1h10v11" />
-      <path d="M14 9h4l3 3v4h-7" />
-      <circle cx="7.5" cy="17.5" r="2" />
-      <circle cx="17.5" cy="17.5" r="2" />
-    </svg>
-  );
-}
+export const IconCalendar = (p) => (
+  <Svg {...p}><rect x="3.5" y="5" width="17" height="15.5" rx="1" /><path d="M3.5 9.5h17M8 2.8v4M16 2.8v4" /></Svg>
+)
 
-export function IconRefresh(props) {
-  return (
-    <svg viewBox="0 0 24 24" {...base} {...props}>
-      <path d="M21 12a9 9 0 0 1-15 6.7L3 16" />
-      <path d="M3 12a9 9 0 0 1 15-6.7L21 8" />
-      <path d="M21 4v4h-4M3 20v-4h4" />
-    </svg>
-  );
-}
+export const IconTruck = (p) => (
+  <Svg {...p}><path d="M2.5 6h11v10h-11zM13.5 9.5H18l3.5 3.5v3h-8" /><circle cx="6.5" cy="17.5" r="1.8" /><circle cx="17" cy="17.5" r="1.8" /></Svg>
+)
 
-export function IconPhone(props) {
-  return (
-    <svg viewBox="0 0 24 24" {...base} {...props}>
-      <rect x="6" y="2" width="12" height="20" rx="2.5" />
-      <path d="M11 18h2" />
-    </svg>
-  );
-}
+export const IconShield = (p) => (
+  <Svg {...p}><path d="M12 3 5 5.5v5.2c0 4.4 3 7.6 7 9.3 4-1.7 7-4.9 7-9.3V5.5L12 3Z" /><path d="m9 11.5 2.2 2.2L15.5 9" /></Svg>
+)
 
-export function IconNecklace(props) {
-  return (
-    <svg viewBox="0 0 24 24" {...base} {...props}>
-      <path d="M5 4c0 6 3 9 7 9s7-3 7-9" />
-      <path d="m12 13-2 3 2 4 2-4Z" />
-    </svg>
-  );
-}
+export const IconRefresh = (p) => (
+  <Svg {...p}><path d="M4.5 12a7.5 7.5 0 0 1 13-5.1L20 9.5M19.5 12a7.5 7.5 0 0 1-13 5.1L4 14.5" /><path d="M20 4.5v5h-5M4 19.5v-5h5" /></Svg>
+)
 
-export function IconBox(props) {
-  return (
-    <svg viewBox="0 0 24 24" {...base} {...props}>
-      <path d="m3 8 9-5 9 5v8l-9 5-9-5Z" />
-      <path d="m3 8 9 5 9-5M12 13v8" />
-    </svg>
-  );
-}
+export const IconSparkle = (p) => (
+  <Svg {...p}><path d="M12 3c.6 3.9 2.1 5.4 6 6-3.9.6-5.4 2.1-6 6-.6-3.9-2.1-5.4-6-6 3.9-.6 5.4-2.1 6-6Z" /><path d="M19 14.5c.3 1.9 1 2.7 3 3-2 .3-2.7 1-3 3-.3-2-1-2.7-3-3 2-.3 2.7-1.1 3-3Z" /></Svg>
+)
 
-export function IconCheck(props) {
-  return (
-    <svg viewBox="0 0 24 24" {...base} {...props}>
-      <path d="m4 12 5 5L20 6" />
-    </svg>
-  );
-}
+export const IconUser = (p) => (
+  <Svg {...p}><circle cx="12" cy="8" r="3.5" /><path d="M5 20.5c.8-3.8 3.6-5.5 7-5.5s6.2 1.7 7 5.5" /></Svg>
+)
 
-export function IconChevron(props) {
-  return (
-    <svg viewBox="0 0 24 24" {...base} {...props}>
-      <path d="m6 9 6 6 6-6" />
-    </svg>
-  );
-}
+export const IconBag = (p) => (
+  <Svg {...p}><path d="M5 8h14l-1 12.5H6L5 8Z" /><path d="M8.5 10.5V6.8a3.5 3.5 0 0 1 7 0v3.7" /></Svg>
+)
 
-export function IconMail(props) {
-  return (
-    <svg viewBox="0 0 24 24" {...base} {...props}>
-      <rect x="2" y="5" width="20" height="14" rx="2" />
-      <path d="m2 7 10 6 10-6" />
-    </svg>
-  );
-}
+export const IconPhone = (p) => (
+  <Svg {...p}><path d="M7.5 3.5h3l1.5 4-2 1.5a12 12 0 0 0 5 5l1.5-2 4 1.5v3c0 1-.8 1.9-1.9 1.8C10.9 17.6 6.4 13.1 5.7 5.4a1.8 1.8 0 0 1 1.8-1.9Z" /></Svg>
+)
 
-export function IconPin(props) {
-  return (
-    <svg viewBox="0 0 24 24" {...base} {...props}>
-      <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
-      <circle cx="12" cy="10" r="3" />
-    </svg>
-  );
-}
+export const IconMail = (p) => (
+  <Svg {...p}><rect x="3" y="5.5" width="18" height="13" rx="1" /><path d="m3.5 6.5 8.5 6 8.5-6" /></Svg>
+)
 
-export function IconInstagram(props) {
-  return (
-    <svg viewBox="0 0 24 24" {...base} {...props}>
-      <rect x="3" y="3" width="18" height="18" rx="5" />
-      <circle cx="12" cy="12" r="4" />
-      <path d="M17.5 6.5h.01" />
-    </svg>
-  );
-}
+export const IconClock = (p) => (
+  <Svg {...p}><circle cx="12" cy="12" r="8.5" /><path d="M12 7.5V12l3 2.5" /></Svg>
+)
 
-export function IconFacebook(props) {
-  return (
-    <svg viewBox="0 0 24 24" {...base} {...props}>
-      <path d="M15 3h-2.5A3.5 3.5 0 0 0 9 6.5V10H6v4h3v7h4v-7h3l1-4h-4V7a1 1 0 0 1 1-1h2Z" />
-    </svg>
-  );
-}
+export const IconBox = (p) => (
+  <Svg {...p}><path d="m12 3 8 4v10l-8 4-8-4V7l8-4Z" /><path d="m4.5 7.3 7.5 3.7 7.5-3.7M12 11v9" /></Svg>
+)
 
-export function IconHeart(props) {
-  return (
-    <svg viewBox="0 0 24 24" {...base} {...props}>
-      <path d="M12 20s-7-4.6-7-9.5A3.5 3.5 0 0 1 12 8a3.5 3.5 0 0 1 7 2.5C19 15.4 12 20 12 20Z" />
-    </svg>
-  );
-}
+export const IconNecklace = (p) => (
+  <Svg {...p}><path d="M4 4c1.5 6 5 8.5 8 8.5s6.5-2.5 8-8.5" /><path d="m12 12.5-1.8 2.5 1.8 3 1.8-3-1.8-2.5Z" /></Svg>
+)
 
-export function IconShield(props) {
-  return (
-    <svg viewBox="0 0 24 24" {...base} {...props}>
-      <path d="M12 3 5 6v6c0 4.5 3 7.7 7 9 4-1.3 7-4.5 7-9V6Z" />
-      <path d="m9 12 2 2 4-4" />
-    </svg>
-  );
-}
+export const IconList = (p) => (
+  <Svg {...p}><rect x="4" y="3.5" width="16" height="17" rx="1" /><path d="M8 8h8M8 12h8M8 16h5" /></Svg>
+)
 
-export function IconSparkle(props) {
-  return (
-    <svg viewBox="0 0 24 24" {...base} {...props}>
-      <path d="M12 3v6M12 15v6M3 12h6M15 12h6" />
-      <path d="m6.5 6.5 3 3M14.5 14.5l3 3M17.5 6.5l-3 3M9.5 14.5l-3 3" />
-    </svg>
-  );
-}
-
-export function IconRing(props) {
-  return (
-    <svg viewBox="0 0 24 24" {...base} {...props}>
-      <circle cx="12" cy="15" r="6" />
-      <path d="m9 6 1.5-3h3L15 6l-3 3Z" />
-    </svg>
-  );
-}
-
-/* Decorative artwork used in image placeholders. */
-export function JewelArt({ variant = 'ring', ...props }) {
-  const stroke = { fill: 'none', stroke: 'currentColor', strokeWidth: 1.1, strokeLinejoin: 'round' };
-  if (variant === 'necklace') {
-    return (
-      <svg viewBox="0 0 120 120" {...props}>
-        <path d="M28 26c0 30 14 46 32 46s32-16 32-46" {...stroke} />
-        <path d="m60 72-8 12 8 16 8-16Z" {...stroke} />
-        <path d="M52 84h16" {...stroke} opacity="0.55" />
-      </svg>
-    );
-  }
-  if (variant === 'earring') {
-    return (
-      <svg viewBox="0 0 120 120" {...props}>
-        <circle cx="44" cy="34" r="9" {...stroke} />
-        <path d="M44 43v22" {...stroke} />
-        <path d="m44 65-9 13 9 16 9-16Z" {...stroke} />
-        <circle cx="80" cy="34" r="9" {...stroke} />
-        <path d="M80 43v22" {...stroke} />
-        <path d="m80 65-9 13 9 16 9-16Z" {...stroke} />
-      </svg>
-    );
-  }
-  if (variant === 'bracelet') {
-    return (
-      <svg viewBox="0 0 120 120" {...props}>
-        <ellipse cx="60" cy="60" rx="38" ry="24" {...stroke} />
-        <ellipse cx="60" cy="60" rx="27" ry="15" {...stroke} opacity="0.5" />
-        <path d="m60 30-6 9 6 9 6-9Z" {...stroke} />
-      </svg>
-    );
-  }
-  return (
-    <svg viewBox="0 0 120 120" {...props}>
-      <circle cx="60" cy="74" r="28" {...stroke} />
-      <circle cx="60" cy="74" r="19" {...stroke} opacity="0.5" />
-      <path d="m44 40 8-14h16l8 14-16 18Z" {...stroke} />
-      <path d="M44 40h32M52 26l8 32M68 26l-8 32" {...stroke} opacity="0.55" />
-    </svg>
-  );
-}
+export { default as JewelArt } from './JewelArt.jsx'

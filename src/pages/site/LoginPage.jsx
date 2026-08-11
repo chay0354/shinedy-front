@@ -1,86 +1,64 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { api } from '../../api';
 import { useApp } from '../../state/AppContext';
 import { applySessionFromResponse } from '../../lib/auth';
-import Button from '../../components/Button';
 import { homePathForRole } from '../../lib/roles';
-import { JewelArt } from '../../components/icons';
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [formError, setFormError] = useState('');
-  const { run, error } = useApp();
+  const [error, setError] = useState('');
+  const { run } = useApp();
   const navigate = useNavigate();
 
-  async function enter() {
-    if (!email.trim() || !password) {
-      setFormError('נא למלא דוא״ל וסיסמה');
+  async function handleSubmit(e) {
+    e.preventDefault();
+    const f = e.target;
+    const email = f.elements['l-email'].value.trim();
+    const password = f.elements['l-pass'].value;
+    setError('');
+    const data = await run(() => api.login({ email, password }));
+    if (!data) {
+      setError('פרטי התחברות שגויים');
       return;
     }
-    setFormError('');
-    const data = await run(() => api.login({ email: email.trim(), password }));
-    if (!data) return;
     applySessionFromResponse(data);
     navigate(homePathForRole(data.auth?.role, data.subscribed, data.planId));
   }
 
-  const message = formError || error;
-
   return (
-    <div className="auth-page">
-      <div className="auth-split">
-        <div className="auth-form">
-          <h1 className="auth-title">התחברות</h1>
-          <p className="auth-sub">ברוכה הבאה חזרה</p>
-
-          {message ? <div className="auth-error">{message}</div> : null}
-
-          <label className="form-field">
-            <span>דוא״ל</span>
-            <input
-              className="input"
-              type="email"
-              placeholder="name@email.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-          </label>
-
-          <label className="form-field">
-            <span>סיסמה</span>
-            <input
-              className="input"
-              type="password"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && enter()}
-            />
-          </label>
-
-          <Button
-            type="button"
-            className="btn-ink btn-block"
-            loadingText="נכנסת…"
-            onClick={enter}
-          >
-            התחברות
-          </Button>
-
-          <p className="auth-alt">
-            אין לך חשבון?{' '}
-            <button type="button" className="btn-link" onClick={() => navigate('/signup')}>
-              להרשמה
+    <div className="auth-split">
+      <div className="auth-form-side">
+        <div className="form-card">
+          <h1>התחברות</h1>
+          <p className="sub">ברוכה השבה</p>
+          <form onSubmit={handleSubmit}>
+            <div className="field">
+              <label htmlFor="l-email">אימייל</label>
+              <input id="l-email" name="l-email" type="email" required placeholder="name@email.com" dir="ltr" />
+            </div>
+            <div className="field">
+              <label htmlFor="l-pass">סיסמה</label>
+              <input id="l-pass" name="l-pass" type="password" required placeholder="••••••••" dir="ltr" />
+            </div>
+            {error && <p className="form-err">{error}</p>}
+            <button type="submit" className="btn btn-wide">
+              התחברות
             </button>
+          </form>
+          <p className="form-note">
+            אין לך חשבון?{' '}
+            <Link to="/signup" className="link-gold">
+              הירשמי כאן
+            </Link>
           </p>
         </div>
-
-        <div className="auth-visual" aria-hidden="true">
-          <JewelArt variant="necklace" />
-        </div>
       </div>
+      <div
+        className="auth-photo"
+        style={{ backgroundImage: 'url(/photos/bag.jpg)' }}
+        role="img"
+        aria-label="שקית מתנה של Shinedy"
+      />
     </div>
   );
 }
