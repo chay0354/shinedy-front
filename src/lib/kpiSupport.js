@@ -9,6 +9,7 @@ export const DEFAULT_RATES = {
   shipInsurancePerOrder: 4,
   paymentPct: 1.9,
   creditPct: 10,
+  extraExchangeFee: 65,
 };
 
 export const EXPENSE_CATEGORIES = [

@@ -27,6 +27,8 @@ import CustomersPage from './pages/admin/CustomersPage';
 import PlansAdminPage from './pages/admin/PlansAdminPage';
 import AdminReportsPage from './pages/admin/AdminReportsPage';
 import ExpensesAdminPage from './pages/admin/ExpensesAdminPage';
+import SettingsAdminPage from './pages/admin/SettingsAdminPage';
+import CustomerProfilePage from './pages/admin/CustomerProfilePage';
 
 export default function App() {
   const { loading, error, setError } = useApp();
@@ -88,10 +90,12 @@ export default function App() {
           <Route path="rentals" element={<AdminRentalsPage />} />
           <Route path="inventory" element={<InventoryPage />} />
           <Route path="customers" element={<CustomersPage />} />
+          <Route path="customers/:id" element={<CustomerProfilePage />} />
           <Route path="subscriptions" element={<PlansAdminPage />} />
           <Route path="expenses" element={<ExpensesAdminPage />} />
           <Route path="reports" element={<AdminReportsPage />} />
-          <Route path="returns" element={<Navigate to="/admin/warehouse" replace />} />
+          <Route path="settings" element={<SettingsAdminPage />} />
+          <Route path="returns" element={<AdminWarehousePage />} />
           <Route path="products" element={<Navigate to="/admin/inventory" replace />} />
           <Route path="receive" element={<Navigate to="/admin/inventory" replace />} />
         </Route>

@@ -1,19 +1,14 @@
-﻿import { useMemo, useState } from 'react'
-import { useApp } from '../../state/AppContext'
-import { buildDbFromState, adminApiFromState } from '../../lib/dbFromState'
+import { useMemo, useState } from 'react'
 import { EXPENSE_CATEGORIES } from '../../lib/kpiSupport.js'
-import { heDate } from '../../lib/accountHelpers.js'
+import { heDate, useAdminDb } from '../../lib/useAdminDb.js'
 import { computeKpis, fmtMoney, periodRange } from '../../lib/kpi.js'
 
 const money = (n) => fmtMoney(n) || '₪0'
 
-export default function ExpensesAdminPage() {
-  const { state } = useApp()
-  const [, bump] = useState(0)
-  const db = useMemo(() => buildDbFromState(state), [state, bump])
-  const api = useMemo(() => adminApiFromState(state, () => bump((n) => n + 1)), [state])
+export default function Expenses() {
+  const { db, api } = useAdminDb()
   const [msg, setMsg] = useState('')
-  // אותו מנוע חישוב בדיוק שמזין את לוח הבקרה — כדי שהפירוט כאן יהיה זהה לדוחות
+  // אותו מנוע חישוב בדיוק שמזין את הדשבורד — כדי שהפירוט כאן יהיה זהה לדוחות
   const k = useMemo(() => computeKpis(db, periodRange('this-month'), {}), [db])
   const cd = k.costDrivers
   const cb = k.profitability.costBreakdown
@@ -41,7 +36,7 @@ export default function ExpensesAdminPage() {
     f.reset()
     setMsg(recurring
       ? 'ההוצאה נרשמה כהוצאה חודשית מתחדשת ✓ — תיספר בכל חודש עד שתופסק'
-      : 'ההוצאה נרשמה כהוצאה חד-פעמית ✓ — המדדים בלוח הבקרה מתעדכנים מיד')
+      : 'ההוצאה נרשמה כהוצאה חד-פעמית ✓ — המדדים בדשבורד מתעדכנים מיד')
   }
 
   function saveRates(e) {
@@ -54,23 +49,24 @@ export default function ExpensesAdminPage() {
       cleaningPerItem: Number(f.elements['clean'].value),
       paymentPct: Number(f.elements['pay'].value),
       creditPct: Number(f.elements['credit'].value),
+      extraExchangeFee: Number(f.elements['exfee'].value),
     })
     setMsg('התעריפים עודכנו ✓')
   }
 
   return (
     <>
-      <h1>הוצאות ותעריפים</h1>
+      <h1>כספים</h1>
       <p className="admin-sub">
         כאן נרשמות ההוצאות בפועל והתעריפים המשתנים. מכאן נגזרים במדויק: עלות גיוס לקוחה (CAC),
-        המרווח הגולמי, המרווח התרומתי והתזרים בלוח הבקרה.
+        המרווח הגולמי, המרווח התפעולי והתזרים בדשבורד.
       </p>
 
       {msg && <p className="msg-ok">{msg}</p>}
 
       {db.expenses.length === 0 && (
         <div className="empty-state">
-          <h3>עדיין לא נרשמו הוצאות — ולכן "עלויות קבועות" בלוח הבקרה מציג ‎—</h3>
+          <h3>עדיין לא נרשמו הוצאות — ולכן "עלויות קבועות" בדשבורד מציג ‎—</h3>
           <p>
             כרטיס <b>עלויות קבועות</b>, <b>המרווח התפעולי</b>, <b>נקודת האיזון</b> ו-<b>CAC</b> מחושבים
             מההוצאות שנרשמות כאן. המערכת לא ממציאה מספרים, ולכן כל עוד אין רישומים היא מציגה "אין מספיק נתונים".
@@ -89,7 +85,7 @@ export default function ExpensesAdminPage() {
             רוצה לראות איך זה נראה מלא לפני שאת מזינה נתונים אמיתיים? אפשר לטעון מערך הוצאות
             לדוגמה בלחיצה אחת — ולמחוק אותו אחר כך.
           </p>
-          <button className="btn btn-sm" onClick={() => { api.loadSampleExpenses(); setMsg('נטענו הוצאות לדוגמה ✓ — לוח הבקרה מתעדכן מיד') }}>
+          <button className="btn btn-sm" onClick={() => { api.loadSampleExpenses(); setMsg('נטענו הוצאות לדוגמה ✓ — הדשבורד מתעדכן מיד') }}>
             טעינת הוצאות לדוגמה
           </button>
         </div>
@@ -117,8 +113,10 @@ export default function ExpensesAdminPage() {
         <p className="admin-sub" style={{ marginTop: -4 }}>
           כל תעריף מוכפל במה שקרה בפועל: משלוח, אריזה וביטוח נספרים <b>לכל הזמנה</b> (הזמנה ראשונה או
           החלפה), ניקוי נספר <b>לכל פריט שחזר ונסרק במחסן</b>, וסליקה וקרדיטים הם <b>אחוז מההכנסה</b>.
-          לכן לקוחה שמחליפה שלוש פעמים בחודש עולה פי שלושה במשלוחים מלקוחה שלא החליפה — ובדיוק בגלל זה
-          לא מדובר בעלות אחידה למנויה.
+          <b> חשוב:</b> משלוח אחד כלול לכל לקוחה בחודשיים; על כל החלפה נוספת מעבר לו הלקוחה
+          משלמת ₪{db.rates.extraExchangeFee} — והסכום הזה נרשם אוטומטית <b>כהכנסה שמתקזזת מול עלות
+          המשלוח</b> (רואים אותו בכרטיס ההכנסות בדשבורד תחת "דמי החלפה"). כלומר לקוחה שמחליפה הרבה
+          לא מפסידה לנו את המשלוחים — נשארות רק העלויות הקטנות של אריזה, ביטוח וניקוי.
         </p>
         <form className="admin-form" onSubmit={saveRates}>
           <div className="field"><label>משלוח הלוך-חזור להזמנה (₪)</label>
@@ -134,6 +132,9 @@ export default function ExpensesAdminPage() {
           <div className="field"><label>קרדיט ללקוחה (% מהמנוי)</label>
             <input name="credit" type="number" min="0" max="100" step="0.5" defaultValue={db.rates.creditPct} />
             <span className="cell-sub">נצבר ללקוחה כל חודש ומוצג באזור האישי</span></div>
+          <div className="field"><label>דמי משלוח החלפה נוספת (₪)</label>
+            <input name="exfee" type="number" min="0" step="1" defaultValue={db.rates.extraExchangeFee} />
+            <span className="cell-sub">מה שהלקוחה משלמת על החלפה מעבר לכלולה בחלון הדו-חודשי — נספר כהכנסה</span></div>
           <div className="form-actions"><button className="btn btn-sm">שמירת תעריפים</button></div>
         </form>
       </div>
@@ -142,7 +143,7 @@ export default function ExpensesAdminPage() {
         <h2>כך חושבו העלויות המשתנות החודש</h2>
         <p className="admin-sub" style={{ marginTop: -4 }}>
           החישוב מתבצע על נתוני החודש הנוכחי ({cd.orders} הזמנות · {cd.returnedItems} פריטים שחזרו ·
-          הכנסה {money(cd.revenue)}). <b>אלה בדיוק אותם מספרים</b> שמופיעים בדוח הרווח וההפסד בלוח הבקרה.
+          הכנסה {money(cd.revenue)}). <b>אלה בדיוק אותם מספרים</b> שמופיעים בדוח הרווח וההפסד בטאב "דוחות".
         </p>
         <div className="table-wrap">
           <table className="admin-table calc-table">
@@ -235,25 +236,29 @@ export default function ExpensesAdminPage() {
             </tbody>
           </table>
           <p className="cell-sub" style={{ marginTop: 10 }}>
-            הוצאה <b>חודשית</b> נספרת אוטומטית בכל חודש מתאריך תחילתה — כך שהעלויות הקבועות בלוח הבקרה
+            הוצאה <b>חודשית</b> נספרת אוטומטית בכל חודש מתאריך תחילתה — כך שהעלויות הקבועות בדשבורד
             תמיד מעודכנות בלי לרשום אותן מחדש. "הפסקה" עוצרת את הספירה מהחודש הנוכחי ואילך.
           </p>
         </div>
       </div>
 
-      <div className="admin-section" style={{ display: 'flex', gap: 24, flexWrap: 'wrap', alignItems: 'end' }}>
-        <form onSubmit={(ev) => { ev.preventDefault(); const v = ev.target.elements['np'].value.trim(); if (v.length >= 6) { api.setAdminPass(v); ev.target.reset(); setMsg('סיסמת הניהול עודכנה ✓') } }} style={{ display: 'flex', gap: 10, alignItems: 'end' }}>
+      <div className="admin-section">
+        <h2>יתרת מזומן פתיחה</h2>
+        <p className="admin-sub" style={{ marginTop: -6 }}>
+          כמה כסף יש בחשבון העסק היום. מכאן הדשבורד מחשב את היתרה הנוכחית ואת ה-Runway —
+          לכמה חודשים מספיק הכסף בקצב ההוצאות הנוכחי.
+        </p>
+        <form
+          onSubmit={(ev) => { ev.preventDefault(); api.setCashOpening(ev.target.elements['co'].value); setMsg('יתרת הפתיחה עודכנה ✓ — הדשבורד מציג עכשיו יתרה ו-Runway') }}
+          style={{ display: 'flex', gap: 10, alignItems: 'end', flexWrap: 'wrap' }}
+        >
           <div className="field" style={{ marginBottom: 0 }}>
-            <label>שינוי סיסמת ניהול (6+ תווים)</label>
-            <input name="np" type="password" dir="ltr" placeholder="סיסמה חדשה" />
+            <label>יתרה בבנק (₪)</label>
+            <input name="co" type="number" dir="ltr" defaultValue={db.cashOpening ?? ''} placeholder="למשל 50000" />
           </div>
-          <button className="btn btn-sm">עדכון</button>
+          <button className="btn btn-sm">שמירה</button>
         </form>
-        <button className="btn btn-outline btn-sm" onClick={() => { if (confirm('לאפס את כל הנתונים לנתוני הדמו ההתחלתיים?')) { api.resetDemo(); setMsg('הנתונים אופסו ✓') } }}>
-          איפוס לנתוני דמו
-        </button>
       </div>
     </>
   )
 }
-

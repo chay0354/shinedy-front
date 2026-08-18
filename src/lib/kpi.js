@@ -142,13 +142,16 @@ export function computeKpis(db, range, filters = {}) {
   const churned = users.filter((u) => u.canceledAt && inRange(u.canceledAt, start, end)).length
 
   // שיעור נטישה: לחודש בודד — נטישות ÷ פעילות בתחילת התקופה.
-  // לתקופה רב-חודשית — ממוצע השיעורים החודשיים, אחרת מתקבל ערך חסר משמעות (מעל 100%)
+  // לתקופה רב-חודשית — ממוצע השיעורים החודשיים, אחרת מתקבל ערך חסר משמעות (מעל 100%).
+  // מפתן נתונים: אחוז מוצג רק מחודשים עם 30+ מנויות בתחילתם — בבסיס קטן ביטול
+  // בודד נראה כמו "6.7% נטישה" ומייצר בהלת שווא; עד אז מוצגת הספירה בלבד.
+  const CHURN_MIN_BASE = 30
   const monthsList = monthsIn(start, end)
   const monthlyChurnRates = monthsList.map((m) => {
     const before = new Date(m.start.getTime() - 1)
     const startCount = users.filter((u) => isActiveSubscriber(u, before)).length
     const left = users.filter((u) => u.canceledAt && inRange(u.canceledAt, m.start, m.end)).length
-    return startCount > 0 ? (left / startCount) * 100 : null
+    return startCount >= CHURN_MIN_BASE ? (left / startCount) * 100 : null
   }).filter((x) => x !== null)
   const churnRate = monthlyChurnRates.length
     ? monthlyChurnRates.reduce((a, b) => a + b, 0) / monthlyChurnRates.length
@@ -185,18 +188,52 @@ export function computeKpis(db, range, filters = {}) {
     return n + o.items.filter((it) => it.returnedAt && inRange(it.returnedAt, start, end)).length
   }, 0)
 
+  // ===== הכנסות נוספות (מעבר לדמי המנוי) =====
+  // 1. רכישות תכשיטים — לקוחה שקונה תכשיט (מחיר מלא = הכנסה; במזומן נכנס רק מה ששולם בפועל,
+  //    כי חלק מכוסה בקרדיטים שכבר נצברו כהתחייבות)
+  const periodPurchases = (db.purchases || []).filter((x) => inRange(x.date, start, end)
+    && (!filters.plan || users.some((u) => u.id === x.userId)))
+  const purchaseRevenue = periodPurchases.reduce((s, x) => s + (Number(x.price) || 0), 0)
+  const purchaseCashIn = periodPurchases.reduce((s, x) => s + (Number(x.paid) || 0), 0)
+
+  // 2. דמי משלוח החלפה נוספת (₪65): החלפה אחת בכל חלון 60 יום כלולה במנוי,
+  //    וכל החלפה נוספת בתוך החלון מחויבת. בלי זה הלקוחות המחליפות-הרבה נראות
+  //    מפסידות יותר מהאמת — דווקא הסגמנט שהכי חשוב למדוד נכון.
+  const extraFee = Number(rates.extraExchangeFee) || 0
+  let chargedExchangesInRange = 0
+  const chargedByUser = {}
+  for (const u of users) {
+    const exs = db.orders
+      .filter((o) => o.userId === u.id && o.type === 'החלפה' && o.createdAt)
+      .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
+    let lastFree = -Infinity
+    for (const o of exs) {
+      const t = new Date(o.createdAt).getTime()
+      const free = t - lastFree >= 60 * DAY
+      if (free) lastFree = t
+      else if (inRange(o.createdAt, start, end)) {
+        chargedExchangesInRange += 1
+        chargedByUser[u.id] = (chargedByUser[u.id] || 0) + 1
+      }
+    }
+  }
+  const exchangeFeeIncome = chargedExchangesInRange * extraFee
+
+  const totalRevenue = revenue + purchaseRevenue + exchangeFeeIncome
+
   const shippingCost = periodOrders.length * rates.shippingPerOrder
   const packagingCost = periodOrders.length * rates.packagingPerOrder
   const shipInsuranceCost = periodOrders.length * rates.shipInsurancePerOrder
   const cleaningCost = returnedItemsCount * rates.cleaningPerItem
-  const paymentFees = revenue * (rates.paymentPct / 100)
+  // עמלת סליקה נגבית על כל מה שנסלק: דמי מנוי, תשלומי רכישה ודמי החלפה
+  const paymentFees = (revenue + purchaseCashIn + exchangeFeeIncome) * (rates.paymentPct / 100)
   // קרדיטים: אחוז מדמי המנוי נצבר לזכות הלקוחה — התחייבות עסקית לכל דבר
   const creditsAccrued = revenue * (rates.creditPct / 100)
   const variableCosts = shippingCost + packagingCost + shipInsuranceCost
     + cleaningCost + paymentFees + creditsAccrued
 
-  const grossProfit = revenue - variableCosts
-  const grossMarginPct = revenue > 0 ? (grossProfit / revenue) * 100 : null
+  const grossProfit = totalRevenue - variableCosts
+  const grossMarginPct = totalRevenue > 0 ? (grossProfit / totalRevenue) * 100 : null
 
   // ===== הוצאות =====
   const periodExpenses = expenseOccurrences(db.expenses, start, end, months)
@@ -217,7 +254,7 @@ export function computeKpis(db, range, filters = {}) {
 
   // רווח תפעולי — אחרי כל העלויות השוטפות, כולל קבועות ושיווק (לא כולל רכש מלאי)
   const operatingProfit = grossProfit - fixedCosts - marketing - otherExpenses
-  const operatingMarginPct = revenue > 0 ? (operatingProfit / revenue) * 100 : null
+  const operatingMarginPct = totalRevenue > 0 ? (operatingProfit / totalRevenue) * 100 : null
   const operatingPerSub = avgActive > 0 ? operatingProfit / avgActive : null
 
   // נקודת איזון: כמה מנויות דרושות כדי שהרווח הגולמי יכסה את העלויות הקבועות
@@ -228,10 +265,12 @@ export function computeKpis(db, range, filters = {}) {
     : null
 
   // LTV — על בסיס חודשי: ARPU חודשי × מרווח תרומתי ÷ נטישה חודשית.
-  // מוצג רק כשיש נטישה מדידה, אחרת המספר מטעה.
+  // מפתן נתונים: מוצג רק אחרי 5 נטישות מצטברות לפחות — לפני כן ה-churn שממנו
+  // הוא נגזר מבוסס על מקרה בודד, וה-LTV שמתקבל הוא ניחוש שנראה כמו מדע.
+  const totalChurnedEver = users.filter((u) => u.canceledAt).length
   const monthlyChurn = churnRate !== null ? churnRate / 100 : 0
-  const cmPct = revenue > 0 ? grossProfit / revenue : 0
-  const ltv = (churned > 0 && monthlyChurn > 0 && arpuMonthly)
+  const cmPct = totalRevenue > 0 ? grossProfit / totalRevenue : 0
+  const ltv = (totalChurnedEver >= 5 && monthlyChurn > 0 && arpuMonthly)
     ? (arpuMonthly * cmPct) / monthlyChurn
     : null
 
@@ -251,14 +290,17 @@ export function computeKpis(db, range, filters = {}) {
       if (!planUsers.some((u) => u.id === o.userId)) return n
       return n + o.items.filter((it) => it.returnedAt && inRange(it.returnedAt, start, end)).length
     }, 0)
+    // דמי החלפה נוספת של מנויות המסלול — הכנסה שמצטרפת להכנסת המנוי
+    const planExFees = planUsers.reduce((s, u) => s + (chargedByUser[u.id] || 0), 0) * extraFee
+    const revTotal = rev + planExFees
     const varC = ords.length * (rates.shippingPerOrder + rates.packagingPerOrder + rates.shipInsurancePerOrder)
-      + retItems * rates.cleaningPerItem + rev * (rates.paymentPct / 100) + rev * (rates.creditPct / 100)
-    const contribution = rev - varC
+      + retItems * rates.cleaningPerItem + revTotal * (rates.paymentPct / 100) + rev * (rates.creditPct / 100)
+    const contribution = revTotal - varC
     return {
       id: plan.id, name: plan.latin, price: plan.price,
       subscribers: planUsers.filter((u) => isActiveSubscriber(u, end)).length,
-      avgActive: avgAct, revenue: rev, variableCosts: varC, contribution,
-      marginPct: rev > 0 ? (contribution / rev) * 100 : null,
+      avgActive: avgAct, revenue: revTotal, variableCosts: varC, contribution,
+      marginPct: revTotal > 0 ? (contribution / revTotal) * 100 : null,
     }
   })
   // הקצאת העלויות הקבועות והשיווק בין המסלולים לפי משקל המנויות
@@ -279,19 +321,23 @@ export function computeKpis(db, range, filters = {}) {
       if (o.userId !== u.id) return n
       return n + o.items.filter((it) => it.returnedAt && inRange(it.returnedAt, start, end)).length
     }, 0)
+    // דמי החלפה נוספת שהלקוחה שילמה — הכנסה שמקזזת את עלויות המשלוח שלה
+    const exFees = (chargedByUser[u.id] || 0) * extraFee
+    const revTotal = rev + exFees
     const ship = ords.length * rates.shippingPerOrder
     const pack = ords.length * rates.packagingPerOrder
     const insur = ords.length * rates.shipInsurancePerOrder
     const clean = retItems * rates.cleaningPerItem
-    const fees = rev * (rates.paymentPct / 100)
+    const fees = (rev + exFees) * (rates.paymentPct / 100)
     const credits = rev * (rates.creditPct / 100)
-    const contribution = rev - ship - pack - insur - clean - fees - credits
+    const contribution = revTotal - ship - pack - insur - clean - fees - credits
     return {
       id: u.id, name: u.name, plan: (db.plans.find((p) => p.id === u.plan) || {}).latin || '—',
       active: isActiveSubscriber(u, end),
-      revenue: rev, shipping: ship, packaging: pack, insurance: insur, cleaning: clean, fees, credits,
+      revenue: revTotal, exchangeFees: exFees,
+      shipping: ship, packaging: pack, insurance: insur, cleaning: clean, fees, credits,
       exchanges: ords.filter((o) => o.type === 'החלפה').length,
-      contribution, marginPct: rev > 0 ? (contribution / rev) * 100 : null,
+      contribution, marginPct: revTotal > 0 ? (contribution / revTotal) * 100 : null,
     }
   }).filter((c) => c.revenue > 0 || c.contribution !== 0)
   // הקצאת עלויות קבועות שוות בין הלקוחות הפעילות — לקבלת רווח תפעולי אמיתי ללקוחה
@@ -373,13 +419,16 @@ export function computeKpis(db, range, filters = {}) {
       const contribution = rev * cmPct
       const monthlyContribution = contribution / Math.max(1, months.length)
       const cost = p.cost || 0
+      // מפתן נתונים: Payback ו-ROI לפריט מוצגים רק אחרי ~3 חודשי פעילות —
+      // לפני כן הם נגזרים מהשכרות בודדות ועלולים להטות החלטות רכש
+      const matured = monthsActive >= 3
       items.push({
         serial: u.serial, sku: p.sku || p.id.toUpperCase(), name: p.name, status: u.status,
         cost, revenue: rev, contribution,
         monthsActive: Math.round(monthsActive * 10) / 10,
-        paybackMonths: monthlyContribution > 0 ? cost / monthlyContribution : null,
+        paybackMonths: matured && monthlyContribution > 0 ? cost / monthlyContribution : null,
         remaining: Math.max(0, cost - contribution),
-        roi: cost > 0 ? ((rev - (rev * (1 - cmPct)) - cost) / cost) * 100 : null,
+        roi: matured && cost > 0 ? ((rev - (rev * (1 - cmPct)) - cost) / cost) * 100 : null,
       })
     }
   }
@@ -436,13 +485,16 @@ export function computeKpis(db, range, filters = {}) {
   ]
 
   // ===== תזרים =====
-  // הקרדיטים אינם יציאת מזומן — הם התחייבות עתידית, ולכן אינם נכללים כאן
-  const cashIn = revenue // גבייה משוערת לפי המנויים הפעילים (אין סליקה בדמו)
+  // הקרדיטים אינם יציאת מזומן — הם התחייבות עתידית, ולכן אינם נכללים כאן.
+  // ברכישות נכנס למזומן רק מה ששולם בפועל (החלק שכוסה בקרדיט אינו כסף חדש).
+  const cashIn = revenue + purchaseCashIn + exchangeFeeIncome // גבייה משוערת (אין סליקה בדמו)
   const cashOutExpenses = periodExpenses.reduce((s, e) => s + e.amount, 0)
   const cashOut = cashOutExpenses + shippingCost + packagingCost + shipInsuranceCost + cleaningCost + paymentFees
   const netCash = cashIn - cashOut
   const cashCategories = [
-    { label: 'גביית מנויים (אומדן)', amount: cashIn, kind: 'in' },
+    { label: 'גביית מנויים (אומדן)', amount: revenue, kind: 'in' },
+    { label: 'רכישות תכשיטים (שולם בפועל)', amount: purchaseCashIn, kind: 'in' },
+    { label: 'דמי משלוח החלפות נוספות', amount: exchangeFeeIncome, kind: 'in' },
     ...EXPENSE_GROUPS(db, periodExpenses),
     { label: 'משלוחים (מחושב)', amount: -shippingCost, kind: 'out' },
     { label: 'אריזה (מחושב)', amount: -packagingCost, kind: 'out' },
@@ -457,17 +509,22 @@ export function computeKpis(db, range, filters = {}) {
     costDrivers: {
       orders: periodOrders.length,
       returnedItems: returnedItemsCount,
-      revenue,
+      // הסכום שעליו נגבית עמלת סליקה: מנויים + תשלומי רכישות + דמי החלפות
+      revenue: revenue + purchaseCashIn + exchangeFeeIncome,
       avgActive,
       shipments: periodShipments.length,
     },
     subscriptions: { activeEnd, activeStart, newSubs, churned, churnRate, movement, arpu, arpuMonthly, avgActive, monthCount },
     profitability: {
-      revenue, variableCosts, grossProfit, grossMarginPct,
+      revenue, purchaseRevenue, exchangeFeeIncome, totalRevenue,
+      variableCosts, grossProfit, grossMarginPct,
       fixedCosts, fixedByCategory, fixedMonthly, marketing, otherExpenses, capex,
       breakEvenSubs, grossPerSubMonth,
       operatingProfit, operatingMarginPct, operatingPerSub,
       cac, ltv, cmPct: cmPct * 100, byPlan, byCustomer,
+      // הקצאת קבועות פר-לקוחה/מסלול אמינה רק מ-50 מנויות ומעלה;
+      // מתחת לזה כל לקוחה "סופגת" חלק ענק מהקבועות ונראית מפסידה בטעות
+      fixedAllocationReliable: avgActive >= 50,
       avgCustomerContribution, avgCustomerOperating,
       creditsAccrued, creditLiability: totalCreditLiability(db),
       costBreakdown: {

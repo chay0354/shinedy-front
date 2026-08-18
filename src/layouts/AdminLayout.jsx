@@ -1,23 +1,29 @@
-import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { Link, NavLink, Outlet, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import { api } from '../api';
 import { useApp } from '../state/AppContext';
 import { clearSession } from '../lib/auth';
 import { RequireRole } from '../components/RequireRole';
+import { ADMIN_TABS, currentStaff, staffCanAccess, staffHome } from '../lib/staff';
+import { loadAdminMeta } from '../lib/dbFromState';
 
-const TABS = [
-  { to: '/admin', label: 'לוח בקרה', end: true },
-  { to: '/admin/warehouse', label: 'הזמנות מחסן' },
-  { to: '/admin/rentals', label: 'ניהול השכרות' },
-  { to: '/admin/inventory', label: 'ניהול מלאי' },
-  { to: '/admin/customers', label: 'ניהול לקוחות' },
-  { to: '/admin/subscriptions', label: 'מנויים' },
-  { to: '/admin/expenses', label: 'הוצאות ותעריפים' },
-  { to: '/admin/reports', label: 'דוחות' },
-];
+const TABS = ADMIN_TABS.map((t) => ({
+  to: t.path,
+  label: t.label,
+  end: t.path === '/admin',
+}));
 
 export default function AdminLayout() {
-  const { run, refresh } = useApp();
+  const { state, run, refresh } = useApp();
   const navigate = useNavigate();
+  const location = useLocation();
+  const meta = loadAdminMeta();
+  const me = currentStaff(state, meta.staff);
+  const isManager = me?.role === 'מנהלת';
+  const visibleTabs = TABS.filter((t) => !me || isManager || staffCanAccess(me, t.to));
+
+  if (me && !isManager && !staffCanAccess(me, location.pathname)) {
+    return <Navigate to={staffHome(me)} replace />;
+  }
 
   async function handleLogout() {
     try {
@@ -39,6 +45,12 @@ export default function AdminLayout() {
             <img src="/brand/name-white.png" alt="SHINEDY" />
             <span className="admin-title">מערכת ניהול</span>
             <span style={{ flex: 1 }} />
+            {me && <span className="admin-bar-user">{me.name} · {me.role}</span>}
+            {isManager && (
+              <Link to="/admin/settings" className="admin-bar-link" title="הגדרות">
+                ⚙ הגדרות
+              </Link>
+            )}
             <Link to="/" className="admin-bar-link">
               לאתר ↗
             </Link>
@@ -48,7 +60,7 @@ export default function AdminLayout() {
           </div>
         </div>
         <nav className="admin-tabs">
-          {TABS.map((t) => (
+          {visibleTabs.map((t) => (
             <NavLink key={t.to} to={t.to} end={t.end} className={({ isActive }) => (isActive ? 'on' : '')}>
               {t.label}
             </NavLink>

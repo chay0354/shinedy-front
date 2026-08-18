@@ -627,6 +627,10 @@ button { font-family: inherit; cursor: pointer; }
 .audit-row { display: flex; gap: 14px; padding: 6px 0; border-bottom: 1px solid var(--line); font-size: 0.87rem; }
 .audit-row:last-child { border-bottom: none; }
 .audit-ts { color: var(--muted); white-space: nowrap; font-size: 0.8rem; }
+.audit-actor {
+  color: var(--gold-dark); font-weight: 600; font-size: 0.8rem; white-space: nowrap;
+  min-width: 88px;
+}
 .blocked-panel {
   background: #fdf3f2; border: 1px solid #e5c5c1; padding: 16px 20px; color: var(--ink);
   font-weight: 300;
@@ -753,6 +757,12 @@ button { font-family: inherit; cursor: pointer; }
 .admin-bar-inner img { height: 20px; }
 .admin-title { font-size: 0.9rem; letter-spacing: 0.14em; color: var(--gold); font-weight: 600; }
 .admin-bar-link { color: #d8d2c8; font-size: 0.9rem; }
+.admin-bar-user { color: var(--gold); font-size: 0.88rem; font-weight: 600; }
+.access-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 4px 14px; margin-top: 6px;
+}
+.access-grid .check-row { margin: 0; font-size: 0.88rem; }
 .admin-bar-link:hover { color: var(--gold); }
 .link-btn-plain { background: none; border: none; cursor: pointer; font: inherit; padding: 0; }
 .admin-tabs {
@@ -880,6 +890,32 @@ button { font-family: inherit; cursor: pointer; }
 .pill.warn { color: #8a6d1a; border-color: #e2d3a1; background: #faf4df; }
 .pill.info { color: #245b8f; border-color: #b9d2e8; background: #eaf2fa; }
 
+/* ===== ניהול מלאי — טבלה קומפקטית שנכנסת במסך בלי גלילה לצדדים ===== */
+.inv-table td { vertical-align: middle; }
+.inv-table .cell-sub { display: block; margin-top: 2px; }
+.inv-name { display: flex; align-items: center; gap: 10px; }
+.inv-name > div > b { display: block; }
+.inv-state { display: block; margin-top: 4px; font-size: 0.8rem; color: var(--muted); white-space: nowrap; }
+.inv-state i { font-style: normal; font-weight: 600; }
+.inv-state .st-ok { color: #2e6b34; }
+.inv-state .st-warn { color: #8a6d1a; }
+
+/* ===== דשבורד: רצועת "ממתין לטיפול עכשיו" ===== */
+.action-strip {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px;
+}
+.action-tile {
+  display: block; background: #fff; border: 1px solid var(--line); border-inline-start: 4px solid var(--line);
+  padding: 16px 18px; text-decoration: none; color: inherit; transition: border-color 0.15s, box-shadow 0.15s;
+}
+.action-tile:hover { box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06); }
+.action-tile .at-n { font-size: 2.1rem; font-weight: 500; line-height: 1; color: var(--ink); display: block; }
+.action-tile .at-lab { color: var(--muted); font-size: 0.85rem; font-weight: 300; margin-top: 6px; display: block; }
+.action-tile.urgent { border-inline-start-color: var(--danger); }
+.action-tile.urgent .at-n { color: var(--danger); }
+.action-tile.clear { border-inline-start-color: #bcd8bf; }
+.action-tile.clear .at-n { color: var(--muted); }
+
 /* ===== footer ===== */
 .site-footer { background: #14110d; color: #b5aea3; }
 .site-footer .container {
@@ -933,7 +969,7 @@ button { font-family: inherit; cursor: pointer; }
   .feature-strip { grid-template-columns: 1fr 1fr; gap: 26px 12px; }
 }
 
-/* ===== app shell (React app) ===== */
+/* ===== app shell (live React app) ===== */
 .app-shell { min-height: 100vh; display: flex; flex-direction: column; }
 .app-shell > main { flex: 1; }
 .loading { text-align: center; padding: 64px 24px; color: var(--muted); font-weight: 300; }
@@ -954,3 +990,4 @@ button { font-family: inherit; cursor: pointer; }
 .btn-primary { background: var(--gold); color: #fff; border: none; }
 .table { width: 100%; border-collapse: collapse; }
 .table th, .table td { border-bottom: 1px solid var(--line); padding: 10px 8px; text-align: right; }
+.num-input { width: 90px; padding: 6px 8px; border: 1px solid var(--line); font: inherit; text-align: left; }

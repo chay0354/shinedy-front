@@ -59,6 +59,14 @@ export default function DashboardPage() {
 
   return (
     <>
+      {state?.registration?.suspended && (
+        <div className="container" style={{ paddingTop: 20 }}>
+          <div className="blocked-panel">
+            <b>המנוי שלך מושהה.</b> בתקופת ההשהיה לא ניתן לבצע הזמנות והחלפות, ואינך מחויבת.
+            להפעלה מחדש — צרי איתנו קשר.
+          </div>
+        </div>
+      )}
       {blocked && (
         <div className="container" style={{ paddingTop: 20 }}>
           <div className="blocked-panel">

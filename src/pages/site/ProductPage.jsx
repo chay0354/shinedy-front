@@ -4,7 +4,11 @@ import { api } from '../../api';
 import { useApp } from '../../state/AppContext';
 import { getToken } from '../../lib/auth';
 import { hasActivePlan } from '../../lib/roles';
+import { PLAN_NAME } from '../../lib/site';
+import { isTopPlan } from '../../lib/accountHelpers';
 import Art from '../../components/Art';
+import QuotaDialog from '../../components/QuotaDialog';
+import PurchaseDialog from '../../components/PurchaseDialog';
 import {
   IconDiamond,
   IconList,
@@ -25,13 +29,18 @@ export default function ProductPage() {
   const { id } = useParams();
   const { state, run } = useApp();
   const [thumb, setThumb] = useState(0);
+  const [quotaOpen, setQuotaOpen] = useState(false);
+  const [buyOpen, setBuyOpen] = useState(false);
+  const [buyMsg, setBuyMsg] = useState('');
   const p = (state?.products || []).find((x) => x.id === id);
   const loggedIn = Boolean(getToken() && state?.auth);
   const subscribed = hasActivePlan(state);
   const inBox = (state?.cart || []).some((x) => x.id === p?.id);
   const remaining = state?.remaining ?? 0;
   const orderable = p?.inStock !== false;
-  const canAdd = loggedIn && subscribed && orderable && !inBox && p && p.points <= remaining;
+  const user = loggedIn
+    ? { name: state?.registration?.name, phone: state?.registration?.phone, email: state?.registration?.email }
+    : null;
 
   if (!p) {
     return (
@@ -46,8 +55,12 @@ export default function ProductPage() {
     );
   }
 
-  async function addToBox() {
-    await run(() => api.addToCart(p.id));
+  async function tryAdd() {
+    try {
+      await run(() => api.addToCart(p.id));
+    } catch {
+      setQuotaOpen(true);
+    }
   }
 
   return (
@@ -112,8 +125,21 @@ export default function ProductPage() {
               <div className="spec-row">
                 <IconShield size={20} />
                 <span className="lab">זמינות</span>
-                <span>{orderable ? 'זמין להזמנה' : 'אזל מהמלאי'}</span>
+                <span>
+                  {orderable
+                    ? PLAN_NAME[p.minPlan]
+                      ? `זמין — החל מ${PLAN_NAME[p.minPlan]}`
+                      : 'זמין להזמנה'
+                    : 'אזל מהמלאי'}
+                </span>
               </div>
+              {p.price ? (
+                <div className="spec-row">
+                  <IconSparkle size={20} />
+                  <span className="lab">מחיר לרכישה</span>
+                  <span>₪{Number(p.price).toLocaleString()}</span>
+                </div>
+              ) : null}
             </div>
 
             <div className="product-ctas">
@@ -132,26 +158,62 @@ export default function ProductPage() {
                   בקופסה שלך ✓ — לצפייה
                 </Link>
               )}
-              {loggedIn && subscribed && !inBox && (
-                <button type="button" className="btn" disabled={!canAdd} onClick={addToBox}>
-                  {orderable
-                    ? p.points <= remaining
-                      ? 'הוספה לקופסה'
-                      : 'אין מספיק נקודות פנויות'
-                    : 'אזל מהמלאי'}
+              {loggedIn && subscribed && !inBox && orderable && (
+                <button type="button" className="btn" onClick={tryAdd}>
+                  הוספה לקופסה
                 </button>
               )}
-              <Link to="/plans" className="btn btn-outline">
-                למסלולי המנוי
-              </Link>
-              {p.price ? (
-                <div style={{ color: 'var(--muted)', fontSize: '0.88rem', fontWeight: 300 }}>
-                  מחיר רכישה: ₪{Number(p.price).toLocaleString()} · הקרדיטים שצברת מוזילים אותו
-                </div>
+              {loggedIn && subscribed && !inBox && !orderable && (
+                <button type="button" className="btn" disabled>
+                  אזל מהמלאי
+                </button>
+              )}
+              {orderable && p.price ? (
+                <button
+                  type="button"
+                  className={loggedIn ? 'btn btn-outline' : 'btn btn-tan'}
+                  onClick={() => {
+                    setBuyMsg('');
+                    setBuyOpen(true);
+                  }}
+                >
+                  רכישה ₪{Number(p.price).toLocaleString()}
+                </button>
               ) : null}
+              <Link to="/catalog" className="btn btn-outline">
+                להמשך בחירה בקטלוג
+              </Link>
+              {buyMsg && <p className="msg-ok" style={{ margin: 0 }}>{buyMsg}</p>}
+              <div style={{ color: 'var(--muted)', fontSize: '0.88rem', fontWeight: 300 }}>
+                {loggedIn
+                  ? 'המחיר כולל מע״מ · הקרדיטים שצברת מוזילים אותו'
+                  : 'המחיר כולל מע״מ · אפשר לרכוש גם בלי מנוי'}
+              </div>
             </div>
           </div>
         </div>
+
+        <QuotaDialog
+          open={quotaOpen}
+          onClose={() => setQuotaOpen(false)}
+          product={p}
+          missing={Math.max(0, p.points - remaining)}
+          remaining={remaining}
+          hideUpgrade={isTopPlan(state)}
+        />
+
+        <PurchaseDialog
+          open={buyOpen}
+          onClose={() => setBuyOpen(false)}
+          item={{ product: p, serial: null }}
+          price={Number(p.price) || 0}
+          credit={state?.credits || 0}
+          user={user}
+          onConfirm={() => {
+            setBuyMsg('בקשת הרכישה נרשמה — ניצור קשר להשלמת התשלום');
+            setBuyOpen(false);
+          }}
+        />
 
         <div className="benefits">
           {BENEFITS.map((b) => (
