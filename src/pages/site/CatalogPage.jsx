@@ -4,7 +4,7 @@ import { useApp } from '../../state/AppContext';
 import { CATEGORIES } from '../../lib/site';
 import Art from '../../components/Art';
 
-const STONES = ['מויסנייט', 'יהלום', 'ללא אבן'];
+const STONES = ['מויסנייט', 'יהלום מעבדה', 'ללא אבן'];
 const SORTS = [
   { id: 'default', label: 'מומלץ' },
   { id: 'points-asc', label: 'נקודות: מהנמוכות לגבוהות' },
@@ -86,6 +86,9 @@ export default function CatalogPage() {
                   </div>
                   <div className="row">
                     <span className="points-badge">{p.points} נק׳</span>
+                    {p.price ? (
+                      <span className="price-tag">₪{Number(p.price).toLocaleString()} לקנייה</span>
+                    ) : null}
                     {!p.inStock && <span className="oos">אזל מהמלאי</span>}
                   </div>
                 </div>

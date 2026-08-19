@@ -285,6 +285,37 @@ export function buildDbFromState(state) {
       status: o.status === 'נמסרה' ? 'נמסר ללקוחה' : 'נאסף מהמחסן',
     }));
 
+  const livePurchases = [
+    ...(state?.purchases || []),
+    ...(state?.myPurchases || []),
+    ...(state?.orders || [])
+      .filter((o) => o.type === 'רכישה')
+      .map((o) => {
+        const metaRow = (o.newItems || []).find((x) => x && x.kind === 'purchase-meta') || {};
+        const serial = Array.isArray(o.items) ? o.items[0] : o.items;
+        return {
+          id: o.id,
+          userId: o.userId || null,
+          buyer: metaRow.buyer || null,
+          recipient: o.customerName,
+          pid: metaRow.pid,
+          serial,
+          name: metaRow.name || o.itemsLabel,
+          sku: metaRow.sku,
+          date: o.date,
+          price: Number(metaRow.price) || 0,
+          creditUsed: Number(metaRow.creditUsed) || 0,
+          paid: Number(metaRow.paid) || 0,
+          address: metaRow.address || {},
+          needsShipping: Boolean(metaRow.needsShipping) && !metaRow.shippedAt,
+          shippedAt: metaRow.shippedAt || null,
+        };
+      }),
+  ];
+  const purchases = [...meta.purchases, ...livePurchases].filter(
+    (p, i, arr) => p?.id && arr.findIndex((x) => x.id === p.id) === i,
+  );
+
   return {
     plans,
     products,
@@ -292,7 +323,7 @@ export function buildDbFromState(state) {
     orders,
     shipments,
     returns,
-    purchases: meta.purchases,
+    purchases,
     expenses: meta.expenses,
     rates: meta.rates,
     expSeq: meta.expSeq,

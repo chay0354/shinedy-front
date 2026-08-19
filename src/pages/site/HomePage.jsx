@@ -70,6 +70,9 @@ export default function HomePage() {
                   </div>
                   <div className="row">
                     <span className="points-badge">{p.points} נק׳</span>
+                    {p.price ? (
+                      <span className="price-tag">₪{Number(p.price).toLocaleString()} לקנייה</span>
+                    ) : null}
                   </div>
                 </div>
               </Link>

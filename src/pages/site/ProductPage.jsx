@@ -39,7 +39,13 @@ export default function ProductPage() {
   const remaining = state?.remaining ?? 0;
   const orderable = p?.inStock !== false;
   const user = loggedIn
-    ? { name: state?.registration?.name, phone: state?.registration?.phone, email: state?.registration?.email }
+    ? {
+        name: state?.registration?.name || state?.registration?.fullName,
+        phone: state?.registration?.phone,
+        email: state?.registration?.email,
+        address: state?.registration?.address,
+        payment: state?.registration?.payment,
+      }
     : null;
 
   if (!p) {
@@ -209,8 +215,15 @@ export default function ProductPage() {
           price={Number(p.price) || 0}
           credit={state?.credits || 0}
           user={user}
-          onConfirm={() => {
-            setBuyMsg('בקשת הרכישה נרשמה — ניצור קשר להשלמת התשלום');
+          onConfirm={async (opts) => {
+            const data = await run(() =>
+              api.purchase({
+                productId: p.id,
+                serial: null,
+                ...opts,
+              }),
+            );
+            setBuyMsg(data?.purchase?.msg || data?.flash || '');
             setBuyOpen(false);
           }}
         />

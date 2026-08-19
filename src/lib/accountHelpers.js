@@ -17,16 +17,25 @@ export function activeUnits(state) {
   const marked = state?.exchangeReturns || [];
 
   return items.map((item) => {
-    const product = products.find((p) => p.name === item.name || p.id === item.productId) || {
+    const product = products.find((p) => p.id === item.productId || p.name === item.name) || {
+      id: item.productId,
       name: item.name,
       category: item.category,
-      metal: '',
-      stone: '',
-      points: 0,
+      metal: item.metal || '',
+      stone: item.stone || '',
+      points: item.points || 0,
+      price: item.price || 0,
     };
     return {
       serial: item.unitId,
-      product,
+      pid: item.productId || product.id,
+      product: {
+        ...product,
+        metal: product.metal || item.metal || '',
+        stone: product.stone || item.stone || '',
+        points: product.points || item.points || 0,
+        price: product.price || item.price || 0,
+      },
       marked: marked.includes(item.unitId),
     };
   });

@@ -104,8 +104,8 @@ export function useAdminDb() {
       returnOrder() {
         return null;
       },
-      markPurchaseShipped() {
-        return null;
+      markPurchaseShipped(id) {
+        return run(() => live.markPurchaseShipped(id));
       },
       async scanReturnSerial(code) {
         try {

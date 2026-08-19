@@ -28,6 +28,7 @@ export default function SignupPage() {
         fullName: f.elements['s-name'].value.trim(),
         email: f.elements['s-email'].value.trim(),
         password: f.elements['s-pass'].value,
+        phone: f.elements['s-phone'].value.trim(),
       }),
     );
     if (!data) {
