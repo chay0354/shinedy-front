@@ -4,37 +4,55 @@ import { api } from '../../api';
 import { getToken } from '../../lib/auth';
 import { useApp } from '../../state/AppContext';
 import { SHARED_TERMS } from '../../lib/site';
-import { enrichPlan } from '../../lib/plans';
+import {
+  matchesPlanId,
+  publicCatalogPlans,
+  signupHref,
+  subscribePlanId,
+} from '../../lib/plans';
 
 export default function PlansPage() {
   const { state, run, error } = useApp();
   const navigate = useNavigate();
-  const plans = (state?.plans || []).map(enrichPlan);
+  const plans = publicCatalogPlans(state?.plans);
   const inAccount = window.location.pathname.startsWith('/account');
   const loggedIn = Boolean(getToken() && state?.auth);
   const current = loggedIn && state?.planId
-    ? plans.find((p) => p.id === state.planId) || enrichPlan(state.plan || {})
+    ? plans.find((p) => matchesPlanId(p.id, state.planId)) || null
     : null;
   const [confirm, setConfirm] = useState(null);
+  const [cancelOpen, setCancelOpen] = useState(false);
   const [done, setDone] = useState('');
   const [err, setErr] = useState('');
 
+  function guestSignup(planId) {
+    navigate(signupHref(planId));
+  }
+
   async function pickPlan(planId) {
-    if (!getToken()) {
-      navigate(`/signup?plan=${planId}`);
+    if (!loggedIn) {
+      guestSignup(planId);
       return;
     }
-    const data = await run(() => api.subscribe(planId));
+    const data = await run(() => api.subscribe(subscribePlanId(planId, state?.plans)));
     if (!data) return;
     navigate(inAccount ? '/account/me' : '/catalog');
   }
 
   async function approve() {
     setErr('');
-    const data = await run(() => api.changePlan(confirm.id));
+    const data = await run(() => api.changePlan(subscribePlanId(confirm.id, state?.plans)));
     if (!data) return;
     setDone(`המסלול שלך עודכן ל-${confirm.latin} ✓`);
     setConfirm(null);
+  }
+
+  async function cancelSub() {
+    setErr('');
+    const data = await run(() => api.cancelSubscription());
+    if (!data) return;
+    setDone('המנוי בוטל. אפשר לבחור מסלול ולהצטרף מחדש בכל עת.');
+    setCancelOpen(false);
   }
 
   return (
@@ -43,13 +61,32 @@ export default function PlansPage() {
         <h1>מסלולי מנוי</h1>
         <p>
           {current
-            ? 'המעבר בין מסלולים הוא באישור אחד — בלי הרשמה מחדש'
-            : 'בחרי את המסלול שהכי מתאים לך'}
+            ? 'אפשר לשנות מסלול או לבטל — בלי הרשמה מחדש'
+            : loggedIn
+              ? 'בחרי מסלול כדי להפעיל את המנוי'
+              : 'בחרי מסלול — כל בחירה מתחילה את אותה הרשמה'}
         </p>
       </div>
 
       <section className="section" style={{ paddingTop: 48 }}>
         <div className="container">
+          {current && (
+            <div className="sub-manage">
+              <div className="sub-now">
+                המנוי הפעיל: {current.latin}
+                <span>₪{current.price} לחודש · {current.points} נקודות · {current.materials}</span>
+              </div>
+              <div className="sub-manage-actions">
+                <a href="#plan-cards" className="btn btn-sm">
+                  שינוי מסלול
+                </a>
+                <button type="button" className="btn btn-sm btn-danger-ghost" onClick={() => setCancelOpen(true)}>
+                  ביטול מנוי
+                </button>
+              </div>
+            </div>
+          )}
+
           {done && (
             <p className="msg-ok" style={{ marginBottom: 20 }}>
               {done}
@@ -61,9 +98,9 @@ export default function PlansPage() {
             </p>
           )}
 
-          <div className="plans-grid">
+          <div className="plans-grid" id="plan-cards">
             {plans.map((plan) => {
-              const isCurrent = current && current.id === plan.id;
+              const isCurrent = Boolean(current && matchesPlanId(current.id, plan.id));
               const isUpgrade = current && plan.points > current.points;
               return (
                 <div
@@ -86,38 +123,45 @@ export default function PlansPage() {
                       <li key={perk}>{perk}</li>
                     ))}
                   </ul>
-                  {!loggedIn && (
-                    <Link to={`/signup?plan=${plan.id}`} className={`btn${plan.featured ? ' btn-tan' : ''}`}>
-                      אני בוחרת
-                    </Link>
-                  )}
-                  {loggedIn && isCurrent && (
-                    <button type="button" className="btn btn-outline" disabled>
-                      המסלול הנוכחי שלך
-                    </button>
-                  )}
-                  {loggedIn && !isCurrent && current && (
-                    <button
-                      type="button"
-                      className={`btn${plan.featured ? ' btn-tan' : ''}`}
-                      onClick={() => {
-                        setDone('');
-                        setErr('');
-                        setConfirm(plan);
-                      }}
-                    >
-                      {isUpgrade ? 'שדרוג למסלול הזה' : 'מעבר למסלול הזה'}
-                    </button>
-                  )}
-                  {loggedIn && !current && (
-                    <button
-                      type="button"
-                      className={`btn${plan.featured ? ' btn-tan' : ''}`}
-                      onClick={() => pickPlan(plan.id)}
-                    >
-                      אני בוחרת
-                    </button>
-                  )}
+                  <div className="plan-actions">
+                    {!loggedIn && (
+                      <Link to={signupHref(plan.id)} className={`btn${plan.featured ? ' btn-tan' : ''}`}>
+                        אני בוחרת
+                      </Link>
+                    )}
+                    {loggedIn && isCurrent && (
+                      <>
+                        <button type="button" className="btn btn-outline" disabled>
+                          מנוי פעיל
+                        </button>
+                        <button type="button" className="link-quiet" onClick={() => setCancelOpen(true)}>
+                          ביטול המנוי הזה
+                        </button>
+                      </>
+                    )}
+                    {loggedIn && !isCurrent && current && (
+                      <button
+                        type="button"
+                        className={`btn${plan.featured ? ' btn-tan' : ''}`}
+                        onClick={() => {
+                          setDone('');
+                          setErr('');
+                          setConfirm(plan);
+                        }}
+                      >
+                        {isUpgrade ? 'שדרוג למסלול הזה' : 'מעבר למסלול הזה'}
+                      </button>
+                    )}
+                    {loggedIn && !current && (
+                      <button
+                        type="button"
+                        className={`btn${plan.featured ? ' btn-tan' : ''}`}
+                        onClick={() => pickPlan(plan.id)}
+                      >
+                        אני בוחרת
+                      </button>
+                    )}
+                  </div>
                 </div>
               );
             })}
@@ -146,9 +190,9 @@ export default function PlansPage() {
             <button type="button" className="modal-x" onClick={() => setConfirm(null)} aria-label="סגירה">
               ×
             </button>
-            <h2>{confirm.points > current.points ? 'אישור שדרוג מנוי' : 'אישור מעבר מסלול'}</h2>
+            <h2>{confirm.points > current.points ? 'שינוי מסלול — שדרוג' : 'שינוי מסלול'}</h2>
             <p className="modal-sub">
-              ממסלול {current.latin} למסלול {confirm.latin}
+              מ-{current.latin} ל-{confirm.latin}
             </p>
             <div className="plan-diff">
               <div>
@@ -169,14 +213,34 @@ export default function PlansPage() {
               </div>
             </div>
             <p className="modal-legal">
-              התקנון והחוזה שאישרת בהרשמה חלים גם על המסלול החדש — אין צורך בהרשמה מחדש.
-              החיוב החדש ייכנס לתוקף במחזור החיוב הבא, וכל התכשיטים שאצלך נשארים אצלך.
+              התקנון שאישרת בהרשמה חל גם על המסלול החדש. החיוב החדש ייכנס במחזור הבא, והתכשיטים שאצלך נשארים אצלך.
             </p>
             <button type="button" className="btn btn-wide" onClick={approve}>
-              {confirm.points > current.points ? 'אישור השדרוג' : 'אישור המעבר'}
+              אישור השינוי
             </button>
             <button type="button" className="modal-cancel" onClick={() => setConfirm(null)}>
-              ביטול
+              להישאר במסלול הנוכחי
+            </button>
+          </div>
+        </div>
+      )}
+
+      {cancelOpen && current && (
+        <div className="modal-overlay" onClick={() => setCancelOpen(false)}>
+          <div className="modal-card" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
+            <button type="button" className="modal-x" onClick={() => setCancelOpen(false)} aria-label="סגירה">
+              ×
+            </button>
+            <h2>ביטול מנוי</h2>
+            <p className="modal-sub">מסלול {current.latin} · ₪{current.price} לחודש</p>
+            <p className="modal-legal">
+              לא יבוצע חיוב נוסף אחרי הביטול. אם יש תכשיטים אצלך או החזרה פתוחה — צריך להשלים אותם קודם, לפי התקנון.
+            </p>
+            <button type="button" className="btn btn-wide btn-danger-ghost" onClick={cancelSub}>
+              כן, לבטל את המנוי
+            </button>
+            <button type="button" className="modal-cancel" onClick={() => setCancelOpen(false)}>
+              להישאר במנוי
             </button>
           </div>
         </div>

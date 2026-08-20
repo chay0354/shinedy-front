@@ -3,12 +3,20 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { api } from '../../api';
 import { useApp } from '../../state/AppContext';
 import { applySessionFromResponse } from '../../lib/auth';
-import { enrichPlan } from '../../lib/plans';
+import { publicCatalogPlans, subscribePlanId } from '../../lib/plans';
 import { PRIVACY, TERMS } from '../../lib/legal';
 import LegalDoc from '../../components/LegalDoc';
 import SignaturePad from '../../components/SignaturePad';
 
-const STEPS = ['פרטים', 'תקנון', 'מדיניות פרטיות', 'אישור וחתימה'];
+const STEPS = ['פרטים', 'מסלול', 'תקנון', 'פרטיות', 'חתימה', 'תשלום'];
+const STEP = {
+  details: 0,
+  plan: 1,
+  terms: 2,
+  privacy: 3,
+  sign: 4,
+  pay: 5,
+};
 
 function validIsraeliId(raw) {
   const digits = String(raw || '').replace(/\D/g, '');
@@ -72,7 +80,8 @@ export default function SignupPage() {
   const [step, setStep] = useState(0);
   const [params] = useSearchParams();
   const fromUrl = params.get('plan');
-  const plans = (state?.plans || []).map(enrichPlan);
+  const livePlans = Array.isArray(state?.plans) ? state.plans : [];
+  const plans = publicCatalogPlans(livePlans);
   const defaultPlan = plans.some((p) => p.id === fromUrl)
     ? fromUrl
     : plans.find((p) => p.featured)?.id || plans[0]?.id;
@@ -90,7 +99,15 @@ export default function SignupPage() {
     signature: '',
     idFileName: '',
     idDocument: '',
+    cardHolder: '',
+    cardNumber: '',
+    cardExpiry: '',
+    cardCvv: '',
   });
+
+  useEffect(() => {
+    setStep(0);
+  }, [fromUrl]);
 
   useEffect(() => {
     if (defaultPlan) {
@@ -109,14 +126,47 @@ export default function SignupPage() {
     if (form.pass.length < 8) return 'הסיסמה חייבת לפחות 8 תווים';
     if (form.pass !== form.pass2) return 'הסיסמאות אינן תואמות — נסי שוב';
     if (!validIsraeliId(form.nationalId)) return 'מספר תעודת הזהות אינו תקין';
+    return '';
+  }
+
+  function validatePlan() {
     if (!form.plan) return 'יש לבחור מסלול';
+    return '';
+  }
+
+  function validateLegal() {
+    if (!form.agreeLegal) return 'יש לאשר את התקנון ואת מדיניות הפרטיות';
+    if (!form.agreeNotices) return 'יש לאשר קבלת הודעות תפעוליות על המנוי';
+    if (!form.idDocument) return 'יש להעלות צילום או סריקה של תעודת הזהות';
+    if (!signatureHasInk(form.signature)) return 'יש לחתום בשדה החתימה';
+    return '';
+  }
+
+  function validatePayment() {
+    if (!form.cardHolder.trim() || !form.cardNumber.trim() || !form.cardExpiry.trim() || !form.cardCvv.trim()) {
+      return 'יש למלא את פרטי הכרטיס';
+    }
     return '';
   }
 
   function goNext() {
     setError('');
-    if (step === 0) {
+    if (step === STEP.details) {
       const err = validateDetails();
+      if (err) {
+        setError(err);
+        return;
+      }
+    }
+    if (step === STEP.plan) {
+      const err = validatePlan();
+      if (err) {
+        setError(err);
+        return;
+      }
+    }
+    if (step === STEP.sign) {
+      const err = validateLegal();
       if (err) {
         setError(err);
         return;
@@ -151,26 +201,28 @@ export default function SignupPage() {
     const detailsErr = validateDetails();
     if (detailsErr) {
       setError(detailsErr);
-      setStep(0);
+      setStep(STEP.details);
       return;
     }
-    if (!form.agreeLegal) {
-      setError('יש לאשר את התקנון ואת מדיניות הפרטיות');
+    const planErr = validatePlan();
+    if (planErr) {
+      setError(planErr);
+      setStep(STEP.plan);
       return;
     }
-    if (!form.agreeNotices) {
-      setError('יש לאשר קבלת הודעות תפעוליות על המנוי');
+    const legalErr = validateLegal();
+    if (legalErr) {
+      setError(legalErr);
+      setStep(STEP.sign);
       return;
     }
-    if (!form.idDocument) {
-      setError('יש להעלות צילום או סריקה של תעודת הזהות');
-      return;
-    }
-    if (!signatureHasInk(form.signature)) {
-      setError('יש לחתום בשדה החתימה');
+    const payErr = validatePayment();
+    if (payErr) {
+      setError(payErr);
       return;
     }
     setError('');
+    const last4 = form.cardNumber.replace(/\D/g, '').slice(-4);
     const data = await run(() =>
       api.register({
         fullName: form.name.trim(),
@@ -184,6 +236,12 @@ export default function SignupPage() {
         signatureCompleted: true,
         signatureData: form.signature,
         idDocumentUrl: form.idDocument,
+        planId: subscribePlanId(form.plan, livePlans),
+        payment: {
+          holder: form.cardHolder.trim(),
+          last4,
+          expiry: form.cardExpiry.trim(),
+        },
       }),
     );
     if (!data) {
@@ -191,16 +249,15 @@ export default function SignupPage() {
       return;
     }
     applySessionFromResponse(data);
-    if (form.plan) {
-      const sub = await run(() => api.subscribe(form.plan));
-      if (sub) applySessionFromResponse(sub);
-    }
     navigate('/catalog');
   }
 
+  const selectedPlan = plans.find((p) => p.id === form.plan);
+  const wide = step !== STEP.details;
+
   return (
-    <div className={step === 0 ? 'auth-split' : 'signup-flow'}>
-      {step === 0 && (
+    <div className={wide ? 'signup-flow' : 'auth-split'}>
+      {step === STEP.details && (
         <div
           className="auth-photo"
           style={{ backgroundImage: 'url(/photos/bag.jpg)' }}
@@ -208,8 +265,8 @@ export default function SignupPage() {
           aria-label="שקית מתנה של Shinedy"
         />
       )}
-      <div className={step === 0 ? 'auth-form-side' : 'container signup-wide'}>
-        <div className={step === 0 ? 'form-card' : 'signup-card'}>
+      <div className={wide ? 'container signup-wide' : 'auth-form-side'}>
+        <div className={wide ? 'signup-card' : 'form-card'}>
           <h1>יצירת חשבון</h1>
           <p className="sub">הצטרפי לעולם של תכשיטים יוקרתיים</p>
 
@@ -223,7 +280,7 @@ export default function SignupPage() {
           </ol>
 
           <form onSubmit={handleSubmit}>
-            {step === 0 && (
+            {step === STEP.details && (
               <>
                 <div className="field">
                   <label htmlFor="s-name">שם מלא</label>
@@ -297,36 +354,60 @@ export default function SignupPage() {
                     onChange={(e) => setField('pass2', e.target.value)}
                   />
                 </div>
-                <div className="field">
-                  <label htmlFor="s-plan">המסלול שלי</label>
-                  <select
-                    id="s-plan"
-                    value={form.plan}
-                    onChange={(e) => setField('plan', e.target.value)}
-                  >
-                    {plans.map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.latin} · {p.name} — ₪{p.price} לחודש
-                      </option>
-                    ))}
-                  </select>
+              </>
+            )}
+
+            {step === STEP.plan && (
+              <>
+                <p className="signup-pay-note">בחרי את חבילת המנוי. אפשר לשנות מסלול אחר כך מהאזור האישי.</p>
+                <div className="plans-grid signup-plan-grid">
+                  {plans.map((plan) => (
+                    <div
+                      key={plan.id}
+                      role="button"
+                      tabIndex={0}
+                      className={`plan-card${plan.featured ? ' featured' : ''}${form.plan === plan.id ? ' mine' : ''}`}
+                      onClick={() => setField('plan', plan.id)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          setField('plan', plan.id);
+                        }
+                      }}
+                    >
+                      {plan.featured ? (
+                        <div className="flag">הכי פופולרי</div>
+                      ) : null}
+                      <div className="plan-name">{plan.latin}</div>
+                      <div className="price">
+                        ₪{plan.price}
+                        <small> לחודש</small>
+                      </div>
+                      <div className="materials">{plan.materials}</div>
+                      <ul>
+                        {plan.perks.map((perk) => (
+                          <li key={perk}>{perk}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
                 </div>
               </>
             )}
 
-            {step === 1 && (
+            {step === STEP.terms && (
               <div className="legal-scroll">
                 <LegalDoc data={TERMS} />
               </div>
             )}
 
-            {step === 2 && (
+            {step === STEP.privacy && (
               <div className="legal-scroll">
                 <LegalDoc data={PRIVACY} />
               </div>
             )}
 
-            {step === 3 && (
+            {step === STEP.sign && (
               <>
                 <p className="signup-confirm-lead">
                   סימון התיבות והחתימה מהווים אישור אלקטרוני מחייב, בהתאם לתקנון.
@@ -376,6 +457,59 @@ export default function SignupPage() {
                 <div className="field">
                   <label>חתימה</label>
                   <SignaturePad value={form.signature} onChange={(v) => setField('signature', v)} />
+                </div>
+              </>
+            )}
+
+            {step === STEP.pay && (
+              <>
+                <p className="signup-pay-note">
+                  {selectedPlan
+                    ? `חיוב חודשי: ₪${selectedPlan.price} למסלול ${selectedPlan.latin}. הסליקה תופעל בהמשך — כרגע כל פרטי כרטיס יתקבלו.`
+                    : 'הסליקה תופעל בהמשך — כרגע כל פרטי כרטיס יתקבלו.'}
+                </p>
+                <div className="field">
+                  <label htmlFor="s-card-holder">שם בעל הכרטיס</label>
+                  <input
+                    id="s-card-holder"
+                    placeholder="כפי שמופיע על הכרטיס"
+                    value={form.cardHolder}
+                    onChange={(e) => setField('cardHolder', e.target.value)}
+                  />
+                </div>
+                <div className="field">
+                  <label htmlFor="s-card-number">מספר כרטיס</label>
+                  <input
+                    id="s-card-number"
+                    dir="ltr"
+                    inputMode="numeric"
+                    placeholder="0000 0000 0000 0000"
+                    value={form.cardNumber}
+                    onChange={(e) => setField('cardNumber', e.target.value)}
+                  />
+                </div>
+                <div className="pay-row">
+                  <div className="field">
+                    <label htmlFor="s-card-exp">תוקף</label>
+                    <input
+                      id="s-card-exp"
+                      dir="ltr"
+                      placeholder="MM/YY"
+                      value={form.cardExpiry}
+                      onChange={(e) => setField('cardExpiry', e.target.value)}
+                    />
+                  </div>
+                  <div className="field">
+                    <label htmlFor="s-card-cvv">CVV</label>
+                    <input
+                      id="s-card-cvv"
+                      dir="ltr"
+                      inputMode="numeric"
+                      placeholder="123"
+                      value={form.cardCvv}
+                      onChange={(e) => setField('cardCvv', e.target.value)}
+                    />
+                  </div>
                 </div>
               </>
             )}

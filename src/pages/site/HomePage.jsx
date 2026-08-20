@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useApp } from '../../state/AppContext';
-import { enrichPlan } from '../../lib/plans';
+import { getToken } from '../../lib/auth';
+import { publicCatalogPlans, signupHref } from '../../lib/plans';
 import Art from '../../components/Art';
 import { IconDiamond, IconRefresh, IconShield, IconTruck } from '../../components/icons';
 
@@ -14,7 +15,8 @@ const HERO_BENEFITS = [
 export default function HomePage() {
   const { state } = useApp();
   const featured = (state?.products || []).slice(0, 4);
-  const plans = (state?.plans || []).map(enrichPlan);
+  const plans = publicCatalogPlans(state?.plans);
+  const loggedIn = Boolean(getToken() && state?.auth);
 
   return (
     <>
@@ -107,8 +109,11 @@ export default function HomePage() {
                     <li key={perk}>{perk}</li>
                   ))}
                 </ul>
-                <Link to="/plans" className={`btn${plan.featured ? ' btn-tan' : ''}`}>
-                  אני בוחרת
+                <Link
+                  to={loggedIn ? '/plans' : signupHref(plan.id)}
+                  className={`btn${plan.featured ? ' btn-tan' : ''}`}
+                >
+                  {loggedIn ? 'לניהול המנוי' : 'אני בוחרת'}
                 </Link>
               </div>
             ))}

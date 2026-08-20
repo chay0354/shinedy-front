@@ -167,6 +167,26 @@ button { font-family: inherit; cursor: pointer; }
   content: '✓'; position: absolute; inset-inline-start: 2px; color: var(--gold-dark); font-weight: 700;
 }
 .plan-card .btn { margin-top: auto; }
+.plan-actions { display: grid; gap: 8px; margin-top: auto; }
+.plan-actions .btn { margin-top: 0; }
+.link-quiet {
+  background: none; border: 0; font: inherit; color: var(--muted);
+  text-decoration: underline; text-underline-offset: 3px; cursor: pointer;
+  font-size: 0.86rem; padding: 4px; font-weight: 300;
+}
+.link-quiet:hover { color: var(--ink); }
+.sub-manage {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+  gap: 16px 24px; background: var(--cream); border: 1px solid var(--line);
+  padding: 18px 22px; margin: 0 auto 36px; max-width: 1080px;
+}
+.sub-now { font-weight: 500; }
+.sub-now span { display: block; color: var(--muted); font-weight: 300; font-size: 0.9rem; margin-top: 4px; }
+.sub-manage-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.btn.btn-danger-ghost {
+  background: transparent; color: var(--danger); border-color: var(--danger);
+}
+.btn.btn-danger-ghost:hover { background: var(--danger); color: #fff; border-color: var(--danger); }
 .plans-note-line { text-align: center; color: var(--muted); font-size: 0.9rem; font-weight: 300; margin-top: 30px; }
 .plans-note-line .dot { color: var(--gold); padding: 0 6px; }
 .plans-terms {
@@ -956,7 +976,7 @@ button { font-family: inherit; cursor: pointer; }
   .main-nav { gap: 18px; font-size: 0.9rem; }
   .product-layout { grid-template-columns: 1fr; gap: 34px; }
   .auth-split { grid-template-columns: 1fr; }
-  .signup-steps { grid-template-columns: repeat(2, 1fr); }
+  .signup-steps { grid-template-columns: repeat(3, 1fr); }
   .auth-photo { min-height: 220px; }
   .about-split { grid-template-columns: 1fr; gap: 30px; }
   .contact-grid { grid-template-columns: 1fr; }
@@ -995,14 +1015,14 @@ button { font-family: inherit; cursor: pointer; }
 
 /* ===== signup wizard + legal docs ===== */
 .signup-flow { padding: 40px 0 80px; background: var(--cream); min-height: calc(100vh - 140px); }
-.signup-wide { max-width: 860px; }
+.signup-wide { max-width: 1100px; }
 .signup-card {
   background: #fff; border: 1px solid var(--line); padding: 36px 34px 42px;
 }
 .signup-card h1 { font-size: 1.7rem; margin-bottom: 4px; text-align: center; }
 .signup-card .sub { color: var(--muted); margin-bottom: 22px; text-align: center; font-weight: 300; }
 .signup-steps {
-  display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+  display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px;
   list-style: none; padding: 0; margin: 0 0 28px;
 }
 .signup-steps li {
@@ -1039,3 +1059,10 @@ button { font-family: inherit; cursor: pointer; }
   width: 100%; height: 160px; border: 1px dashed #c9bfb0; background: #fffef9;
   touch-action: none; cursor: crosshair; display: block;
 }
+.signup-plan-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 22px; margin: 8px 0 22px; max-width: none;
+}
+.signup-plan-grid .plan-card { cursor: pointer; padding: 32px 22px 28px; }
+.pay-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.signup-pay-note { color: var(--muted); font-size: 0.88rem; font-weight: 300; margin-bottom: 16px; }

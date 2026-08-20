@@ -106,7 +106,10 @@ export default function DashboardPage() {
         <h1>שלום, {name} ✦</h1>
         <p style={{ margin: '8px 0 0' }}>
           {planLatin(plan)} · {plan.name} · ₪{plan.price} לחודש
-          <button type="button" className="btn-mini" style={{ marginInlineStart: 14 }} onClick={logout}>
+          <Link to="/plans" className="btn-mini" style={{ marginInlineStart: 14 }}>
+            שינוי / ביטול מנוי
+          </Link>
+          <button type="button" className="btn-mini" style={{ marginInlineStart: 8 }} onClick={logout}>
             התנתקות
           </button>
         </p>
