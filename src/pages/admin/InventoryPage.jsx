@@ -1,30 +1,82 @@
-import { Fragment, useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { CATEGORIES, PLAN_NAME } from '../../lib/site.js'
-import { salePriceFor, unitsAvailable, unitsCleaning, unitsOut, unitsTotal, useAdminDb } from '../../lib/useAdminDb.js'
+import { salePriceFor, useAdminDb } from '../../lib/useAdminDb.js'
 import Art from '../../components/Art.jsx'
 
-// priceRule — כדי שההגירה ב-store לא תדרוס מחיר שהוזן ידנית לפריט חדש
-const EMPTY = { id: '', name: '', sku: '', category: 'טבעות', metal: 'כסף 925', stone: 'מויסנייט', points: 30, price: salePriceFor(200), priceRule: 1, cost: 200, sizes: '', large: false, image: null }
+const EMPTY = {
+  id: '',
+  name: '',
+  sku: '',
+  category: 'טבעות',
+  metal: 'כסף 925',
+  stone: 'מויסנייט',
+  points: 30,
+  price: salePriceFor(200),
+  priceRule: 1,
+  cost: 200,
+  sizes: '',
+  large: false,
+  image: null,
+}
+
+const STATUS_FILTERS = [
+  { id: 'הכל', label: 'הכל' },
+  { id: 'זמין', label: 'זמין' },
+  { id: 'out', label: 'אצל לקוחה' },
+  { id: 'בניקוי', label: 'ניקוי / תיקון' },
+]
+
+const OUT_STATUSES = ['מושכר', 'אצל לקוחה', 'בדרך ללקוחה', 'בדרך חזרה']
+
+function pillClass(status) {
+  if (status === 'זמין') return 'ok'
+  if (OUT_STATUSES.includes(status) || status === 'שמור' || status === 'נמכר') return 'info'
+  return 'warn'
+}
+
+function matchesFilter(status, filter) {
+  if (filter === 'הכל') return true
+  if (filter === 'out') return OUT_STATUSES.includes(status)
+  if (filter === 'בניקוי') return status === 'בניקוי' || status === 'בתיקון'
+  return status === filter
+}
 
 export default function Inventory() {
   const { db, api } = useAdminDb()
   const [edit, setEdit] = useState(null)
   const [saved, setSaved] = useState('')
-  // מספרי הפריט גלויים כברירת מחדל; לחיצה על המונה מקפלת דגם ספציפי
-  const [closedUnits, setClosedUnits] = useState(() => new Set())
+  const [filter, setFilter] = useState('הכל')
   const fileRef = useRef(null)
 
-  function toggleUnits(pid) {
-    setClosedUnits((prev) => {
-      const next = new Set(prev)
-      if (next.has(pid)) next.delete(pid)
-      else next.add(pid)
-      return next
-    })
-  }
+  const items = useMemo(() => {
+    const rows = []
+    for (const p of db.products || []) {
+      const units = p.units || []
+      if (units.length === 0) {
+        rows.push({
+          key: p.id,
+          product: p,
+          serial: p.sku || p.id,
+          status: p.available ? 'זמין' : 'מושבת',
+        })
+        continue
+      }
+      for (const u of units) {
+        rows.push({
+          key: u.serial,
+          product: p,
+          serial: u.serial,
+          status: u.status,
+        })
+      }
+    }
+    return rows
+  }, [db.products])
 
-  function startEdit(p) {
-    setEdit({ ...EMPTY, ...p })
+  const visible = items.filter((row) => matchesFilter(row.status, filter))
+
+  function startEdit(p, serial) {
+    setEdit({ ...EMPTY, ...p, serial: serial || p.sku || '' })
     setSaved('')
     window.scrollTo({ top: 0, behavior: 'instant' })
   }
@@ -37,16 +89,16 @@ export default function Inventory() {
     reader.readAsDataURL(f)
   }
 
-  function saveEdit(e) {
+  async function saveEdit(e) {
     e.preventDefault()
-    api.saveProduct({
+    const ok = await api.saveProduct({
       ...edit,
-      id: edit.id || `p-${Date.now()}`,
       points: Number(edit.points),
       price: Number(edit.price),
       cost: Number(edit.cost),
     })
-    setSaved(edit.id ? 'התכשיט עודכן ✓' : 'התכשיט נוסף לקטלוג ✓')
+    if (!ok) return
+    setSaved(edit.id ? 'התכשיט עודכן ✓' : 'התכשיט נוסף למלאי ✓')
     setEdit(null)
     if (fileRef.current) fileRef.current.value = ''
   }
@@ -58,19 +110,27 @@ export default function Inventory() {
         <button className="btn btn-sm" onClick={() => startEdit(EMPTY)}>+ תכשיט חדש</button>
       </div>
       <p className="admin-sub">
-        כל שינוי כאן מתעדכן מיד בקטלוג שבאתר — כולל העלאת צילומי תכשיטים אמיתיים מהמחשב.
+        כל שורה היא תכשיט פיזי אחד במלאי — לא דגם עם כמה עותקים. תכשיט חדש נכנס לקטלוג כיחידה זמינה.
       </p>
 
       {saved && <p className="msg-ok">{saved}</p>}
 
       {edit && (
-        <div className="admin-section">
+        <div className="admin-section" style={{ marginTop: 18 }}>
           <h2>{edit.id ? `עריכת תכשיט — ${edit.name}` : 'תכשיט חדש'}</h2>
           <form className="admin-form" onSubmit={saveEdit}>
             <div className="field"><label>שם</label>
               <input required value={edit.name} onChange={(e) => setEdit({ ...edit, name: e.target.value })} /></div>
             <div className="field"><label>מק״ט</label>
-              <input dir="ltr" value={edit.sku || ''} onChange={(e) => setEdit({ ...edit, sku: e.target.value })} placeholder="נוצר אוטומטית אם נשאר ריק" /></div>
+              <input
+                dir="ltr"
+                value={edit.id ? (edit.serial || edit.sku || edit.id) : (edit.sku || '')}
+                onChange={(e) => setEdit({ ...edit, sku: e.target.value })}
+                placeholder="נוצר אוטומטית אם נשאר ריק"
+                disabled={Boolean(edit.id)}
+              />
+              {edit.id && <span className="cell-sub">מזהה ייחודי של הפריט</span>}
+            </div>
             <div className="field"><label>קטגוריה</label>
               <select value={edit.category} onChange={(e) => setEdit({ ...edit, category: e.target.value })}>
                 {CATEGORIES.map((c) => <option key={c}>{c}</option>)}
@@ -88,7 +148,6 @@ export default function Inventory() {
             <div className="field"><label>עלות רכישה שלנו (₪)</label>
               <input type="number" min="0" value={edit.cost} onChange={(e) => {
                 const cost = e.target.value
-                // שינוי העלות מחשב מחדש את מחיר הקנייה (עלות +50% +מע"מ)
                 setEdit({ ...edit, cost, price: salePriceFor(cost) })
               }} />
               <span className="cell-sub">קובע את מחיר הקנייה אוטומטית</span></div>
@@ -112,20 +171,40 @@ export default function Inventory() {
         </div>
       )}
 
-      <div className="admin-section">
+      <div className="subtabs" style={{ marginTop: 22 }}>
+        {STATUS_FILTERS.map((f) => (
+          <button
+            key={f.id}
+            type="button"
+            className={`subtab${filter === f.id ? ' on' : ''}`}
+            onClick={() => setFilter(f.id)}
+          >
+            {f.label}
+            <span className="subtab-badge">
+              {items.filter((row) => matchesFilter(row.status, f.id)).length}
+            </span>
+          </button>
+        ))}
+      </div>
+
+      <div className="admin-section" style={{ marginTop: 8 }}>
         <div className="table-wrap">
-          {/* טבלה קומפקטית: פרטים קשורים נערמים באותו תא, כך שהכול נראה בלי גלילה לצדדים */}
           <table className="admin-table inv-table">
             <thead>
               <tr>
-                <th>תכשיט</th><th>מק״ט</th><th>פרטים</th><th>מחיר מכירה</th>
-                <th>יחידות ומצב</th><th>פעיל</th><th></th>
+                <th>תכשיט</th>
+                <th>מק״ט</th>
+                <th>פרטים</th>
+                <th>מחיר מכירה</th>
+                <th>מצב</th>
+                <th></th>
               </tr>
             </thead>
             <tbody>
-              {db.products.map((p) => (
-                <Fragment key={p.id}>
-                  <tr>
+              {visible.map((row) => {
+                const p = row.product
+                return (
+                  <tr key={row.key}>
                     <td>
                       <div className="inv-name">
                         <div className="mini-art"><Art product={p} /></div>
@@ -135,7 +214,7 @@ export default function Inventory() {
                         </div>
                       </div>
                     </td>
-                    <td dir="ltr"><b>{p.sku}</b></td>
+                    <td dir="ltr"><b>{row.serial}</b></td>
                     <td>
                       {p.metal} · {p.stone}
                       <span className="cell-sub">{p.points} נק׳{PLAN_NAME[p.minPlan] ? ` · ${PLAN_NAME[p.minPlan]}` : ''}</span>
@@ -147,41 +226,28 @@ export default function Inventory() {
                       </span>
                     </td>
                     <td>
-                      <span className="qty">
-                        <button className="qty-btn" title="הסרת יחידה זמינה" onClick={() => api.removeUnit(p.id)}>−</button>
-                        <button className="link-btn" title="הצגה/הסתרה של מספרי הפריט" onClick={() => toggleUnits(p.id)}>{unitsTotal(p)}</button>
-                        <button className="qty-btn" title="הוספת יחידה חדשה" onClick={() => api.addUnit(p.id)}>+</button>
-                      </span>
-                      <span className="inv-state">
-                        <i className={unitsAvailable(p) > 2 ? 'st-ok' : 'st-warn'}>זמין {unitsAvailable(p)}</i>
-                        {' · '}מושכר {unitsOut(p)}
-                        {unitsCleaning(p) > 0 && <> · ניקוי {unitsCleaning(p)}</>}
-                      </span>
+                      <span className={`pill ${pillClass(row.status)}`}>{row.status}</span>
+                      {(row.status === 'בניקוי' || row.status === 'בתיקון') && (
+                        <div style={{ marginTop: 8 }}>
+                          <button className="btn-mini" onClick={() => api.finishCleaning(p.id, row.serial)}>
+                            {row.status === 'בתיקון' ? 'סיום תיקון ✓' : 'סיום ניקוי ✓'}
+                          </button>
+                        </div>
+                      )}
                     </td>
                     <td>
-                      <button className="btn-mini" onClick={() => api.toggleAvailable(p.id)}>
-                        {p.available ? 'פעיל ✓' : 'מושבת'}
-                      </button>
+                      <button className="btn-mini" onClick={() => startEdit(p, row.serial)}>עריכה</button>
                     </td>
-                    <td><button className="btn-mini" onClick={() => startEdit(p)}>עריכה</button></td>
                   </tr>
-                  {/* מק״ט של כל מוצר יחיד — גלוי תמיד, בלי צורך בלחיצה */}
-                  {!closedUnits.has(p.id) && (
-                    <tr>
-                      <td colSpan="7" className="units-cell">
-                        {p.units.map((u) => (
-                          <span key={u.serial} className={`unit-chip ${u.status === 'זמין' ? 'ok' : u.status === 'מושכר' ? 'out' : 'clean'}`}>
-                            <span dir="ltr">{u.serial}</span> · {u.status}
-                            {u.status === 'בניקוי' && (
-                              <button className="btn-mini" style={{ marginInlineStart: 8 }} onClick={() => api.finishCleaning(p.id, u.serial)}>סיום ניקוי ✓</button>
-                            )}
-                          </span>
-                        ))}
-                      </td>
-                    </tr>
-                  )}
-                </Fragment>
-              ))}
+                )
+              })}
+              {visible.length === 0 && (
+                <tr>
+                  <td colSpan="6" style={{ color: 'var(--muted)', textAlign: 'center' }}>
+                    אין תכשיטים במצב הזה.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

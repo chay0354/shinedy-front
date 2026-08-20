@@ -1,4 +1,4 @@
-import { IconDiamond, IconSparkle, IconUser } from '../../components/icons';
+import { IconDiamond, IconInfinity, IconUser } from '../../components/icons';
 
 export default function AboutPage() {
   return (
@@ -38,8 +38,8 @@ export default function AboutPage() {
                 <span>שירות אישי</span>
               </div>
               <div className="it">
-                <IconSparkle size={30} />
-                <span>קהילה של נשים</span>
+                <IconInfinity size={30} />
+                <span>אינסוף אפשרויות</span>
               </div>
             </div>
           </div>

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { QRCodeSVG } from 'qrcode.react'
-import { planOf, useAdminDb } from '../../lib/useAdminDb.js'
+import { planOf, heDate, useAdminDb } from '../../lib/useAdminDb.js'
 import Returns from './AdminReturnsPanel.jsx'
 
 function orderPill(status) {
@@ -224,26 +224,54 @@ function Outgoing() {
 
 // ===== מסך המחסן: אותה עמדה, שני מצבי עבודה =====
 export default function Warehouse() {
-  const { db } = useAdminDb()
+  const { db, api } = useAdminDb()
   const location = useLocation()
   const fromPath = location.pathname.includes('returns') ? 'in' : 'out'
   const [tab, setTab] = useState(fromPath)
-  // הרכיב משרת גם את /admin/warehouse וגם את /admin/returns — צריך להגיב לשינוי הנתיב,
-  // אחרת מעבר בין השניים משאיר את הלשונית הקודמת
   useEffect(() => { setTab(fromPath) }, [fromPath])
+  useEffect(() => { api.runReturnCheck() }, [])
 
   const waiting = db.orders.filter((o) => ['חדשה', 'בליקוט', 'ליקוט', 'נארזה', 'בקרה', 'אריזה'].includes(o.status)).length
   const openReturns = db.returns.filter((r) => r.status !== 'הושלמה').length
+  const courierAlerts = db.returns.filter((r) => r.needsCourierInquiry && r.status !== 'הושלמה')
 
   return (
     <>
       <h1>מחסן</h1>
+      {courierAlerts.length > 0 && (
+        <div className="warehouse-alert" role="alert">
+          <h3>בירור אצל חברת המשלוחים</h3>
+          <p>
+            חלפו 5 ימים מאישור השליח להעברת ההזמנה, והמוצרים הקודמים עדיין לא הגיעו ונסרקו במחסן.
+            יש לפתוח בירור מול חברת המשלוחים.
+          </p>
+          <ul>
+            {courierAlerts.map((r) => {
+              const u = db.users.find((x) => x.id === r.userId)
+              const missing = r.items.filter((i) => !i.received).map((i) => i.serial).join(', ')
+              return (
+                <li key={r.id}>
+                  <b>{u ? u.name : r.userId}</b>
+                  {' · '}הזמנה <span dir="ltr">{r.orderId}</span>
+                  {missing ? <> · חסרים: <span dir="ltr">{missing}</span></> : null}
+                  <span className="alert-meta">אישור שליח: {r.courierConfirmedAt ? heDate(r.courierConfirmedAt) : '—'} · יעד סריקה: {heDate(r.deadline)}</span>
+                </li>
+              )
+            })}
+          </ul>
+          <button type="button" className="btn btn-sm" style={{ marginTop: 14 }} onClick={() => setTab('in')}>
+            מעבר להחזרות נכנסות
+          </button>
+        </div>
+      )}
       <div className="subtabs">
         <button className={`subtab${tab === 'out' ? ' on' : ''}`} onClick={() => setTab('out')}>
           הזמנות יוצאות {waiting > 0 && <span className="subtab-badge">{waiting}</span>}
         </button>
         <button className={`subtab${tab === 'in' ? ' on' : ''}`} onClick={() => setTab('in')}>
-          החזרות נכנסות {openReturns > 0 && <span className="subtab-badge">{openReturns}</span>}
+          החזרות נכנסות {(courierAlerts.length || openReturns) > 0 && (
+            <span className="subtab-badge">{courierAlerts.length || openReturns}</span>
+          )}
         </button>
       </div>
 

@@ -116,6 +116,11 @@ export const api = {
       method: 'PATCH',
       body: JSON.stringify({ field, value }),
     }),
+  createProduct: (product) =>
+    request('/admin/products', {
+      method: 'POST',
+      body: JSON.stringify(product),
+    }),
   setUnitStatus: (id, status) =>
     request(`/admin/units/${id}`, {
       method: 'PATCH',

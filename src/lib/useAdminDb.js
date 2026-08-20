@@ -69,15 +69,29 @@ export function useAdminDb() {
         }
       },
       async saveProduct(p) {
-        local.saveProductPatch(p.id || `local-${Date.now()}`, p);
-        if (p.id) {
-          try {
-            if (p.points != null) await run(() => live.updateProduct(p.id, 'points', p.points));
-            if (p.price != null) await run(() => live.updateProduct(p.id, 'price', p.price));
-          } catch {
-            /* local patch still saved */
+        const prefix = { טבעות: 'R', עגילים: 'E', שרשראות: 'N', צמידים: 'B' }[p.category] || 'J';
+        let id =
+          String(p.id || p.sku || '')
+            .trim()
+            .replace(/[^A-Za-z0-9]/g, '')
+            .toUpperCase() || `${prefix}${Date.now().toString(36).toUpperCase()}`;
+        if (!p.id) {
+          const created = await run(() => live.createProduct({ ...p, id }));
+          if (!created) return false;
+        } else {
+          const fields = ['name', 'category', 'metal', 'stone', 'points', 'price'];
+          for (const field of fields) {
+            if (p[field] != null) {
+              try {
+                await run(() => live.updateProduct(id, field, p[field]));
+              } catch {
+                /* local patch still saved */
+              }
+            }
           }
         }
+        local.saveProductPatch(id, { ...p, id });
+        return true;
       },
       async addUnit(productId) {
         await run(() => live.receiveUnit(productId));
@@ -115,9 +129,15 @@ export function useAdminDb() {
           return { ok: false, msg: e.message };
         }
       },
-      runReturnCheck() {},
-      investigateReturn() {},
-      simulateOverdue() {},
+      runReturnCheck() {
+        local.applyReturnCheck(buildDbFromState(state));
+      },
+      investigateReturn(returnId, outcome) {
+        local.investigateReturn(returnId, outcome);
+      },
+      simulateOverdue(returnId) {
+        local.simulateOverdue(returnId);
+      },
       advanceShipment() {},
       setAdminPass() {},
       async resetDemo() {

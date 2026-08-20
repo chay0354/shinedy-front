@@ -39,9 +39,9 @@ export default function Reports() {
         כל הנתונים מחושבים חיים מהמערכת
       </p>
 
-      {/* ===== 1. מנויים ===== */}
+      {/* ===== 1. מסלולים ===== */}
       <div className="admin-section">
-        <h2>1. מנויים</h2>
+        <h2>1. מסלולים</h2>
         <div className="table-wrap">
           <table className="admin-table">
             <tbody>
@@ -76,7 +76,7 @@ export default function Reports() {
         <div className="table-wrap">
           <table className="admin-table">
             <tbody>
-              <Row label="הכנסות ממנויים" value={money(p.revenue)} />
+              <Row label="הכנסות ממסלולים" value={money(p.revenue)} />
               {p.purchaseRevenue > 0 && <Row label="הכנסות מרכישות תכשיטים" value={money(p.purchaseRevenue)} />}
               {p.exchangeFeeIncome > 0 && <Row label={`דמי משלוח החלפות נוספות (₪${db.rates.extraExchangeFee})`} value={money(p.exchangeFeeIncome)} />}
               <Row label="סה״כ הכנסות" value={money(p.totalRevenue)} strong />

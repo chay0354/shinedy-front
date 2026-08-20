@@ -10,7 +10,7 @@ import ScrollToTop from '../components/ScrollToTop';
 const NAV = [
   { to: '/how', label: 'איך זה עובד' },
   { to: '/plans', label: 'מסלולי מנוי' },
-  { to: '/catalog', label: 'קטלוג תכשיטים' },
+  { to: '/catalog', label: 'תכשיטים' },
   { to: '/faq', label: 'שאלות נפוצות' },
   { to: '/about', label: 'אודות' },
   { to: '/contact', label: 'יצירת קשר' },

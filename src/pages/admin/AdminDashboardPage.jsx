@@ -69,6 +69,7 @@ export default function AdminDashboardPage() {
 
   const pendingOrders = db.orders.filter((o) => ['חדשה', 'בליקוט', 'ליקוט', 'נארזה', 'בקרה', 'אריזה'].includes(o.status)).length;
   const overdueReturns = db.returns.filter((r) => r.status !== 'הושלמה' && Date.now() > new Date(r.deadline).getTime()).length;
+  const courierAlerts = db.returns.filter((r) => r.needsCourierInquiry && r.status !== 'הושלמה').length;
   const cleaningUnits = db.products.reduce((sum, prod) => sum + prod.units.filter((u) => u.status === 'בניקוי').length, 0);
   const pursToShip = db.purchases.filter((x) => x.needsShipping && !x.shippedAt).length;
   const blockedCustomers = db.users.filter((u) => u.exchangeBlocked).length;
@@ -84,6 +85,7 @@ export default function AdminDashboardPage() {
         <div className="action-strip">
           <ActionTile to="/admin/warehouse" n={pendingOrders} label="הזמנות ממתינות לטיפול" />
           <ActionTile to="/admin/returns" n={overdueReturns} label="החזרות באיחור" />
+          <ActionTile to="/admin/warehouse" n={courierAlerts} label="בירור אצל חברת המשלוחים" />
           <ActionTile to="/admin/inventory" n={cleaningUnits} label="פריטים בניקוי" />
           <ActionTile to="/admin/warehouse" n={pursToShip} label="רכישות ממתינות למשלוח" />
           <ActionTile to="/admin/customers" n={blockedCustomers} label="לקוחות חסומות להחלפה" />
@@ -130,11 +132,11 @@ export default function AdminDashboardPage() {
             label="הכנסות"
             value={money(p.totalRevenue)}
             trendPct={trend(p.totalRevenue, pp.totalRevenue)}
-            hint={`מנויים ${money(p.revenue)} · רכישות ${money(p.purchaseRevenue)}${p.exchangeFeeIncome > 0 ? ` · דמי החלפה ${money(p.exchangeFeeIncome)}` : ''}`}
+            hint={`מסלולים ${money(p.revenue)} · רכישות ${money(p.purchaseRevenue)}${p.exchangeFeeIncome > 0 ? ` · דמי החלפה ${money(p.exchangeFeeIncome)}` : ''}`}
             explain={{
               what: 'סך ההכנסות של העסק בתקופה — דמי המנוי, רכישות תכשיטים, ודמי משלוח על החלפות נוספות.',
               how: `דמי מנוי לפי המנויות הפעילות + מחירי הרכישות + ₪${db.rates.extraExchangeFee} על כל החלפה מעבר לכלולה.`,
-              now: `סה"כ ${money(p.totalRevenue)}: מנויים ${money(p.revenue)}, רכישות ${money(p.purchaseRevenue)}, דמי החלפה ${money(p.exchangeFeeIncome)}.`,
+              now: `סה"כ ${money(p.totalRevenue)}: מסלולים ${money(p.revenue)}, רכישות ${money(p.purchaseRevenue)}, דמי החלפה ${money(p.exchangeFeeIncome)}.`,
             }}
           />
           <KpiCard

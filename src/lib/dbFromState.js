@@ -6,15 +6,6 @@ import { PRODUCTS } from './site.js';
 const META_KEY = 'shinedy-admin-meta';
 const DAY = 86400000;
 
-const STATUS_TO_UNIT = {
-  זמין: 'זמין',
-  'אצל לקוחה': 'מושכר',
-  'בדרך ללקוחה': 'מושכר',
-  'בדרך חזרה': 'מושכר',
-  בניקוי: 'בניקוי',
-  בתיקון: 'בניקוי',
-};
-
 function nowIso() {
   return new Date().toISOString();
 }
@@ -66,6 +57,7 @@ function normalizeMeta(parsed) {
     staffSeq: parsed.staffSeq || staff.length,
     customerPatches: parsed.customerPatches || {},
     productPatches: parsed.productPatches || {},
+    returnPatches: parsed.returnPatches || {},
     purchases: parsed.purchases || [],
     audit: parsed.audit || [],
   };
@@ -134,30 +126,86 @@ function mapOrder(o, idx) {
     status: o.status,
     date: o.date,
     createdAt: o.createdAt || o.date || nowIso(),
+    courierConfirmedAt: o.courierConfirmedAt || null,
     items,
     returns: o.returns || [],
   };
 }
 
-function mapReturns(state) {
-  return (state.activeReturnPouches || state.returnPouches || []).map((p) => ({
-    id: p.id,
-    userId: p.userId || p.customerName || 'unknown',
-    orderId: p.orderId || p.id,
-    status: p.status === 'completed' ? 'הושלמה' : p.status === 'scanned' ? 'התקבלה חלקית' : 'ממתינה להחזרה',
-    createdAt: p.createdAt || nowIso(),
-    completedAt: p.status === 'completed' ? nowIso() : null,
-    deadline: new Date(Date.now() + 5 * DAY).toISOString(),
-    items: (p.items || p.returnItems || []).map((it) => {
+export const RETURN_DEADLINE_DAYS = 5;
+
+export function parseStamp(value) {
+  if (!value) return null;
+  const t = Date.parse(value);
+  if (!Number.isNaN(t)) return t;
+  const he = String(value);
+  if (he === 'היום') return Date.now();
+  if (he === 'לפני יום') return Date.now() - DAY;
+  const daysAgo = he.match(/לפני\s+(\d+)\s+ימים/);
+  if (daysAgo) return Date.now() - Number(daysAgo[1]) * DAY;
+  return null;
+}
+
+export function courierHandoverAt(pouch, order, patch = {}) {
+  return (
+    parseStamp(patch.courierConfirmedAt) ||
+    parseStamp(pouch?.courierConfirmedAt) ||
+    parseStamp(order?.courierConfirmedAt) ||
+    null
+  );
+}
+
+function mapReturns(state, meta) {
+  const pouches = state.activeReturnPouches || state.returnPouches || [];
+  const orders = state.orders || [];
+  return pouches.map((p) => {
+    const patch = meta?.returnPatches?.[p.id] || {};
+    const order =
+      orders.find((o) => o.id === p.orderId || o.pouchId === p.id) ||
+      orders.find((o) => o.userId && p.userId && o.userId === p.userId && ['נשלח', 'נשלחה', 'נמסרה'].includes(o.status));
+    const handover = courierHandoverAt(p, order, patch);
+    const deadline = handover
+      ? new Date(handover + RETURN_DEADLINE_DAYS * DAY).toISOString()
+      : new Date(Date.now() + RETURN_DEADLINE_DAYS * DAY).toISOString();
+    const items = (p.items || p.returnItems || []).map((it) => {
       const serial = typeof it === 'string' ? it : it.unitId || it.serial;
+      const received = p.status === 'completed' || p.scanned || it.received;
       return {
         serial,
         pid: typeof it === 'string' ? it.split('-')[0] : it.modelId || it.pid,
-        received: p.status === 'completed' || p.scanned || it.received,
-        receivedAt: p.scanned || it.receivedAt ? nowIso() : null,
+        received,
+        receivedAt: received ? it.receivedAt || p.scannedAt || nowIso() : null,
       };
-    }),
-  }));
+    });
+    const allReceived = items.length > 0 && items.every((i) => i.received);
+    const scanned = p.status === 'completed' || p.scanned || allReceived;
+    const needsCourierInquiry =
+      Boolean(handover) &&
+      Date.now() > handover + RETURN_DEADLINE_DAYS * DAY &&
+      !scanned &&
+      p.status !== 'completed';
+
+    let status = patch.status;
+    if (p.status === 'completed' || allReceived) status = 'הושלמה';
+    else if (!status && needsCourierInquiry) status = 'בירור מול חברת המשלוחים';
+    else if (!status && (p.status === 'scanned' || p.status === 'contents_ok')) status = 'התקבלה חלקית';
+    else if (!status) status = 'ממתינה להחזרה';
+
+    return {
+      id: p.id,
+      userId: p.userId || p.customerName || 'unknown',
+      orderId: p.orderId || p.id,
+      status,
+      createdAt: p.createdAt || nowIso(),
+      courierConfirmedAt: handover ? new Date(handover).toISOString() : null,
+      completedAt: p.status === 'completed' ? nowIso() : null,
+      deadline,
+      needsCourierInquiry,
+      investigation: patch.investigation || null,
+      issueOpenedAt: patch.issueOpenedAt || null,
+      items,
+    };
+  });
 }
 
 function mapUser(c, i, plans, patch) {
@@ -197,7 +245,7 @@ export function buildDbFromState(state) {
     const patch = meta.productPatches[g.id] || {};
     const units = (g.units || []).map((u) => ({
       serial: u.id || u.serial,
-      status: STATUS_TO_UNIT[u.status] || u.status,
+      status: u.status,
       addedAt: u.addedAt || nowIso(),
       availableSince: u.availableSince || u.addedAt || nowIso(),
     }));
@@ -276,7 +324,7 @@ export function buildDbFromState(state) {
     if (match) mapped.userId = match.id;
     return mapped;
   });
-  const returns = mapReturns(state || {}).map((r) => {
+  const returns = mapReturns(state || {}, meta).map((r) => {
     const match = users.find((u) => u.name === r.userId || u.id === r.userId);
     if (match) r.userId = match.id;
     return r;
@@ -445,6 +493,56 @@ export function adminApiFromState(state, setMeta, actor) {
         meta.productPatches[id] = { ...(meta.productPatches[id] || {}), ...patch };
       });
     },
+    applyReturnCheck(db) {
+      return persist((meta) => {
+        if (!meta.returnPatches) meta.returnPatches = {};
+        for (const r of db?.returns || []) {
+          if (!r.needsCourierInquiry || r.status === 'הושלמה') continue;
+          const prev = meta.returnPatches[r.id] || {};
+          if (prev.issueOpenedAt) continue;
+          meta.returnPatches[r.id] = {
+            ...prev,
+            status: 'בירור מול חברת המשלוחים',
+            issueOpenedAt: nowIso(),
+            priority: 'גבוהה',
+          };
+          audit(
+            meta,
+            `חלפו ${RETURN_DEADLINE_DAYS} ימים מאישור השליח להעברת הזמנה ${r.orderId} והמוצרים הקודמים לא הגיעו ונסרקו — נפתח בירור אצל חברת המשלוחים`,
+            'מערכת',
+          );
+        }
+      });
+    },
+    investigateReturn(returnId, outcome) {
+      return persist((meta) => {
+        if (!meta.returnPatches) meta.returnPatches = {};
+        const prev = meta.returnPatches[returnId] || {};
+        const statusBy = {
+          courier: 'בירור מול חברת המשלוחים',
+          customer: 'התכשיטים אצל הלקוחה',
+          warehouse: 'ממתינה להחזרה',
+          lost: 'בירור מול חברת המשלוחים',
+          other: 'בעיה בהחזרה',
+        };
+        meta.returnPatches[returnId] = {
+          ...prev,
+          status: statusBy[outcome] || prev.status,
+          investigation: { outcome, date: nowIso() },
+        };
+        audit(meta, `בירור ${returnId}: ${outcome}`, actor);
+      });
+    },
+    simulateOverdue(returnId) {
+      return persist((meta) => {
+        if (!meta.returnPatches) meta.returnPatches = {};
+        meta.returnPatches[returnId] = {
+          ...(meta.returnPatches[returnId] || {}),
+          courierConfirmedAt: new Date(Date.now() - (RETURN_DEADLINE_DAYS + 1) * DAY).toISOString(),
+        };
+        audit(meta, `הדמיית מערכת: אישור השליח של ${returnId} הוקדם לבדיקת התראת 5 הימים`, actor);
+      });
+    },
     getMeta: () => loadAdminMeta(),
   };
 }
@@ -457,10 +555,12 @@ export function unitsTotal(p) {
   return (p.units || []).length;
 }
 export function unitsOut(p) {
-  return (p.units || []).filter((u) => u.status === 'מושכר').length;
+  return (p.units || []).filter((u) =>
+    ['מושכר', 'אצל לקוחה', 'בדרך ללקוחה', 'בדרך חזרה'].includes(u.status),
+  ).length;
 }
 export function unitsCleaning(p) {
-  return (p.units || []).filter((u) => u.status === 'בניקוי').length;
+  return (p.units || []).filter((u) => u.status === 'בניקוי' || u.status === 'בתיקון').length;
 }
 export function unitsAvailable(p) {
   return (p.units || []).filter((u) => u.status === 'זמין').length;

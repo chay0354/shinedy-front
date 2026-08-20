@@ -6,7 +6,7 @@ export const ADMIN_TABS = [
   { path: '/admin/rentals', label: 'ניהול השכרות' },
   { path: '/admin/inventory', label: 'ניהול מלאי' },
   { path: '/admin/customers', label: 'ניהול לקוחות' },
-  { path: '/admin/subscriptions', label: 'ניהול מסלולים' },
+  { path: '/admin/subscriptions', label: 'מסלולים' },
   { path: '/admin/expenses', label: 'כספים' },
   { path: '/admin/reports', label: 'דוחות' },
 ];

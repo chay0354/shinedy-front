@@ -65,7 +65,7 @@ export default function Returns({ embedded }) {
 
       <div className="account-grid">
         <div className="stat-card"><div className="label">החזרות פתוחות</div><div className="value">{openCount}</div></div>
-        <div className="stat-card"><div className="label">חרגו ממועד היעד</div><div className="value">{overdueCount}</div><div className="hint">יעד: 5 ימים מההחלפה</div></div>
+        <div className="stat-card"><div className="label">חרגו ממועד היעד</div><div className="value">{overdueCount}</div><div className="hint">יעד: 5 ימים מאישור השליח</div></div>
         <div className="stat-card"><div className="label">התקבלו חלקית</div><div className="value">{partialCount}</div></div>
         <div className="stat-card"><div className="label">הושלמו</div><div className="value">{doneCount}</div></div>
       </div>

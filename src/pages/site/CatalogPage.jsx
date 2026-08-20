@@ -1,75 +1,51 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useApp } from '../../state/AppContext';
-import { CATEGORIES } from '../../lib/site';
 import Art from '../../components/Art';
 
-const STONES = ['מויסנייט', 'יהלום מעבדה', 'ללא אבן'];
-const SORTS = [
-  { id: 'default', label: 'מומלץ' },
-  { id: 'points-asc', label: 'נקודות: מהנמוכות לגבוהות' },
-  { id: 'points-desc', label: 'נקודות: מהגבוהות לנמוכות' },
-  { id: 'name', label: 'לפי שם' },
+const CATALOG_TABS = [
+  { id: 'הכל', label: 'כל הקולקציות' },
+  { id: 'טבעות', label: 'טבעות' },
+  { id: 'עגילים', label: 'עגילים' },
+  { id: 'שרשראות', label: 'שרשראות ותליונים' },
+  { id: 'צמידים', label: 'צמידים' },
+  { id: 'new', label: 'NEW IN', latin: true },
 ];
+
+const NEW_IN_COUNT = 6;
 
 export default function CatalogPage() {
   const { state } = useApp();
   const [cat, setCat] = useState('הכל');
-  const [stone, setStone] = useState('הכל');
-  const [sort, setSort] = useState('default');
 
   const items = useMemo(() => {
     const products = state?.products || [];
-    let list = products.filter(
-      (p) =>
-        (cat === 'הכל' || p.category === cat) &&
-        (stone === 'הכל' ||
-          p.stone?.includes(stone) ||
-          (stone === 'ללא אבן' && p.stone === 'ללא אבן')),
+    const newInIds = new Set(products.slice(0, NEW_IN_COUNT).map((p) => p.id));
+    return products.filter((p) =>
+      cat === 'הכל' || (cat === 'new' ? newInIds.has(p.id) : p.category === cat),
     );
-    if (sort === 'points-asc') list = [...list].sort((a, b) => a.points - b.points);
-    if (sort === 'points-desc') list = [...list].sort((a, b) => b.points - a.points);
-    if (sort === 'name') list = [...list].sort((a, b) => a.name.localeCompare(b.name, 'he'));
-    return list;
-  }, [state?.products, cat, stone, sort]);
+  }, [state?.products, cat]);
 
   return (
     <>
       <div className="page-head container">
-        <h1>קטלוג תכשיטים</h1>
+        <h1>תכשיטים</h1>
       </div>
 
       <section className="section" style={{ paddingTop: 36 }}>
         <div className="container">
           <div className="catalog-toolbar">
             <div className="tabs">
-              {['הכל', ...CATEGORIES].map((c) => (
-                <button key={c} type="button" className={`tab${cat === c ? ' on' : ''}`} onClick={() => setCat(c)}>
-                  {c}
+              {CATALOG_TABS.map((tab) => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  className={`tab${cat === tab.id ? ' on' : ''}${tab.latin ? ' tab-latin' : ''}`}
+                  onClick={() => setCat(tab.id)}
+                >
+                  {tab.label}
                 </button>
               ))}
-            </div>
-            <div className="toolbar-selects">
-              <select
-                className="select"
-                value={stone}
-                onChange={(e) => setStone(e.target.value)}
-                aria-label="סינון לפי אבן"
-              >
-                <option value="הכל">כל האבנים</option>
-                {STONES.map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
-                ))}
-              </select>
-              <select className="select" value={sort} onChange={(e) => setSort(e.target.value)} aria-label="מיון">
-                {SORTS.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.label}
-                  </option>
-                ))}
-              </select>
             </div>
           </div>
 

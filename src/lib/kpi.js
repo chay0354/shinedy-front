@@ -492,7 +492,7 @@ export function computeKpis(db, range, filters = {}) {
   const cashOut = cashOutExpenses + shippingCost + packagingCost + shipInsuranceCost + cleaningCost + paymentFees
   const netCash = cashIn - cashOut
   const cashCategories = [
-    { label: 'גביית מנויים (אומדן)', amount: revenue, kind: 'in' },
+    { label: 'גביית מסלולים (אומדן)', amount: revenue, kind: 'in' },
     { label: 'רכישות תכשיטים (שולם בפועל)', amount: purchaseCashIn, kind: 'in' },
     { label: 'דמי משלוח החלפות נוספות', amount: exchangeFeeIncome, kind: 'in' },
     ...EXPENSE_GROUPS(db, periodExpenses),
