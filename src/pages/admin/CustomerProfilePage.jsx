@@ -323,6 +323,15 @@ export default function CustomerProfile() {
             <div className="field"><label>הערות למשלוח</label><input name="notes" defaultValue={addr.notes} placeholder="קוד לבניין, שעות, השארה אצל שכן…" /></div>
             <div className="form-actions"><button className="btn btn-sm">שמירה</button></div>
           </form>
+          <div className="admin-section" style={{ marginTop: 28, paddingTop: 8 }}>
+            <h3>אישור הרשמה</h3>
+            <div className="info-grid">
+              <div><span className="il">תעודת זהות</span><b dir="ltr">{u.nationalId || '—'}</b></div>
+              <div><span className="il">העלאת ת״ז</span><b>{u.idDocumentUploaded ? 'הועלה' : 'לא הועלה'}</b></div>
+              <div><span className="il">חתימה אלקטרונית</span><b>{u.signatureCompleted ? 'הושלמה' : 'חסרה'}</b></div>
+              <div><span className="il">אישור תקנון ומדיניות</span><b>{u.termsAcceptedAt ? heDate(u.termsAcceptedAt) : '—'}</b></div>
+            </div>
+          </div>
           <div style={{ marginTop: 18, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
             {!u.canceledAt && !u.suspendedAt && (
               <button className="btn-mini" onClick={() => { if (confirm(`להשהות את המנוי של ${u.name}? היא לא תחויב ולא תוכל להזמין עד ההפעלה מחדש.`)) api.suspendSubscription(u.id) }}>השהיית מנוי</button>

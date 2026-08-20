@@ -179,7 +179,10 @@ function mapUser(c, i, plans, patch) {
     canceledAt,
     suspendedAt: c.status === 'מוקפא' ? nowIso() : null,
     address: { street: '', houseNo: '', apt: '', city: '', zip: '', notes: '' },
-    pointsLabel: c.points,
+    nationalId: c.nationalId || '',
+    idDocumentUploaded: Boolean(c.idDocumentUploaded || c.idDocumentUrl),
+    signatureCompleted: Boolean(c.signatureCompleted),
+    termsAcceptedAt: c.termsAcceptedAt || null,
   };
   return { ...base, ...(patch || {}) };
 }
@@ -254,6 +257,10 @@ export function buildDbFromState(state) {
             phone: state.registration.phone,
             email: state.registration.email,
             planId: state.planId,
+            nationalId: state.registration.nationalId,
+            idDocumentUploaded: state.registration.idDocumentUploaded,
+            signatureCompleted: state.registration.signatureCompleted,
+            termsAcceptedAt: state.registration.termsAcceptedAt,
           },
           0,
           plans,

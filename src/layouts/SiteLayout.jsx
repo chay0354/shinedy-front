@@ -108,6 +108,12 @@ export default function SiteLayout() {
             <Link to="/login">התחברות</Link>
             <Link to={accountPath()}>אזור אישי</Link>
           </div>
+          <div>
+            <h4>משפטי</h4>
+            <Link to="/terms">תקנון והסכם מנוי</Link>
+            <Link to="/privacy">מדיניות פרטיות</Link>
+            <Link to="/faq">שאלות נפוצות</Link>
+          </div>
         </div>
         <div className="fine">© Shinedy 2026 · כל הזכויות שמורות</div>
       </footer>

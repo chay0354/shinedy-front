@@ -11,6 +11,7 @@ import CatalogPage from './pages/site/CatalogPage';
 import ProductPage from './pages/site/ProductPage';
 import LoginPage from './pages/site/LoginPage';
 import SignupPage from './pages/site/SignupPage';
+import LegalPage from './pages/site/LegalPage';
 import FaqPage from './pages/site/FaqPage';
 import AboutPage from './pages/site/AboutPage';
 import ContactPage from './pages/site/ContactPage';
@@ -57,6 +58,8 @@ export default function App() {
           <Route path="catalog/:id" element={<ProductPage />} />
           <Route path="login" element={<LoginPage />} />
           <Route path="signup" element={<SignupPage />} />
+          <Route path="terms" element={<LegalPage kind="terms" />} />
+          <Route path="privacy" element={<LegalPage kind="privacy" />} />
           <Route path="faq" element={<FaqPage />} />
           <Route path="about" element={<AboutPage />} />
           <Route path="contact" element={<ContactPage />} />
