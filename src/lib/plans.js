@@ -32,22 +32,32 @@ export function enrichPlan(plan, index = 0) {
   };
 }
 
+function livePlanFor(live, packId) {
+  return (
+    live.find((p) => p.id === packId) ||
+    live.find((p) => PLAN_ALIASES[packId] === p.id) ||
+    live.find((p) => PLAN_ALIASES[p.id] === packId) ||
+    null
+  );
+}
+
 export function publicCatalogPlans(livePlans) {
   const live = Array.isArray(livePlans) ? livePlans : [];
-  const liveById = Object.fromEntries(live.map((p) => [p.id, p]));
-  return PLANS.map((pack) =>
-    enrichPlan({
+  return PLANS.map((pack) => {
+    const matched = livePlanFor(live, pack.id);
+    return enrichPlan({
       ...pack,
-      ...(liveById[pack.id] || {}),
+      ...(matched || {}),
+      id: pack.id,
       latin: pack.latin,
       name: pack.name,
       materials: pack.materials,
       perks: pack.perks,
       featured: pack.featured,
-      price: liveById[pack.id]?.price ?? pack.price,
-      points: liveById[pack.id]?.points ?? pack.points,
-    }),
-  );
+      price: matched?.price ?? pack.price,
+      points: matched?.points ?? pack.points,
+    });
+  });
 }
 
 export function matchesPlanId(planId, otherId) {

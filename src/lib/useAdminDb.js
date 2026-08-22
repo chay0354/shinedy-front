@@ -63,10 +63,17 @@ export function useAdminDb() {
       ...local,
       async updatePlan(id, fields) {
         if (fields && typeof fields === 'object') {
-          if (fields.price != null) await run(() => live.updatePlan(id, 'price', fields.price));
-          if (fields.points != null) await run(() => live.updatePlan(id, 'points', fields.points));
-          return;
+          if (fields.price != null) {
+            const data = await run(() => live.updatePlan(id, 'price', fields.price));
+            if (!data) return false;
+          }
+          if (fields.points != null) {
+            const data = await run(() => live.updatePlan(id, 'points', fields.points));
+            if (!data) return false;
+          }
+          return true;
         }
+        return false;
       },
       async saveProduct(p) {
         const prefix = { טבעות: 'R', עגילים: 'E', שרשראות: 'N', צמידים: 'B' }[p.category] || 'J';

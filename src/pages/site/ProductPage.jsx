@@ -3,14 +3,17 @@ import { Link, useParams } from 'react-router-dom';
 import { api } from '../../api';
 import { useApp } from '../../state/AppContext';
 import { getToken } from '../../lib/auth';
+import { useFavorites } from '../../lib/favorites';
 import { hasActivePlan } from '../../lib/roles';
 import { PLAN_NAME } from '../../lib/site';
 import { isTopPlan } from '../../lib/accountHelpers';
 import Art from '../../components/Art';
+import ProductCard from '../../components/ProductCard';
 import QuotaDialog from '../../components/QuotaDialog';
 import PurchaseDialog from '../../components/PurchaseDialog';
 import {
   IconDiamond,
+  IconHeart,
   IconList,
   IconRefresh,
   IconShield,
@@ -32,7 +35,9 @@ export default function ProductPage() {
   const [quotaOpen, setQuotaOpen] = useState(false);
   const [buyOpen, setBuyOpen] = useState(false);
   const [buyMsg, setBuyMsg] = useState('');
-  const p = (state?.products || []).find((x) => x.id === id);
+  const products = state?.products || [];
+  const p = products.find((x) => x.id === id);
+  const { has, toggle } = useFavorites();
   const loggedIn = Boolean(getToken() && state?.auth);
   const subscribed = hasActivePlan(state);
   const inBox = (state?.cart || []).some((x) => x.id === p?.id);
@@ -96,7 +101,18 @@ export default function ProductPage() {
           </div>
 
           <div>
-            <h1>{p.name}</h1>
+            <div className="product-title-row">
+              <h1>{p.name}</h1>
+              <button
+                type="button"
+                className={`fav-btn inline${has(p.id) ? ' on' : ''}`}
+                aria-label={has(p.id) ? 'הסירי ממועדפים' : 'הוסיפי למועדפים'}
+                aria-pressed={has(p.id)}
+                onClick={() => toggle(p.id)}
+              >
+                <IconHeart size={20} filled={has(p.id)} />
+              </button>
+            </div>
             <div className="points-line">
               <span className="big">{p.points} נקודות</span>
               <span className="rest"> · במסגרת המנוי שלך</span>
@@ -236,6 +252,20 @@ export default function ProductPage() {
             </div>
           ))}
         </div>
+
+        {products.filter((x) => x.id !== p.id && x.category === p.category).length > 0 && (
+          <div className="related-products">
+            <h2>אופציות נוספות</h2>
+            <div className="products-grid">
+              {products
+                .filter((x) => x.id !== p.id && x.category === p.category)
+                .slice(0, 4)
+                .map((item) => (
+                  <ProductCard key={item.id} product={item} products={products} />
+                ))}
+            </div>
+          </div>
+        )}
       </div>
     </section>
   );

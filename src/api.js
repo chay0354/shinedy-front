@@ -144,4 +144,6 @@ export const api = {
       body: '{}',
     }),
   reset: () => request('/reset', { method: 'POST', body: '{}' }),
+  contact: (payload) =>
+    request('/contact', { method: 'POST', body: JSON.stringify(payload) }),
 };

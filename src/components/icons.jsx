@@ -71,4 +71,32 @@ export const IconList = (p) => (
   <Svg {...p}><rect x="4" y="3.5" width="16" height="17" rx="1" /><path d="M8 8h8M8 12h8M8 16h5" /></Svg>
 )
 
+export const IconHeart = ({ filled = false, size = 26 }) => (
+  <svg
+    viewBox="0 0 24 24"
+    width={size}
+    height={size}
+    fill={filled ? 'currentColor' : 'none'}
+    stroke="currentColor"
+    strokeWidth="1.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <path d="M12 20s-7.2-4.6-9.2-8.9C1.2 7.6 3.4 4.4 7 4.4c1.9 0 3.4 1.1 5 2.8 1.6-1.7 3.1-2.8 5-2.8 3.6 0 5.8 3.2 4.2 6.7C19.2 15.4 12 20 12 20Z" />
+  </svg>
+)
+
+export const IconSearch = (p) => (
+  <Svg {...p}><circle cx="10.5" cy="10.5" r="6.2" /><path d="m15.4 15.4 5.1 5.1" /></Svg>
+)
+
+export const IconEye = (p) => (
+  <Svg {...p}><path d="M2.5 12s3.5-6.5 9.5-6.5S21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z" /><circle cx="12" cy="12" r="2.6" /></Svg>
+)
+
+export const IconEyeOff = (p) => (
+  <Svg {...p}><path d="M2.5 12s3.5-6.5 9.5-6.5S21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z" /><circle cx="12" cy="12" r="2.6" /><path d="m4 20 16-16" /></Svg>
+)
+
 export { default as JewelArt } from './JewelArt.jsx'

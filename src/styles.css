@@ -53,8 +53,12 @@ button { font-family: inherit; cursor: pointer; }
 .header-icons {
   grid-column: 3; justify-self: end; display: flex; gap: 18px; align-items: center;
 }
-.icon-link { color: var(--ink); display: flex; padding: 2px; }
+.icon-link { color: var(--ink); display: flex; padding: 2px; background: none; border: none; cursor: pointer; font: inherit; }
 .icon-link:hover { color: var(--gold-dark); }
+.header-search input {
+  width: min(220px, 42vw); border: 1px solid var(--line); background: #fff;
+  padding: 6px 10px; font: inherit; font-size: 0.88rem; color: var(--ink);
+}
 .main-nav {
   display: flex; gap: 30px; justify-content: center; padding: 0 28px 14px;
   flex-wrap: wrap;
@@ -120,6 +124,10 @@ button { font-family: inherit; cursor: pointer; }
 .section.alt { background: var(--cream); }
 .section-head { text-align: center; max-width: 660px; margin: 0 auto 52px; }
 .section-head p { color: var(--muted); margin-top: 10px; font-weight: 300; }
+.brand-mark { display: flex; align-items: center; justify-content: center; gap: 16px; margin: 16px auto 0; max-width: 260px; }
+.brand-mark .ln { flex: 1; height: 1px; background: rgba(180, 155, 115, 0.45); }
+.brand-mark img { height: 18px; width: auto; opacity: 0.85; }
+.cta-band .brand-mark { margin: 0 auto 22px; }
 
 /* ===== how it works — עיגולי אייקונים ===== */
 .how-steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 28px; }
@@ -213,17 +221,38 @@ button { font-family: inherit; cursor: pointer; }
   text-transform: uppercase;
   font-weight: 500;
 }
+.toolbar-selects { display: flex; gap: 12px; padding-bottom: 8px; flex-wrap: wrap; }
 .select {
   border: 1px solid var(--line); background: #fff; padding: 7px 14px;
   font-family: inherit; font-size: 0.9rem; color: var(--ink); border-radius: 0;
 }
 
 .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr)); gap: 40px 26px; }
-.product-card { background: var(--bg); overflow: hidden; }
+.product-card { background: var(--bg); overflow: hidden; position: relative; }
 .product-card .art {
   background: var(--cream); aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
-  overflow: hidden;
+  overflow: hidden; position: relative;
 }
+.fav-btn {
+  position: absolute; top: 10px; inset-inline-end: 10px; z-index: 2;
+  width: 34px; height: 34px; border: none; border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92); color: var(--ink);
+  display: grid; place-items: center; cursor: pointer; box-shadow: 0 1px 4px rgba(23, 19, 16, 0.08);
+}
+.fav-btn.on { color: var(--danger); }
+.fav-btn.inline { position: static; box-shadow: none; background: var(--cream); }
+.product-title-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.product-options { padding: 12px 6px 2px; text-align: center; }
+.product-options-label { display: block; color: var(--muted); font-size: 0.78rem; font-weight: 400; margin-bottom: 8px; }
+.product-options-row { display: flex; justify-content: center; gap: 8px; }
+.product-option {
+  width: 38px; height: 38px; border: 1px solid var(--line); background: var(--cream);
+  display: grid; place-items: center; overflow: hidden;
+}
+.product-option svg { width: 70%; height: 70%; }
+.product-option:hover { border-color: var(--gold); }
+.related-products { margin-top: 56px; }
+.related-products h2 { text-align: center; margin-bottom: 28px; }
 .product-card .art svg { width: 56%; height: 56%; transition: transform 0.35s ease; }
 .product-card:hover .art svg { transform: scale(1.07); }
 .product-card .info { padding: 16px 6px 4px; text-align: center; }
@@ -303,6 +332,14 @@ button { font-family: inherit; cursor: pointer; }
 .field input:focus, .field select:focus, .field textarea:focus {
   outline: 1px solid var(--ink); border-color: var(--ink);
 }
+.pass-wrap { position: relative; }
+.pass-wrap input { padding-inline-end: 44px; }
+.pass-toggle {
+  position: absolute; inset-inline-end: 10px; top: 50%; transform: translateY(-50%);
+  background: none; border: none; padding: 4px; color: var(--muted); cursor: pointer;
+  display: grid; place-items: center;
+}
+.pass-toggle:hover { color: var(--ink); }
 .check-row { display: flex; gap: 10px; align-items: flex-start; margin: 4px 0 18px; font-size: 0.88rem; color: var(--muted); font-weight: 300; }
 .check-row input { width: 16px; height: 16px; margin-top: 4px; accent-color: var(--gold-dark); }
 .form-note { font-size: 0.86rem; color: var(--muted); margin-top: 16px; text-align: center; font-weight: 300; }
@@ -811,6 +848,39 @@ button { font-family: inherit; cursor: pointer; }
 .admin-terms { list-style: none; display: grid; gap: 8px; }
 .admin-terms li { padding-inline-start: 24px; position: relative; color: var(--muted); font-weight: 300; }
 .admin-terms li::before { content: '✓'; position: absolute; inset-inline-start: 0; color: var(--gold-dark); font-weight: 700; }
+.admin-plans-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 22px; align-items: stretch;
+}
+.admin-plan-card {
+  background: #fff; border: 1px solid var(--line); padding: 28px 24px 24px;
+  display: flex; flex-direction: column; gap: 8px; position: relative; text-align: center;
+}
+.admin-plan-card.featured { border-color: var(--gold); }
+.admin-plan-card .flag {
+  position: absolute; top: -12px; right: 50%; transform: translateX(50%);
+  background: var(--gold); color: #fff; font-size: 0.75rem; font-weight: 500;
+  letter-spacing: 0.08em; padding: 3px 14px; white-space: nowrap;
+}
+.admin-plan-card .plan-name {
+  letter-spacing: 0.2em; font-weight: 600; font-size: 1.02rem; margin-top: 6px;
+}
+.admin-plan-he { color: var(--ink); font-weight: 500; }
+.admin-plan-card .materials { margin: 0 0 8px; }
+.admin-plan-count {
+  display: flex; flex-direction: column; gap: 2px; padding: 10px 0 14px;
+  border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
+}
+.admin-plan-count b { font-size: 1.4rem; font-weight: 500; }
+.admin-plan-count span { color: var(--muted); font-size: 0.82rem; font-weight: 300; }
+.admin-plan-fields {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px; text-align: start; margin: 8px 0 16px;
+}
+.admin-plan-fields label {
+  display: grid; gap: 6px; font-size: 0.8rem; color: var(--muted); font-weight: 400;
+}
+.admin-plan-fields .num-input { width: 100%; text-align: left; }
+.admin-plan-card .btn { width: 100%; }
 .admin-content .admin-table { background: #fff; }
 
 /* ===== store extras ===== */
@@ -924,6 +994,7 @@ button { font-family: inherit; cursor: pointer; }
 .inv-state i { font-style: normal; font-weight: 600; }
 .inv-state .st-ok { color: #2e6b34; }
 .inv-state .st-warn { color: #8a6d1a; }
+.inv-cat-title { font-size: 1.05rem; margin: 0 0 12px; font-weight: 600; }
 
 /* ===== דשבורד: רצועת "ממתין לטיפול עכשיו" ===== */
 .action-strip {
@@ -1042,7 +1113,7 @@ button { font-family: inherit; cursor: pointer; }
 .signup-card h1 { font-size: 1.7rem; margin-bottom: 4px; text-align: center; }
 .signup-card .sub { color: var(--muted); margin-bottom: 22px; text-align: center; font-weight: 300; }
 .signup-steps {
-  display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px;
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px;
   list-style: none; padding: 0; margin: 0 0 28px;
 }
 .signup-steps li {
@@ -1056,10 +1127,13 @@ button { font-family: inherit; cursor: pointer; }
 .signup-steps li.on { color: var(--ink); }
 .signup-steps li.on span { background: var(--gold); color: #fff; border-color: var(--gold); }
 .signup-steps li.done span { background: #171310; color: #fff; border-color: #171310; }
+.legal-block { margin-bottom: 22px; }
+.legal-block-title { font-size: 1.15rem; font-weight: 500; margin: 0 0 10px; text-align: center; }
 .legal-scroll {
-  max-height: min(62vh, 640px); overflow: auto; border: 1px solid var(--line);
-  padding: 18px 20px; background: #fbfaf7; margin-bottom: 18px;
+  max-height: min(42vh, 420px); overflow: auto; border: 1px solid var(--line);
+  padding: 18px 20px; background: #fbfaf7; margin-bottom: 0;
 }
+.legal-agree { margin: 0 0 12px; padding: 12px 14px; background: #fff; border: 1px solid var(--line); }
 .legal-doc { display: grid; gap: 18px; }
 .legal-doc h2 { font-size: 1.05rem; margin: 8px 0; }
 .legal-doc p { color: var(--muted); font-weight: 300; line-height: 1.7; margin: 0 0 10px; }

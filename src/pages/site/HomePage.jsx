@@ -1,8 +1,8 @@
 import { Link } from 'react-router-dom';
 import { useApp } from '../../state/AppContext';
 import { getToken } from '../../lib/auth';
-import { publicCatalogPlans, signupHref } from '../../lib/plans';
-import Art from '../../components/Art';
+import { publicCatalogPlans } from '../../lib/plans';
+import ProductCard from '../../components/ProductCard';
 import { IconDiamond, IconRefresh, IconShield, IconTruck } from '../../components/icons';
 
 const HERO_BENEFITS = [
@@ -12,9 +12,20 @@ const HERO_BENEFITS = [
   { icon: IconShield, t: 'ביטוח בלאי סביר' },
 ];
 
+function BrandMark() {
+  return (
+    <div className="brand-mark" aria-hidden="true">
+      <span className="ln" />
+      <img src="/brand/symbol-gold.png" alt="" />
+      <span className="ln" />
+    </div>
+  );
+}
+
 export default function HomePage() {
   const { state } = useApp();
-  const featured = (state?.products || []).slice(0, 4);
+  const products = state?.products || [];
+  const featured = products.slice(0, 4);
   const plans = publicCatalogPlans(state?.plans);
   const loggedIn = Boolean(getToken() && state?.auth);
 
@@ -57,27 +68,12 @@ export default function HomePage() {
         <div className="container">
           <div className="section-head">
             <h2>מהקטלוג שלנו</h2>
+            <BrandMark />
             <p>טעימה קטנה ממה שמחכה לך בפנים.</p>
           </div>
           <div className="products-grid">
             {featured.map((p) => (
-              <Link to={`/catalog/${p.id}`} key={p.id} className="product-card">
-                <div className="art">
-                  <Art product={p} />
-                </div>
-                <div className="info">
-                  <div className="name">{p.name}</div>
-                  <div className="meta">
-                    {p.metal} · {p.stone}
-                  </div>
-                  <div className="row">
-                    <span className="points-badge">{p.points} נק׳</span>
-                    {p.price ? (
-                      <span className="price-tag">₪{Number(p.price).toLocaleString()} לקנייה</span>
-                    ) : null}
-                  </div>
-                </div>
-              </Link>
+              <ProductCard key={p.id} product={p} products={products} />
             ))}
           </div>
           <div style={{ textAlign: 'center', marginTop: 40 }}>
@@ -92,6 +88,7 @@ export default function HomePage() {
         <div className="container">
           <div className="section-head">
             <h2>מסלולי מנוי</h2>
+            <BrandMark />
             <p>בחרי את המסלול שהכי מתאים לך — אפשר לשדרג או לבטל בכל עת.</p>
           </div>
           <div className="plans-grid">
@@ -110,7 +107,8 @@ export default function HomePage() {
                   ))}
                 </ul>
                 <Link
-                  to={loggedIn ? '/plans' : signupHref(plan.id)}
+                  to={loggedIn ? '/plans' : '/signup'}
+                  state={loggedIn ? undefined : { plan: plan.id }}
                   className={`btn${plan.featured ? ' btn-tan' : ''}`}
                 >
                   {loggedIn ? 'לניהול המנוי' : 'אני בוחרת'}
@@ -126,6 +124,7 @@ export default function HomePage() {
 
       <section className="cta-band" style={{ backgroundImage: 'url(/photos/bg-cream.jpg)' }}>
         <div className="tagline">NEW LOOK. SAME YOU.</div>
+        <BrandMark />
         <h2>מוכנה להתחיל לנצנץ?</h2>
         <p>ההרשמה לוקחת כמה דקות — והתכשיטים הראשונים כבר בדרך אלייך.</p>
         <Link to="/signup" className="btn">

@@ -1,9 +1,11 @@
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useApp } from '../state/AppContext';
 import { getToken } from '../lib/auth';
+import { SERVICE_EMAIL, SERVICE_PHONE, SERVICE_PHONE_TEL } from '../lib/contact';
+import { useFavorites } from '../lib/favorites';
 import { hasActivePlan, isAdmin, isStaff } from '../lib/roles';
-import { IconBag, IconUser } from '../components/icons';
+import { IconBag, IconHeart, IconSearch, IconUser } from '../components/icons';
 import PointsBar from '../components/PointsBar';
 import ScrollToTop from '../components/ScrollToTop';
 
@@ -23,6 +25,9 @@ export default function SiteLayout() {
   const isAuthPage = location.pathname === '/login' || location.pathname === '/signup';
   const cartCount = state?.cart?.length || 0;
   const userName = state?.registration?.name;
+  const { count: favCount } = useFavorites();
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQ, setSearchQ] = useState('');
 
   useEffect(() => {
     if (!getToken() || isAuthPage) return;
@@ -56,6 +61,43 @@ export default function SiteLayout() {
             <img src="/brand/name-black.png" alt="SHINEDY" />
           </Link>
           <div className="header-icons">
+            {searchOpen ? (
+              <form
+                className="header-search"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const q = searchQ.trim();
+                  setSearchOpen(false);
+                  navigate(q ? `/catalog?q=${encodeURIComponent(q)}` : '/catalog');
+                }}
+              >
+                <input
+                  autoFocus
+                  type="search"
+                  placeholder="חיפוש תכשיט..."
+                  value={searchQ}
+                  onChange={(e) => setSearchQ(e.target.value)}
+                  onBlur={() => {
+                    if (!searchQ.trim()) setSearchOpen(false);
+                  }}
+                  aria-label="חיפוש בקטלוג"
+                />
+              </form>
+            ) : (
+              <button
+                type="button"
+                className="icon-link"
+                aria-label="חיפוש"
+                title="חיפוש"
+                onClick={() => setSearchOpen(true)}
+              >
+                <IconSearch size={22} />
+              </button>
+            )}
+            <Link to="/favorites" className="icon-link" aria-label="מועדפים" title="מועדפים">
+              <IconHeart size={22} filled={favCount > 0} />
+              {favCount > 0 && <span className="badge-count">{favCount}</span>}
+            </Link>
             <Link
               to={accountPath()}
               className="icon-link"
@@ -113,6 +155,8 @@ export default function SiteLayout() {
             <Link to="/terms">תקנון והסכם מנוי</Link>
             <Link to="/privacy">מדיניות פרטיות</Link>
             <Link to="/faq">שאלות נפוצות</Link>
+            <a href={`tel:${SERVICE_PHONE_TEL}`} dir="ltr">{SERVICE_PHONE}</a>
+            <a href={`mailto:${SERVICE_EMAIL}`} dir="ltr">{SERVICE_EMAIL}</a>
           </div>
         </div>
         <div className="fine">© Shinedy 2026 · כל הזכויות שמורות</div>

@@ -7,7 +7,6 @@ import { SHARED_TERMS } from '../../lib/site';
 import {
   matchesPlanId,
   publicCatalogPlans,
-  signupHref,
   subscribePlanId,
 } from '../../lib/plans';
 
@@ -26,7 +25,7 @@ export default function PlansPage() {
   const [err, setErr] = useState('');
 
   function guestSignup(planId) {
-    navigate(signupHref(planId));
+    navigate('/signup', { state: { plan: planId } });
   }
 
   async function pickPlan(planId) {
@@ -125,7 +124,7 @@ export default function PlansPage() {
                   </ul>
                   <div className="plan-actions">
                     {!loggedIn && (
-                      <Link to={signupHref(plan.id)} className={`btn${plan.featured ? ' btn-tan' : ''}`}>
+                      <Link to="/signup" state={{ plan: plan.id }} className={`btn${plan.featured ? ' btn-tan' : ''}`}>
                         אני בוחרת
                       </Link>
                     )}

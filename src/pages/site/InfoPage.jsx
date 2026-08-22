@@ -153,11 +153,11 @@ export default function InfoPage() {
               <ul className="contact-lines">
                 <li>
                   <IconPhone />
-                  03-1234567
+                  050-9372937
                 </li>
                 <li>
                   <IconMail />
-                  hello@shinedy.com
+                  service@shinedy.co
                 </li>
                 <li>
                   <IconPin />

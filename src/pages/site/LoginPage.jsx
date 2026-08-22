@@ -4,9 +4,11 @@ import { api } from '../../api';
 import { useApp } from '../../state/AppContext';
 import { applySessionFromResponse } from '../../lib/auth';
 import { homePathForRole } from '../../lib/roles';
+import { IconEye, IconEyeOff } from '../../components/icons';
 
 export default function LoginPage() {
   const [error, setError] = useState('');
+  const [showPass, setShowPass] = useState(false);
   const { run } = useApp();
   const navigate = useNavigate();
 
@@ -38,7 +40,25 @@ export default function LoginPage() {
             </div>
             <div className="field">
               <label htmlFor="l-pass">סיסמה</label>
-              <input id="l-pass" name="l-pass" type="password" required placeholder="••••••••" dir="ltr" />
+              <div className="pass-wrap">
+                <input
+                  id="l-pass"
+                  name="l-pass"
+                  type={showPass ? 'text' : 'password'}
+                  required
+                  placeholder="••••••••"
+                  dir="ltr"
+                />
+                <button
+                  type="button"
+                  className="pass-toggle"
+                  aria-label={showPass ? 'הסתרת סיסמה' : 'הצגת סיסמה'}
+                  title={showPass ? 'הסתרת סיסמה' : 'הצגת סיסמה'}
+                  onClick={() => setShowPass((v) => !v)}
+                >
+                  {showPass ? <IconEyeOff size={20} /> : <IconEye size={20} />}
+                </button>
+              </div>
             </div>
             {error && <p className="form-err">{error}</p>}
             <button type="submit" className="btn btn-wide">

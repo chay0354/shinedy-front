@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { api } from '../../api';
 import { useApp } from '../../state/AppContext';
 import { applySessionFromResponse } from '../../lib/auth';
@@ -8,14 +8,13 @@ import { PRIVACY, TERMS } from '../../lib/legal';
 import LegalDoc from '../../components/LegalDoc';
 import SignaturePad from '../../components/SignaturePad';
 
-const STEPS = ['פרטים', 'מסלול', 'תקנון', 'פרטיות', 'חתימה', 'תשלום'];
+const STEPS = ['פרטים', 'מסלול', 'תקנון', 'חתימה', 'תשלום'];
 const STEP = {
   details: 0,
   plan: 1,
   terms: 2,
-  privacy: 3,
-  sign: 4,
-  pay: 5,
+  sign: 3,
+  pay: 4,
 };
 
 function validIsraeliId(raw) {
@@ -76,15 +75,16 @@ function signatureHasInk(dataUrl) {
 export default function SignupPage() {
   const { state, run } = useApp();
   const navigate = useNavigate();
+  const location = useLocation();
   const [error, setError] = useState('');
-  const [step, setStep] = useState(0);
+  const [step, setStep] = useState(STEP.details);
   const [params] = useSearchParams();
-  const fromUrl = params.get('plan');
+  const intendedPlan = location.state?.plan || params.get('plan');
   const livePlans = Array.isArray(state?.plans) ? state.plans : [];
   const plans = publicCatalogPlans(livePlans);
-  const defaultPlan = plans.some((p) => p.id === fromUrl)
-    ? fromUrl
-    : plans.find((p) => p.featured)?.id || plans[0]?.id;
+  const defaultPlan = plans.some((p) => p.id === intendedPlan)
+    ? intendedPlan
+    : '';
 
   const [form, setForm] = useState({
     name: '',
@@ -94,7 +94,14 @@ export default function SignupPage() {
     pass2: '',
     plan: '',
     nationalId: '',
-    agreeLegal: false,
+    street: '',
+    houseNo: '',
+    apt: '',
+    city: '',
+    zip: '',
+    notes: '',
+    agreeTerms: false,
+    agreePrivacy: false,
     agreeNotices: false,
     signature: '',
     idFileName: '',
@@ -104,10 +111,6 @@ export default function SignupPage() {
     cardExpiry: '',
     cardCvv: '',
   });
-
-  useEffect(() => {
-    setStep(0);
-  }, [fromUrl]);
 
   useEffect(() => {
     if (defaultPlan) {
@@ -126,6 +129,9 @@ export default function SignupPage() {
     if (form.pass.length < 8) return 'הסיסמה חייבת לפחות 8 תווים';
     if (form.pass !== form.pass2) return 'הסיסמאות אינן תואמות — נסי שוב';
     if (!validIsraeliId(form.nationalId)) return 'מספר תעודת הזהות אינו תקין';
+    if (!form.street.trim()) return 'יש למלא רחוב';
+    if (!form.houseNo.trim()) return 'יש למלא מספר בית';
+    if (!form.city.trim()) return 'יש למלא עיר';
     return '';
   }
 
@@ -134,8 +140,14 @@ export default function SignupPage() {
     return '';
   }
 
+  function validateTerms() {
+    if (!form.agreeTerms) return 'יש לאשר את התקנון';
+    if (!form.agreePrivacy) return 'יש לאשר את מדיניות הפרטיות';
+    return '';
+  }
+
   function validateLegal() {
-    if (!form.agreeLegal) return 'יש לאשר את התקנון ואת מדיניות הפרטיות';
+    if (!form.agreeTerms || !form.agreePrivacy) return 'יש לאשר את התקנון ואת מדיניות הפרטיות';
     if (!form.agreeNotices) return 'יש לאשר קבלת הודעות תפעוליות על המנוי';
     if (!form.idDocument) return 'יש להעלות צילום או סריקה של תעודת הזהות';
     if (!signatureHasInk(form.signature)) return 'יש לחתום בשדה החתימה';
@@ -160,6 +172,13 @@ export default function SignupPage() {
     }
     if (step === STEP.plan) {
       const err = validatePlan();
+      if (err) {
+        setError(err);
+        return;
+      }
+    }
+    if (step === STEP.terms) {
+      const err = validateTerms();
       if (err) {
         setError(err);
         return;
@@ -210,6 +229,12 @@ export default function SignupPage() {
       setStep(STEP.plan);
       return;
     }
+    const termsErr = validateTerms();
+    if (termsErr) {
+      setError(termsErr);
+      setStep(STEP.terms);
+      return;
+    }
     const legalErr = validateLegal();
     if (legalErr) {
       setError(legalErr);
@@ -230,6 +255,14 @@ export default function SignupPage() {
         password: form.pass,
         phone: form.phone.trim(),
         nationalId: form.nationalId.replace(/\D/g, ''),
+        address: {
+          street: form.street.trim(),
+          houseNo: form.houseNo.trim(),
+          apt: form.apt.trim(),
+          city: form.city.trim(),
+          zip: form.zip.trim(),
+          notes: form.notes.trim(),
+        },
         termsAccepted: true,
         privacyAccepted: true,
         noticesAccepted: true,
@@ -257,14 +290,6 @@ export default function SignupPage() {
 
   return (
     <div className={wide ? 'signup-flow' : 'auth-split'}>
-      {step === STEP.details && (
-        <div
-          className="auth-photo"
-          style={{ backgroundImage: 'url(/photos/bag.jpg)' }}
-          role="img"
-          aria-label="שקית מתנה של Shinedy"
-        />
-      )}
       <div className={wide ? 'container signup-wide' : 'auth-form-side'}>
         <div className={wide ? 'signup-card' : 'form-card'}>
           <h1>יצירת חשבון</h1>
@@ -326,6 +351,70 @@ export default function SignupPage() {
                     dir="ltr"
                     value={form.email}
                     onChange={(e) => setField('email', e.target.value)}
+                  />
+                </div>
+                <p className="signup-pay-note">כתובת למשלוח</p>
+                <div className="field">
+                  <label htmlFor="s-street">רחוב</label>
+                  <input
+                    id="s-street"
+                    required
+                    placeholder="שם הרחוב"
+                    value={form.street}
+                    onChange={(e) => setField('street', e.target.value)}
+                  />
+                </div>
+                <div className="pay-row">
+                  <div className="field">
+                    <label htmlFor="s-house">מספר בית</label>
+                    <input
+                      id="s-house"
+                      required
+                      placeholder="12"
+                      value={form.houseNo}
+                      onChange={(e) => setField('houseNo', e.target.value)}
+                    />
+                  </div>
+                  <div className="field">
+                    <label htmlFor="s-apt">דירה</label>
+                    <input
+                      id="s-apt"
+                      placeholder="4"
+                      value={form.apt}
+                      onChange={(e) => setField('apt', e.target.value)}
+                    />
+                  </div>
+                </div>
+                <div className="pay-row">
+                  <div className="field">
+                    <label htmlFor="s-city">עיר</label>
+                    <input
+                      id="s-city"
+                      required
+                      placeholder="תל אביב"
+                      value={form.city}
+                      onChange={(e) => setField('city', e.target.value)}
+                    />
+                  </div>
+                  <div className="field">
+                    <label htmlFor="s-zip">מיקוד</label>
+                    <input
+                      id="s-zip"
+                      inputMode="numeric"
+                      placeholder="6100000"
+                      dir="ltr"
+                      value={form.zip}
+                      onChange={(e) => setField('zip', e.target.value)}
+                    />
+                  </div>
+                </div>
+                <div className="field">
+                  <label htmlFor="s-notes">הערות למשלוח</label>
+                  <input
+                    id="s-notes"
+                    placeholder="קוד לבניין, שעות, השארה אצל שכן…"
+                    value={form.notes}
+                    onChange={(e) => setField('notes', e.target.value)}
                   />
                 </div>
                 <div className="field">
@@ -396,40 +485,55 @@ export default function SignupPage() {
             )}
 
             {step === STEP.terms && (
-              <div className="legal-scroll">
-                <LegalDoc data={TERMS} />
-              </div>
-            )}
-
-            {step === STEP.privacy && (
-              <div className="legal-scroll">
-                <LegalDoc data={PRIVACY} />
-              </div>
-            )}
-
-            {step === STEP.sign && (
               <>
-                <p className="signup-confirm-lead">
-                  סימון התיבות והחתימה מהווים אישור אלקטרוני מחייב, בהתאם לתקנון.
-                </p>
-                <label className="check-row">
+                <div className="legal-block">
+                  <h2 className="legal-block-title">תקנון והסכם מנוי</h2>
+                  <div className="legal-scroll">
+                    <LegalDoc data={TERMS} />
+                  </div>
+                </div>
+                <div className="legal-block">
+                  <h2 className="legal-block-title">מדיניות פרטיות</h2>
+                  <div className="legal-scroll">
+                    <LegalDoc data={PRIVACY} />
+                  </div>
+                </div>
+                <label className="check-row legal-agree">
                   <input
                     type="checkbox"
-                    checked={form.agreeLegal}
-                    onChange={(e) => setField('agreeLegal', e.target.checked)}
+                    checked={form.agreeTerms}
+                    onChange={(e) => setField('agreeTerms', e.target.checked)}
                   />
                   <span>
                     קראתי, הבנתי ואני מסכימה ל
                     <Link to="/terms" target="_blank" className="link-gold">
                       תקנון ולהסכם המנוי
                     </Link>
-                    {' '}ול
+                    , על כל סעיפיו ונספחיו.
+                  </span>
+                </label>
+                <label className="check-row legal-agree">
+                  <input
+                    type="checkbox"
+                    checked={form.agreePrivacy}
+                    onChange={(e) => setField('agreePrivacy', e.target.checked)}
+                  />
+                  <span>
+                    קראתי, הבנתי ואני מסכימה ל
                     <Link to="/privacy" target="_blank" className="link-gold">
                       מדיניות הפרטיות
                     </Link>
-                    , על כל סעיפיהם ונספחיהם.
+                    .
                   </span>
                 </label>
+              </>
+            )}
+
+            {step === STEP.sign && (
+              <>
+                <p className="signup-confirm-lead">
+                  החתימה והעלאת תעודת הזהות מהווים אישור אלקטרוני מחייב, בהתאם לתקנון.
+                </p>
                 <label className="check-row">
                   <input
                     type="checkbox"
@@ -541,6 +645,14 @@ export default function SignupPage() {
           </p>
         </div>
       </div>
+      {step === STEP.details && (
+        <div
+          className="auth-photo"
+          style={{ backgroundImage: 'url(/photos/bag.jpg)' }}
+          role="img"
+          aria-label="שקית מתנה של Shinedy"
+        />
+      )}
     </div>
   );
 }
