@@ -16,7 +16,7 @@ function BrandMark() {
   return (
     <div className="brand-mark" aria-hidden="true">
       <span className="ln" />
-      <img src="/brand/symbol-gold.png" alt="" />
+      <img src="/brand/name-black.png" alt="SHINEDY" />
       <span className="ln" />
     </div>
   );
@@ -42,11 +42,7 @@ export default function HomePage() {
             <br />
             לכל רגע. כל הזמן.
           </h1>
-          <div className="hb-divider">
-            <span className="ln" />
-            <img src="/brand/symbol-gold.png" alt="" />
-            <span className="ln" />
-          </div>
+          <BrandMark />
           <p>
             מגוון מתחדש של תכשיטים יוקרתיים
             <br />

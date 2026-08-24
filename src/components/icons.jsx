@@ -99,4 +99,12 @@ export const IconEyeOff = (p) => (
   <Svg {...p}><path d="M2.5 12s3.5-6.5 9.5-6.5S21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z" /><circle cx="12" cy="12" r="2.6" /><path d="m4 20 16-16" /></Svg>
 )
 
+export const IconInstagram = (p) => (
+  <Svg {...p}><rect x="3.5" y="3.5" width="17" height="17" rx="4.5" /><circle cx="12" cy="12" r="4" /><circle cx="17.2" cy="6.8" r="0.9" fill="currentColor" /></Svg>
+)
+
+export const IconFacebook = (p) => (
+  <Svg {...p}><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" /></Svg>
+)
+
 export { default as JewelArt } from './JewelArt.jsx'

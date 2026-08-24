@@ -3,7 +3,7 @@ import Art from './Art';
 import { IconHeart } from './icons';
 import { useFavorites } from '../lib/favorites';
 
-export default function ProductCard({ product, products = [], showRelated = true }) {
+export default function ProductCard({ product, products = [], showRelated = false }) {
   const { has, toggle } = useFavorites();
   const liked = has(product.id);
   const options = showRelated

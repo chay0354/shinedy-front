@@ -8,13 +8,12 @@ import { PRIVACY, TERMS } from '../../lib/legal';
 import LegalDoc from '../../components/LegalDoc';
 import SignaturePad from '../../components/SignaturePad';
 
-const STEPS = ['פרטים', 'מסלול', 'תקנון', 'חתימה', 'תשלום'];
+const STEPS = ['פרטים', 'תקנון', 'חתימה', 'תשלום'];
 const STEP = {
   details: 0,
-  plan: 1,
-  terms: 2,
-  sign: 3,
-  pay: 4,
+  terms: 1,
+  sign: 2,
+  pay: 3,
 };
 
 function validIsraeliId(raw) {
@@ -73,10 +72,11 @@ function signatureHasInk(dataUrl) {
 }
 
 export default function SignupPage() {
-  const { state, run } = useApp();
+  const { state, refresh } = useApp();
   const navigate = useNavigate();
   const location = useLocation();
   const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
   const [step, setStep] = useState(STEP.details);
   const [params] = useSearchParams();
   const intendedPlan = location.state?.plan || params.get('plan');
@@ -84,7 +84,7 @@ export default function SignupPage() {
   const plans = publicCatalogPlans(livePlans);
   const defaultPlan = plans.some((p) => p.id === intendedPlan)
     ? intendedPlan
-    : '';
+    : plans.find((p) => p.featured)?.id || plans[0]?.id || '';
 
   const [form, setForm] = useState({
     name: '',
@@ -100,9 +100,8 @@ export default function SignupPage() {
     city: '',
     zip: '',
     notes: '',
-    agreeTerms: false,
-    agreePrivacy: false,
-    agreeNotices: false,
+    agreeLegal: false,
+    agreeMarketing: false,
     signature: '',
     idFileName: '',
     idDocument: '',
@@ -141,14 +140,14 @@ export default function SignupPage() {
   }
 
   function validateTerms() {
-    if (!form.agreeTerms) return 'יש לאשר את התקנון';
-    if (!form.agreePrivacy) return 'יש לאשר את מדיניות הפרטיות';
+    if (!form.agreeLegal) return 'יש לאשר את התקנון ואת מדיניות הפרטיות';
+    if (!form.agreeMarketing) return 'יש לאשר קבלת דיוור בטלפון ובמייל';
     return '';
   }
 
   function validateLegal() {
-    if (!form.agreeTerms || !form.agreePrivacy) return 'יש לאשר את התקנון ואת מדיניות הפרטיות';
-    if (!form.agreeNotices) return 'יש לאשר קבלת הודעות תפעוליות על המנוי';
+    if (!form.agreeLegal) return 'יש לאשר את התקנון ואת מדיניות הפרטיות';
+    if (!form.agreeMarketing) return 'יש לאשר קבלת דיוור בטלפון ובמייל';
     if (!form.idDocument) return 'יש להעלות צילום או סריקה של תעודת הזהות';
     if (!signatureHasInk(form.signature)) return 'יש לחתום בשדה החתימה';
     return '';
@@ -161,7 +160,7 @@ export default function SignupPage() {
     return '';
   }
 
-  function goNext() {
+  async function goNext() {
     setError('');
     if (step === STEP.details) {
       const err = validateDetails();
@@ -169,12 +168,14 @@ export default function SignupPage() {
         setError(err);
         return;
       }
-    }
-    if (step === STEP.plan) {
-      const err = validatePlan();
-      if (err) {
-        setError(err);
+      setBusy(true);
+      try {
+        await api.checkSignup({ email: form.email.trim(), phone: form.phone.trim() });
+      } catch (e) {
+        setError(e.message || 'לא ניתן להמשיך עם הפרטים האלה');
         return;
+      } finally {
+        setBusy(false);
       }
     }
     if (step === STEP.terms) {
@@ -214,7 +215,7 @@ export default function SignupPage() {
   async function handleSubmit(e) {
     e.preventDefault();
     if (step < STEPS.length - 1) {
-      goNext();
+      await goNext();
       return;
     }
     const detailsErr = validateDetails();
@@ -226,7 +227,6 @@ export default function SignupPage() {
     const planErr = validatePlan();
     if (planErr) {
       setError(planErr);
-      setStep(STEP.plan);
       return;
     }
     const termsErr = validateTerms();
@@ -247,9 +247,10 @@ export default function SignupPage() {
       return;
     }
     setError('');
+    setBusy(true);
     const last4 = form.cardNumber.replace(/\D/g, '').slice(-4);
-    const data = await run(() =>
-      api.register({
+    try {
+      const data = await api.register({
         fullName: form.name.trim(),
         email: form.email.trim(),
         password: form.pass,
@@ -265,7 +266,7 @@ export default function SignupPage() {
         },
         termsAccepted: true,
         privacyAccepted: true,
-        noticesAccepted: true,
+        noticesAccepted: form.agreeMarketing,
         signatureCompleted: true,
         signatureData: form.signature,
         idDocumentUrl: form.idDocument,
@@ -275,14 +276,19 @@ export default function SignupPage() {
           last4,
           expiry: form.cardExpiry.trim(),
         },
-      }),
-    );
-    if (!data) {
-      setError('לא ניתן להירשם — בדקי את הפרטים');
-      return;
+      });
+      applySessionFromResponse(data);
+      await refresh();
+      navigate('/catalog');
+    } catch (e) {
+      const msg = e.message || 'לא ניתן להירשם — בדקי את הפרטים';
+      setError(msg);
+      if (msg.includes('אימייל') || msg.includes('טלפון')) {
+        setStep(STEP.details);
+      }
+    } finally {
+      setBusy(false);
     }
-    applySessionFromResponse(data);
-    navigate('/catalog');
   }
 
   const selectedPlan = plans.find((p) => p.id === form.plan);
@@ -370,7 +376,6 @@ export default function SignupPage() {
                     <input
                       id="s-house"
                       required
-                      placeholder="12"
                       value={form.houseNo}
                       onChange={(e) => setField('houseNo', e.target.value)}
                     />
@@ -379,7 +384,6 @@ export default function SignupPage() {
                     <label htmlFor="s-apt">דירה</label>
                     <input
                       id="s-apt"
-                      placeholder="4"
                       value={form.apt}
                       onChange={(e) => setField('apt', e.target.value)}
                     />
@@ -391,7 +395,6 @@ export default function SignupPage() {
                     <input
                       id="s-city"
                       required
-                      placeholder="תל אביב"
                       value={form.city}
                       onChange={(e) => setField('city', e.target.value)}
                     />
@@ -401,7 +404,6 @@ export default function SignupPage() {
                     <input
                       id="s-zip"
                       inputMode="numeric"
-                      placeholder="6100000"
                       dir="ltr"
                       value={form.zip}
                       onChange={(e) => setField('zip', e.target.value)}
@@ -446,44 +448,6 @@ export default function SignupPage() {
               </>
             )}
 
-            {step === STEP.plan && (
-              <>
-                <p className="signup-pay-note">בחרי את חבילת המנוי. אפשר לשנות מסלול אחר כך מהאזור האישי.</p>
-                <div className="plans-grid signup-plan-grid">
-                  {plans.map((plan) => (
-                    <div
-                      key={plan.id}
-                      role="button"
-                      tabIndex={0}
-                      className={`plan-card${plan.featured ? ' featured' : ''}${form.plan === plan.id ? ' mine' : ''}`}
-                      onClick={() => setField('plan', plan.id)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault();
-                          setField('plan', plan.id);
-                        }
-                      }}
-                    >
-                      {plan.featured ? (
-                        <div className="flag">הכי פופולרי</div>
-                      ) : null}
-                      <div className="plan-name">{plan.latin}</div>
-                      <div className="price">
-                        ₪{plan.price}
-                        <small> לחודש</small>
-                      </div>
-                      <div className="materials">{plan.materials}</div>
-                      <ul>
-                        {plan.perks.map((perk) => (
-                          <li key={perk}>{perk}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  ))}
-                </div>
-              </>
-            )}
-
             {step === STEP.terms && (
               <>
                 <div className="legal-block">
@@ -501,30 +465,28 @@ export default function SignupPage() {
                 <label className="check-row legal-agree">
                   <input
                     type="checkbox"
-                    checked={form.agreeTerms}
-                    onChange={(e) => setField('agreeTerms', e.target.checked)}
+                    checked={form.agreeLegal}
+                    onChange={(e) => setField('agreeLegal', e.target.checked)}
                   />
                   <span>
                     קראתי, הבנתי ואני מסכימה ל
                     <Link to="/terms" target="_blank" className="link-gold">
                       תקנון ולהסכם המנוי
                     </Link>
-                    , על כל סעיפיו ונספחיו.
+                    {' '}ול
+                    <Link to="/privacy" target="_blank" className="link-gold">
+                      מדיניות הפרטיות
+                    </Link>
+                    , על כל סעיפיהם ונספחיהם.
                   </span>
                 </label>
                 <label className="check-row legal-agree">
                   <input
                     type="checkbox"
-                    checked={form.agreePrivacy}
-                    onChange={(e) => setField('agreePrivacy', e.target.checked)}
+                    checked={form.agreeMarketing}
+                    onChange={(e) => setField('agreeMarketing', e.target.checked)}
                   />
-                  <span>
-                    קראתי, הבנתי ואני מסכימה ל
-                    <Link to="/privacy" target="_blank" className="link-gold">
-                      מדיניות הפרטיות
-                    </Link>
-                    .
-                  </span>
+                  <span>אני מאשרת קבלת דיוור בטלפון ובמייל.</span>
                 </label>
               </>
             )}
@@ -534,14 +496,6 @@ export default function SignupPage() {
                 <p className="signup-confirm-lead">
                   החתימה והעלאת תעודת הזהות מהווים אישור אלקטרוני מחייב, בהתאם לתקנון.
                 </p>
-                <label className="check-row">
-                  <input
-                    type="checkbox"
-                    checked={form.agreeNotices}
-                    onChange={(e) => setField('agreeNotices', e.target.checked)}
-                  />
-                  <span>אני מאשרת קבלת הודעות ועדכונים הנוגעים למנוי בדוא״ל וב-SMS.</span>
-                </label>
 
                 <div className="field" style={{ marginTop: 18 }}>
                   <label htmlFor="s-id-file">העלאת תעודת זהות</label>
@@ -622,17 +576,17 @@ export default function SignupPage() {
 
             <div className="signup-nav">
               {step > 0 && (
-                <button type="button" className="btn btn-outline" onClick={() => setStep((s) => s - 1)}>
+                <button type="button" className="btn btn-outline" disabled={busy} onClick={() => setStep((s) => s - 1)}>
                   חזרה
                 </button>
               )}
               {step < STEPS.length - 1 ? (
-                <button type="button" className="btn btn-wide" onClick={goNext}>
-                  המשך
+                <button type="button" className="btn btn-wide" disabled={busy} onClick={goNext}>
+                  {busy && step === STEP.details ? 'בודקת…' : 'המשך'}
                 </button>
               ) : (
-                <button type="submit" className="btn btn-wide">
-                  אישור והרשמה
+                <button type="submit" className="btn btn-wide" disabled={busy}>
+                  {busy ? 'נרשמת…' : 'אישור והרשמה'}
                 </button>
               )}
             </div>

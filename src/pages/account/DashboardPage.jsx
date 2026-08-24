@@ -116,6 +116,50 @@ export default function DashboardPage() {
       </div>
 
       <section className="container" style={{ paddingBottom: 72 }}>
+        <div className="account-actions">
+          {!state?.registration?.suspended && (
+            <>
+              <Link to="/exchange" className="btn btn-tan">
+                בצעי החלפה
+              </Link>
+              <Link to="/box" className="btn btn-outline">
+                לקופסה שלי
+              </Link>
+            </>
+          )}
+          {state?.subscribed && !state?.registration?.suspended && (
+            <button
+              type="button"
+              className="btn btn-outline"
+              onClick={async () => {
+                if (
+                  !window.confirm(
+                    'להקפיא את המנוי? לא תחויבי ולא תוכלי להזמין עד ההפעלה מחדש. יש להחזיר קודם את התכשיטים שאצלך.',
+                  )
+                ) {
+                  return;
+                }
+                await run(() => api.suspendSubscription());
+              }}
+            >
+              הקפאת מנוי
+            </button>
+          )}
+          {state?.registration?.suspended && (
+            <button
+              type="button"
+              className="btn btn-tan"
+              onClick={async () => {
+                await run(() => api.resumeSubscription());
+              }}
+            >
+              הפעלת מנוי מחדש
+            </button>
+          )}
+        </div>
+        <p style={{ color: 'var(--muted)', fontSize: '0.88rem', fontWeight: 300, margin: '12px 0 28px' }}>
+          מחליפות פשוט: מסמנות מה מחזירות, בוחרות חדשים בקטלוג — ונרתיק ההחזרה מגיע עם המשלוח.
+        </p>
         <div className="account-grid">
           <div className="stat-card">
             <div className="label">נקודות זמינות</div>
@@ -322,17 +366,6 @@ export default function DashboardPage() {
           </div>
         )}
 
-        <div style={{ marginTop: 34, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-          <Link to="/exchange" className="btn btn-tan">
-            בצעי החלפה
-          </Link>
-          <Link to="/box" className="btn btn-outline">
-            לקופסה שלי
-          </Link>
-        </div>
-        <p style={{ color: 'var(--muted)', fontSize: '0.88rem', fontWeight: 300, marginTop: 12 }}>
-          מחליפות פשוט: מסמנות מה מחזירות, בוחרות חדשים בקטלוג — ונרתיק ההחזרה מגיע עם המשלוח.
-        </p>
       </section>
 
       <PurchaseDialog

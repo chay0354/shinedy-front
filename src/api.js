@@ -53,6 +53,8 @@ export const api = {
   clearFlash: () => request('/flash/clear', { method: 'POST', body: '{}' }),
   register: (payload) =>
     request('/auth/register', { method: 'POST', body: JSON.stringify(payload) }),
+  checkSignup: (payload) =>
+    request('/auth/check-signup', { method: 'POST', body: JSON.stringify(payload) }),
   login: (payload) =>
     request('/auth/login', {
       method: 'POST',
@@ -70,6 +72,8 @@ export const api = {
   markPurchaseShipped: (id) =>
     request(`/purchases/${encodeURIComponent(id)}/shipped`, { method: 'POST', body: '{}' }),
   cancelSubscription: () => request('/subscribe/cancel', { method: 'POST', body: '{}' }),
+  suspendSubscription: () => request('/subscribe/suspend', { method: 'POST', body: '{}' }),
+  resumeSubscription: () => request('/subscribe/resume', { method: 'POST', body: '{}' }),
   addToCart: (productId) =>
     request('/cart/add', { method: 'POST', body: JSON.stringify({ productId }) }),
   removeFromCart: (productId) =>

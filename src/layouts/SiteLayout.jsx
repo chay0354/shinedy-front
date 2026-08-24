@@ -2,10 +2,10 @@ import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-do
 import { useEffect, useState } from 'react';
 import { useApp } from '../state/AppContext';
 import { getToken } from '../lib/auth';
-import { SERVICE_EMAIL, SERVICE_PHONE, SERVICE_PHONE_TEL } from '../lib/contact';
+import { SERVICE_EMAIL, SERVICE_PHONE, SERVICE_PHONE_TEL, INSTAGRAM_URL, FACEBOOK_URL } from '../lib/contact';
 import { useFavorites } from '../lib/favorites';
 import { hasActivePlan, isAdmin, isStaff } from '../lib/roles';
-import { IconBag, IconHeart, IconSearch, IconUser } from '../components/icons';
+import { IconBag, IconFacebook, IconHeart, IconInstagram, IconSearch, IconUser } from '../components/icons';
 import PointsBar from '../components/PointsBar';
 import ScrollToTop from '../components/ScrollToTop';
 
@@ -137,12 +137,11 @@ export default function SiteLayout() {
             </p>
           </div>
           <div>
-            <h4>ניווט</h4>
-            {NAV.slice(0, 4).map((n) => (
-              <Link key={n.to} to={n.to}>
-                {n.label}
-              </Link>
-            ))}
+            <h4>עלינו</h4>
+            <Link to="/how">איך זה עובד</Link>
+            <Link to="/plans">מסלולי מנוי</Link>
+            <Link to="/catalog">תכשיטים</Link>
+            <Link to="/about">אודות</Link>
           </div>
           <div>
             <h4>חשבון</h4>
@@ -154,9 +153,22 @@ export default function SiteLayout() {
             <h4>משפטי</h4>
             <Link to="/terms">תקנון והסכם מנוי</Link>
             <Link to="/privacy">מדיניות פרטיות</Link>
+          </div>
+          <div>
+            <h4>צריכים עזרה</h4>
+            <Link to="/contact">צור קשר</Link>
             <Link to="/faq">שאלות נפוצות</Link>
             <a href={`tel:${SERVICE_PHONE_TEL}`} dir="ltr">{SERVICE_PHONE}</a>
             <a href={`mailto:${SERVICE_EMAIL}`} dir="ltr">{SERVICE_EMAIL}</a>
+            <p className="footer-follow">עקבו אחרינו</p>
+            <div className="footer-socials">
+              <a href={INSTAGRAM_URL} target="_blank" rel="noreferrer" aria-label="Instagram">
+                <IconInstagram size={22} />
+              </a>
+              <a href={FACEBOOK_URL} target="_blank" rel="noreferrer" aria-label="Facebook">
+                <IconFacebook size={22} />
+              </a>
+            </div>
           </div>
         </div>
         <div className="fine">© Shinedy 2026 · כל הזכויות שמורות</div>
