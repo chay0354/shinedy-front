@@ -124,12 +124,12 @@ button { font-family: inherit; cursor: pointer; }
 .section.alt { background: var(--cream); }
 .section-head { text-align: center; max-width: 660px; margin: 0 auto 52px; }
 .section-head p { color: var(--muted); margin-top: 10px; font-weight: 300; }
-.brand-mark { display: flex; align-items: center; justify-content: center; gap: 16px; margin: 16px auto 0; max-width: 340px; }
+.brand-mark { display: flex; align-items: center; justify-content: center; gap: 16px; margin: 16px auto 0; max-width: 280px; }
 .brand-mark .ln { flex: 1; height: 1px; background: rgba(180, 155, 115, 0.45); }
-.brand-mark img { height: 28px; width: auto; }
+.brand-mark img { height: 36px; width: auto; }
 .cta-band .brand-mark { margin: 0 auto 22px; }
-.hb-text .brand-mark { margin: 26px auto 22px; max-width: 380px; }
-.hb-text .brand-mark img { height: 32px; }
+.hb-text .brand-mark { margin: 26px auto 22px; max-width: 300px; }
+.hb-text .brand-mark img { height: 42px; }
 
 /* ===== how it works — עיגולי אייקונים ===== */
 .how-steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 28px; }

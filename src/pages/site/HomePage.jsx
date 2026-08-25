@@ -16,7 +16,7 @@ function BrandMark() {
   return (
     <div className="brand-mark" aria-hidden="true">
       <span className="ln" />
-      <img src="/brand/name-black.png" alt="SHINEDY" />
+      <img src="/brand/symbol-black@2x.png" alt="" />
       <span className="ln" />
     </div>
   );
