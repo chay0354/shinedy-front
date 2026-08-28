@@ -104,9 +104,28 @@ export default function DashboardPage() {
 
       <div className="page-head container" style={{ textAlign: 'right', paddingBottom: 32 }}>
         <h1>שלום, {name} ✦</h1>
-        <p style={{ margin: '8px 0 0' }}>
+        <p className="account-plan-line" style={{ margin: '8px 0 0' }}>
           {planLatin(plan)} · {plan.name} · ₪{plan.price} לחודש
-          <Link to="/plans" className="btn-mini" style={{ marginInlineStart: 14 }}>
+          {state?.subscribed && !state?.registration?.suspended && (
+            <button
+              type="button"
+              className="btn-mini"
+              style={{ marginInlineStart: 14 }}
+              onClick={async () => {
+                if (
+                  !window.confirm(
+                    'להקפיא את המנוי? לא תחויבי ולא תוכלי להזמין עד ההפעלה מחדש. יש להחזיר קודם את התכשיטים שאצלך.',
+                  )
+                ) {
+                  return;
+                }
+                await run(() => api.suspendSubscription());
+              }}
+            >
+              הקפאת מנוי
+            </button>
+          )}
+          <Link to="/plans" className="btn-mini" style={{ marginInlineStart: 8 }}>
             שינוי / ביטול מנוי
           </Link>
           <button type="button" className="btn-mini" style={{ marginInlineStart: 8 }} onClick={logout}>
@@ -126,24 +145,6 @@ export default function DashboardPage() {
                 לקופסה שלי
               </Link>
             </>
-          )}
-          {state?.subscribed && !state?.registration?.suspended && (
-            <button
-              type="button"
-              className="btn btn-outline"
-              onClick={async () => {
-                if (
-                  !window.confirm(
-                    'להקפיא את המנוי? לא תחויבי ולא תוכלי להזמין עד ההפעלה מחדש. יש להחזיר קודם את התכשיטים שאצלך.',
-                  )
-                ) {
-                  return;
-                }
-                await run(() => api.suspendSubscription());
-              }}
-            >
-              הקפאת מנוי
-            </button>
           )}
           {state?.registration?.suspended && (
             <button
