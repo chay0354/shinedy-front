@@ -125,7 +125,7 @@ export default function SignupPage() {
 
   function validateDetails() {
     if (!form.name.trim()) return 'יש למלא שם מלא';
-    if (!isIsraeliMobile(form.phone)) return 'יש למלא מספר נייד תקין, למשל 0543456305';
+    if (!isIsraeliMobile(form.phone)) return 'יש למלא מספר נייד תקין, למשל 0500000000';
     if (!form.email.trim()) return 'יש למלא אימייל';
     if (form.pass.length < 8) return 'הסיסמה חייבת לפחות 8 תווים';
     if (form.pass !== form.pass2) return 'הסיסמאות אינן תואמות — נסי שוב';
@@ -346,7 +346,7 @@ export default function SignupPage() {
                     id="s-phone"
                     type="tel"
                     required
-                    placeholder="0543456305"
+                    placeholder="0500000000"
                     dir="ltr"
                     value={form.phone}
                     onChange={(e) => setField('phone', e.target.value)}
