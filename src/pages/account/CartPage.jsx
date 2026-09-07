@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { api } from '../../api';
 import { useApp } from '../../state/AppContext';
@@ -12,7 +12,13 @@ export default function CartPage() {
   const { state, run } = useApp();
   const navigate = useNavigate();
   const [placed, setPlaced] = useState(false);
+  const [notes, setNotes] = useState('');
   const loggedIn = Boolean(getToken() && state?.auth);
+  const savedNotes = state?.registration?.address?.notes || '';
+
+  useEffect(() => {
+    setNotes(savedNotes);
+  }, [savedNotes]);
 
   if (!loggedIn) {
     return (
@@ -123,13 +129,23 @@ export default function CartPage() {
                   </p>
                 </div>
               ) : (
-                <div style={{ display: 'flex', gap: 12, marginTop: 24, flexWrap: 'wrap' }}>
+                <>
+                <div className="field" style={{ marginTop: 24 }}>
+                  <label htmlFor="ship-notes">הערות למשלוח</label>
+                  <input
+                    id="ship-notes"
+                    placeholder="קוד לבניין, שעות, השארה אצל שכן…"
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                  />
+                </div>
+                <div style={{ display: 'flex', gap: 12, marginTop: 16, flexWrap: 'wrap' }}>
                 <button
                   type="button"
                   className="btn"
                   disabled={over}
                   onClick={async () => {
-                    const data = await run(() => api.confirmOrder());
+                    const data = await run(() => api.confirmOrder({ notes: notes.trim() }));
                     if (data) setPlaced(true);
                   }}
                 >
@@ -139,6 +155,7 @@ export default function CartPage() {
                   להוסיף עוד
                 </button>
                 </div>
+                </>
               )}
               <p style={{ color: 'var(--muted)', fontSize: '0.88rem', fontWeight: 300, marginTop: 14 }}>
                 משלוח דו-חודשי כלול במנוי · החלפות ללא הגבלה · משלוח החלפה נוסף ₪65.

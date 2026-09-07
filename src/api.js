@@ -86,7 +86,8 @@ export const api = {
     request('/cart/add', { method: 'POST', body: JSON.stringify({ productId }) }),
   removeFromCart: (productId) =>
     request('/cart/remove', { method: 'POST', body: JSON.stringify({ productId }) }),
-  confirmOrder: () => request('/cart/confirm', { method: 'POST', body: '{}' }),
+  confirmOrder: (payload) =>
+    request('/cart/confirm', { method: 'POST', body: JSON.stringify(payload || {}) }),
   toggleReturn: (unitId) =>
     request('/exchange/toggle-return', {
       method: 'POST',

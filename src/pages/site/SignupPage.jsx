@@ -101,7 +101,6 @@ export default function SignupPage() {
     apt: '',
     city: '',
     zip: '',
-    notes: '',
     agreeLegal: false,
     agreeMarketing: false,
     signature: '',
@@ -264,7 +263,6 @@ export default function SignupPage() {
           apt: form.apt.trim(),
           city: form.city.trim(),
           zip: form.zip.trim(),
-          notes: form.notes.trim(),
         },
         termsAccepted: true,
         privacyAccepted: true,
@@ -414,15 +412,6 @@ export default function SignupPage() {
                       onChange={(e) => setField('zip', e.target.value)}
                     />
                   </div>
-                </div>
-                <div className="field">
-                  <label htmlFor="s-notes">הערות למשלוח</label>
-                  <input
-                    id="s-notes"
-                    placeholder="קוד לבניין, שעות, השארה אצל שכן…"
-                    value={form.notes}
-                    onChange={(e) => setField('notes', e.target.value)}
-                  />
                 </div>
                 <div className="field">
                   <label htmlFor="s-pass">סיסמה</label>
