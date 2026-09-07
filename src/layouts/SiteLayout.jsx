@@ -22,7 +22,11 @@ export default function SiteLayout() {
   const { state } = useApp();
   const navigate = useNavigate();
   const location = useLocation();
-  const isAuthPage = location.pathname === '/login' || location.pathname === '/signup';
+  const isAuthPage =
+    location.pathname === '/login' ||
+    location.pathname === '/signup' ||
+    location.pathname === '/verify-email' ||
+    location.pathname === '/verify-phone';
   const cartCount = state?.cart?.length || 0;
   const userName = state?.registration?.name;
   const { count: favCount } = useFavorites();
@@ -37,6 +41,14 @@ export default function SiteLayout() {
     }
     if (isStaff(state)) {
       navigate('/admin/warehouse', { replace: true });
+      return;
+    }
+    if (state?.verify?.email && state?.registration && !state.registration.emailVerified) {
+      navigate('/verify-email', { replace: true });
+      return;
+    }
+    if (state?.verify?.sms && state?.registration && !state.registration.phoneVerified) {
+      navigate('/verify-phone', { replace: true });
     }
   }, [state, navigate, isAuthPage]);
 

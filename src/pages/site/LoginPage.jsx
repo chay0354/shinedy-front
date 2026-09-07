@@ -4,6 +4,7 @@ import { api } from '../../api';
 import { useApp } from '../../state/AppContext';
 import { applySessionFromResponse } from '../../lib/auth';
 import { homePathForRole } from '../../lib/roles';
+import { nextAfterAuth } from '../../lib/verify';
 import { IconEye, IconEyeOff } from '../../components/icons';
 
 export default function LoginPage() {
@@ -24,6 +25,7 @@ export default function LoginPage() {
       return;
     }
     applySessionFromResponse(data);
+    if (nextAfterAuth(data, navigate, { email, phone: data.registration?.phone })) return;
     navigate(homePathForRole(data.auth?.role, data.subscribed, data.planId));
   }
 

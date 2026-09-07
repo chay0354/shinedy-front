@@ -346,6 +346,7 @@ button { font-family: inherit; cursor: pointer; }
 .check-row input { width: 16px; height: 16px; margin-top: 4px; accent-color: var(--gold-dark); }
 .form-note { font-size: 0.86rem; color: var(--muted); margin-top: 16px; text-align: center; font-weight: 300; }
 .form-note a, .link-gold { color: var(--gold-dark); font-weight: 600; }
+button.link-gold { background: none; border: none; padding: 0; cursor: pointer; font: inherit; }
 .mini-link { display: block; text-align: start; font-size: 0.85rem; color: var(--gold-dark); margin: -8px 0 16px; }
 
 /* ===== auth split — טופס לצד תמונה ===== */

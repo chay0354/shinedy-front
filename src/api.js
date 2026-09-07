@@ -60,6 +60,14 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(payload || {}),
     }),
+  verifyEmail: (payload) =>
+    request('/auth/verify-email', { method: 'POST', body: JSON.stringify(payload) }),
+  resendVerification: (payload) =>
+    request('/auth/resend-verification', { method: 'POST', body: JSON.stringify(payload) }),
+  verifyPhone: (payload) =>
+    request('/auth/verify-phone', { method: 'POST', body: JSON.stringify(payload) }),
+  resendPhoneVerification: (payload) =>
+    request('/auth/resend-phone-verification', { method: 'POST', body: JSON.stringify(payload) }),
   logout: () => request('/auth/logout', { method: 'POST', body: '{}' }),
   updateRegistration: (patch) =>
     request('/auth/registration', { method: 'PATCH', body: JSON.stringify(patch) }),

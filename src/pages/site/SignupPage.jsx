@@ -4,6 +4,7 @@ import { api } from '../../api';
 import { useApp } from '../../state/AppContext';
 import { applySessionFromResponse } from '../../lib/auth';
 import { publicCatalogPlans, subscribePlanId } from '../../lib/plans';
+import { nextAfterAuth } from '../../lib/verify';
 import { PRIVACY, TERMS } from '../../lib/legal';
 import LegalDoc from '../../components/LegalDoc';
 import SignaturePad from '../../components/SignaturePad';
@@ -279,6 +280,9 @@ export default function SignupPage() {
       });
       applySessionFromResponse(data);
       await refresh();
+      if (nextAfterAuth(data, navigate, { email: form.email.trim(), phone: form.phone.trim() })) {
+        return;
+      }
       navigate('/catalog');
     } catch (e) {
       const msg = e.message || 'לא ניתן להירשם — בדקי את הפרטים';
