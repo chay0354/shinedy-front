@@ -17,7 +17,7 @@ export default function VerifyPhonePage() {
       '',
   );
   const [code, setCode] = useState('');
-  const [error, setError] = useState('');
+  const [error, setError] = useState(location.state?.sendError || '');
   const [info, setInfo] = useState('');
   const [busy, setBusy] = useState(false);
 

@@ -16,7 +16,7 @@ export default function VerifyEmailPage() {
     sessionStorage.getItem('shinedy_verify_email') ||
     '';
   const [code, setCode] = useState('');
-  const [error, setError] = useState('');
+  const [error, setError] = useState(location.state?.sendError || '');
   const [info, setInfo] = useState('');
   const [busy, setBusy] = useState(false);
 
@@ -57,7 +57,7 @@ export default function VerifyEmailPage() {
       <div className="auth-form-side">
         <div className="form-card">
           <h1>אימות אימייל</h1>
-          <p className="sub">שלחנו קוד בן 6 ספרות אל {email || 'המייל שלך'}</p>
+          <p className="sub">קוד בן 6 ספרות נשלח אל {email || 'המייל שלך'}</p>
           <form onSubmit={handleSubmit}>
             <div className="field">
               <label htmlFor="v-code">קוד אימות</label>

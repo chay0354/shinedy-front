@@ -71,8 +71,8 @@ export const api = {
   logout: () => request('/auth/logout', { method: 'POST', body: '{}' }),
   updateRegistration: (patch) =>
     request('/auth/registration', { method: 'PATCH', body: JSON.stringify(patch) }),
-  subscribe: (planId) =>
-    request('/subscribe', { method: 'POST', body: JSON.stringify({ planId }) }),
+  subscribe: (planId, payment) =>
+    request('/subscribe', { method: 'POST', body: JSON.stringify({ planId, payment }) }),
   changePlan: (planId) =>
     request('/subscribe/change', { method: 'POST', body: JSON.stringify({ planId }) }),
   purchase: (payload) =>

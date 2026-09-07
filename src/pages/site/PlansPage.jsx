@@ -20,6 +20,9 @@ export default function PlansPage() {
     ? plans.find((p) => matchesPlanId(p.id, state.planId)) || null
     : null;
   const [confirm, setConfirm] = useState(null);
+  const [checkout, setCheckout] = useState(null);
+  const [card, setCard] = useState({ holder: '', number: '', expiry: '', cvv: '' });
+  const [busyPay, setBusyPay] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
   const [done, setDone] = useState('');
   const [err, setErr] = useState('');
@@ -33,9 +36,41 @@ export default function PlansPage() {
       guestSignup(planId);
       return;
     }
-    const data = await run(() => api.subscribe(subscribePlanId(planId, state?.plans)));
-    if (!data) return;
-    navigate(inAccount ? '/account/me' : '/catalog');
+    const plan = plans.find((p) => p.id === planId);
+    if (!plan) return;
+    setErr('');
+    setCheckout(plan);
+    setCard({
+      holder: state?.registration?.name || state?.registration?.fullName || '',
+      number: '',
+      expiry: '',
+      cvv: '',
+    });
+  }
+
+  async function confirmCheckout() {
+    if (!checkout) return;
+    if (!card.holder.trim() || !card.number.trim() || !card.expiry.trim() || !card.cvv.trim()) {
+      setErr('יש למלא את פרטי הכרטיס');
+      return;
+    }
+    setErr('');
+    setBusyPay(true);
+    try {
+      const last4 = card.number.replace(/\D/g, '').slice(-4);
+      const data = await run(() =>
+        api.subscribe(subscribePlanId(checkout.id, state?.plans), {
+          holder: card.holder.trim(),
+          last4,
+          expiry: card.expiry.trim(),
+        }),
+      );
+      if (!data) return;
+      setCheckout(null);
+      navigate(inAccount ? '/account/me' : '/catalog');
+    } finally {
+      setBusyPay(false);
+    }
   }
 
   async function approve() {
@@ -59,17 +94,80 @@ export default function PlansPage() {
       <div className="page-head container">
         <h1>מסלולי מנוי</h1>
         <p>
-          {current
-            ? 'אפשר לשנות מסלול או לבטל — בלי הרשמה מחדש'
-            : loggedIn
-              ? 'בחרי מסלול כדי להפעיל את המנוי'
-              : 'בחרי מסלול — כל בחירה מתחילה את אותה הרשמה'}
+          {checkout
+            ? `מסלול ${checkout.latin} · ממשיכים לפרטי הכרטיס`
+            : current
+              ? 'אפשר לשנות מסלול או לבטל — בלי הרשמה מחדש'
+              : loggedIn
+                ? 'בחרי מסלול — ואז ממלאים את פרטי הכרטיס כמו בפתיחת חשבון'
+                : 'בחרי מסלול — כל בחירה מתחילה את אותה הרשמה'}
         </p>
       </div>
 
       <section className="section" style={{ paddingTop: 48 }}>
         <div className="container">
-          {current && (
+          {checkout && (
+            <div className="signup-card" style={{ maxWidth: 520, margin: '0 auto 32px' }}>
+              <h2 style={{ marginTop: 0 }}>פרטי תשלום</h2>
+              <p className="signup-pay-note">
+                חיוב חודשי: ₪{checkout.price} למסלול {checkout.latin}. הסליקה תופעל בהמשך — כרגע כל פרטי כרטיס יתקבלו.
+              </p>
+              <div className="field">
+                <label htmlFor="p-card-holder">שם בעל הכרטיס</label>
+                <input
+                  id="p-card-holder"
+                  placeholder="כפי שמופיע על הכרטיס"
+                  value={card.holder}
+                  onChange={(e) => setCard((c) => ({ ...c, holder: e.target.value }))}
+                />
+              </div>
+              <div className="field">
+                <label htmlFor="p-card-number">מספר כרטיס</label>
+                <input
+                  id="p-card-number"
+                  dir="ltr"
+                  inputMode="numeric"
+                  placeholder="0000 0000 0000 0000"
+                  value={card.number}
+                  onChange={(e) => setCard((c) => ({ ...c, number: e.target.value }))}
+                />
+              </div>
+              <div className="pay-row">
+                <div className="field">
+                  <label htmlFor="p-card-exp">תוקף</label>
+                  <input
+                    id="p-card-exp"
+                    dir="ltr"
+                    placeholder="MM/YY"
+                    value={card.expiry}
+                    onChange={(e) => setCard((c) => ({ ...c, expiry: e.target.value }))}
+                  />
+                </div>
+                <div className="field">
+                  <label htmlFor="p-card-cvv">CVV</label>
+                  <input
+                    id="p-card-cvv"
+                    dir="ltr"
+                    inputMode="numeric"
+                    placeholder="123"
+                    value={card.cvv}
+                    onChange={(e) => setCard((c) => ({ ...c, cvv: e.target.value }))}
+                  />
+                </div>
+              </div>
+              {(err || error) && <p className="form-err">{err || error}</p>}
+              <div className="signup-nav">
+                <button type="button" className="btn btn-outline" disabled={busyPay} onClick={() => setCheckout(null)}>
+                  חזרה למסלולים
+                </button>
+                <button type="button" className="btn btn-wide" disabled={busyPay} onClick={confirmCheckout}>
+                  {busyPay ? 'מאשרת…' : 'אישור והפעלת מנוי'}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {!checkout && current && (
             <div className="sub-manage">
               <div className="sub-now">
                 המנוי הפעיל: {current.latin}
@@ -86,17 +184,19 @@ export default function PlansPage() {
             </div>
           )}
 
-          {done && (
+          {!checkout && done && (
             <p className="msg-ok" style={{ marginBottom: 20 }}>
               {done}
             </p>
           )}
-          {(err || error) && (
+          {!checkout && (err || error) && (
             <p className="form-err" style={{ marginBottom: 20 }}>
               {err || error}
             </p>
           )}
 
+          {!checkout && (
+          <>
           <div className="plans-grid" id="plan-cards">
             {plans.map((plan) => {
               const isCurrent = Boolean(current && matchesPlanId(current.id, plan.id));
@@ -180,6 +280,8 @@ export default function PlansPage() {
               ))}
             </ul>
           </div>
+          </>
+          )}
         </div>
       </section>
 
