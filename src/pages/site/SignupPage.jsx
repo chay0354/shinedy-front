@@ -5,6 +5,7 @@ import { useApp } from '../../state/AppContext';
 import { applySessionFromResponse } from '../../lib/auth';
 import { publicCatalogPlans, subscribePlanId } from '../../lib/plans';
 import { nextAfterAuth } from '../../lib/verify';
+import { isIsraeliMobile, toLocalIl } from '../../lib/phone';
 import { PRIVACY, TERMS } from '../../lib/legal';
 import LegalDoc from '../../components/LegalDoc';
 import SignaturePad from '../../components/SignaturePad';
@@ -124,7 +125,7 @@ export default function SignupPage() {
 
   function validateDetails() {
     if (!form.name.trim()) return 'יש למלא שם מלא';
-    if (!form.phone.trim()) return 'יש למלא טלפון';
+    if (!isIsraeliMobile(form.phone)) return 'יש למלא מספר נייד תקין, למשל 0543456305';
     if (!form.email.trim()) return 'יש למלא אימייל';
     if (form.pass.length < 8) return 'הסיסמה חייבת לפחות 8 תווים';
     if (form.pass !== form.pass2) return 'הסיסמאות אינן תואמות — נסי שוב';
@@ -171,7 +172,7 @@ export default function SignupPage() {
       }
       setBusy(true);
       try {
-        await api.checkSignup({ email: form.email.trim(), phone: form.phone.trim() });
+        await api.checkSignup({ email: form.email.trim(), phone: toLocalIl(form.phone) });
       } catch (e) {
         setError(e.message || 'לא ניתן להמשיך עם הפרטים האלה');
         return;
@@ -255,7 +256,7 @@ export default function SignupPage() {
         fullName: form.name.trim(),
         email: form.email.trim(),
         password: form.pass,
-        phone: form.phone.trim(),
+        phone: toLocalIl(form.phone),
         nationalId: form.nationalId.replace(/\D/g, ''),
         address: {
           street: form.street.trim(),
@@ -280,7 +281,7 @@ export default function SignupPage() {
       });
       applySessionFromResponse(data);
       await refresh();
-      if (nextAfterAuth(data, navigate, { email: form.email.trim(), phone: form.phone.trim() })) {
+      if (nextAfterAuth(data, navigate, { email: form.email.trim(), phone: toLocalIl(form.phone) })) {
         return;
       }
       navigate('/catalog');
@@ -345,7 +346,7 @@ export default function SignupPage() {
                     id="s-phone"
                     type="tel"
                     required
-                    placeholder="050-0000000"
+                    placeholder="0543456305"
                     dir="ltr"
                     value={form.phone}
                     onChange={(e) => setField('phone', e.target.value)}

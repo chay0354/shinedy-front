@@ -4,16 +4,18 @@ import { api } from '../../api';
 import { useApp } from '../../state/AppContext';
 import { applySessionFromResponse } from '../../lib/auth';
 import { homePathForRole } from '../../lib/roles';
+import { toLocalIl } from '../../lib/phone';
 
 export default function VerifyPhonePage() {
   const { state, refresh } = useApp();
   const navigate = useNavigate();
   const location = useLocation();
-  const phone =
+  const phone = toLocalIl(
     location.state?.phone ||
-    state?.registration?.phone ||
-    sessionStorage.getItem('shinedy_verify_phone') ||
-    '';
+      state?.registration?.phone ||
+      sessionStorage.getItem('shinedy_verify_phone') ||
+      '',
+  );
   const [code, setCode] = useState('');
   const [error, setError] = useState('');
   const [info, setInfo] = useState('');
