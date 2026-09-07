@@ -35,15 +35,16 @@ export default function SiteLayout() {
   const [searchQ, setSearchQ] = useState('');
 
   useEffect(() => {
-    if (!getToken() || isAuthPage) return;
+    if (!getToken() || !state?.auth) return;
     if (isAdmin(state)) {
-      navigate('/admin', { replace: true });
+      if (!location.pathname.startsWith('/admin')) navigate('/admin', { replace: true });
       return;
     }
     if (isStaff(state)) {
-      navigate('/admin/warehouse', { replace: true });
+      if (!location.pathname.startsWith('/admin')) navigate('/admin/warehouse', { replace: true });
       return;
     }
+    if (isAuthPage) return;
     if (state?.verify?.email && state?.registration && !state.registration.emailVerified) {
       navigate('/verify-email', { replace: true });
       return;
@@ -51,16 +52,19 @@ export default function SiteLayout() {
     if (state?.verify?.sms && state?.registration && !state.registration.phoneVerified) {
       navigate('/verify-phone', { replace: true });
     }
-  }, [state, navigate, isAuthPage]);
+  }, [state, navigate, isAuthPage, location.pathname]);
 
   function accountPath() {
     if (!getToken()) return '/login';
+    if (isAdmin(state)) return '/admin';
+    if (isStaff(state)) return '/admin/warehouse';
     if (!hasActivePlan(state)) return '/account/plans';
     return '/account/me';
   }
 
   function boxPath() {
     if (!getToken()) return '/login';
+    if (isAdmin(state) || isStaff(state)) return accountPath();
     if (!hasActivePlan(state)) return '/account/plans';
     return '/box';
   }

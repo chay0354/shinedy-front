@@ -7,7 +7,7 @@ import { publicCatalogPlans, subscribePlanId } from '../../lib/plans';
 import { nextAfterAuth } from '../../lib/verify';
 import { isIsraeliMobile, toLocalIl } from '../../lib/phone';
 import { getToken } from '../../lib/auth';
-import { hasActivePlan } from '../../lib/roles';
+import { homePathForRole } from '../../lib/roles';
 import { PRIVACY, TERMS } from '../../lib/legal';
 import LegalDoc from '../../components/LegalDoc';
 import SignaturePad from '../../components/SignaturePad';
@@ -300,7 +300,12 @@ export default function SignupPage() {
   const wide = step !== STEP.details;
 
   if (getToken() && state?.auth) {
-    return <Navigate to={hasActivePlan(state) ? '/account/me' : '/account/plans'} replace />;
+    return (
+      <Navigate
+        to={homePathForRole(state.auth.role, state.subscribed, state.planId)}
+        replace
+      />
+    );
   }
 
   return (

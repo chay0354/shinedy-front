@@ -3,7 +3,7 @@ import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { api } from '../../api';
 import { useApp } from '../../state/AppContext';
 import { applySessionFromResponse, getToken } from '../../lib/auth';
-import { hasActivePlan, homePathForRole } from '../../lib/roles';
+import { homePathForRole } from '../../lib/roles';
 import { nextAfterAuth } from '../../lib/verify';
 import { IconEye, IconEyeOff } from '../../components/icons';
 
@@ -14,7 +14,7 @@ export default function LoginPage() {
   const navigate = useNavigate();
 
   if (getToken() && state?.auth) {
-    return <Navigate to={hasActivePlan(state) ? '/account/me' : '/account/plans'} replace />;
+    return <Navigate to={homePathForRole(state.auth.role, state.subscribed, state.planId)} replace />;
   }
 
   async function handleSubmit(e) {
