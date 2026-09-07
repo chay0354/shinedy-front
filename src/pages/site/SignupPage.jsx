@@ -128,6 +128,9 @@ export default function SignupPage() {
     if (!form.name.trim()) return 'יש למלא שם מלא';
     if (!isIsraeliMobile(form.phone)) return 'יש למלא מספר נייד תקין, למשל 0500000000';
     if (!form.email.trim()) return 'יש למלא אימייל';
+    if (!/^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}$/i.test(form.email.trim())) {
+      return 'יש למלא אימייל תקין, למשל name@email.com';
+    }
     if (form.pass.length < 8) return 'הסיסמה חייבת לפחות 8 תווים';
     if (form.pass !== form.pass2) return 'הסיסמאות אינן תואמות — נסי שוב';
     if (!validIsraeliId(form.nationalId)) return 'מספר תעודת הזהות אינו תקין';
@@ -286,9 +289,12 @@ export default function SignupPage() {
       }
       navigate('/catalog');
     } catch (e) {
-      const msg = e.message || 'לא ניתן להירשם — בדקי את הפרטים';
+      const raw = e.message || '';
+      const msg = /unable to validate email|invalid format/i.test(raw)
+        ? 'יש למלא אימייל תקין, למשל name@email.com'
+        : raw || 'לא ניתן להירשם — בדקי את הפרטים';
       setError(msg);
-      if (msg.includes('אימייל') || msg.includes('טלפון')) {
+      if (msg.includes('אימייל') || msg.includes('טלפון') || /invalid format/i.test(raw)) {
         setStep(STEP.details);
       }
     } finally {
