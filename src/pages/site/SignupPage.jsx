@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
-import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, Navigate, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { api } from '../../api';
 import { useApp } from '../../state/AppContext';
 import { applySessionFromResponse } from '../../lib/auth';
 import { publicCatalogPlans, subscribePlanId } from '../../lib/plans';
 import { nextAfterAuth } from '../../lib/verify';
 import { isIsraeliMobile, toLocalIl } from '../../lib/phone';
+import { getToken } from '../../lib/auth';
+import { hasActivePlan } from '../../lib/roles';
 import { PRIVACY, TERMS } from '../../lib/legal';
 import LegalDoc from '../../components/LegalDoc';
 import SignaturePad from '../../components/SignaturePad';
@@ -296,6 +298,10 @@ export default function SignupPage() {
 
   const selectedPlan = plans.find((p) => p.id === form.plan);
   const wide = step !== STEP.details;
+
+  if (getToken() && state?.auth) {
+    return <Navigate to={hasActivePlan(state) ? '/account/me' : '/account/plans'} replace />;
+  }
 
   return (
     <div className={wide ? 'signup-flow' : 'auth-split'}>

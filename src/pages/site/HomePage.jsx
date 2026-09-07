@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useApp } from '../../state/AppContext';
 import { getToken } from '../../lib/auth';
+import { hasActivePlan } from '../../lib/roles';
 import { publicCatalogPlans } from '../../lib/plans';
 import ProductCard from '../../components/ProductCard';
 import { IconDiamond, IconRefresh, IconShield, IconTruck } from '../../components/icons';
@@ -28,10 +29,16 @@ export default function HomePage() {
   const featured = products.slice(0, 4);
   const plans = publicCatalogPlans(state?.plans);
   const loggedIn = Boolean(getToken() && state?.auth);
+  const subscribed = hasActivePlan(state);
+  const memberHref = subscribed ? '/catalog' : '/account/plans';
+  const HeroTag = loggedIn ? 'div' : Link;
+  const heroProps = loggedIn
+    ? { className: 'hero-band' }
+    : { to: '/signup', className: 'hero-band', 'aria-label': 'תכשיטים יוקרתיים במנוי חודשי — הצטרפי עכשיו' };
 
   return (
     <>
-      <Link to="/signup" className="hero-band" aria-label="תכשיטים יוקרתיים במנוי חודשי — הצטרפי עכשיו">
+      <HeroTag {...heroProps}>
         <img className="hb-mobile" src="/photos/hero-full2.jpg" alt="" />
         <div className="hb-text">
           <span className="hb-kicker" dir="ltr">
@@ -56,9 +63,15 @@ export default function HomePage() {
               </span>
             ))}
           </div>
-          <span className="btn btn-tan hb-cta">אני רוצה להתחיל</span>
+          {loggedIn ? (
+            <Link to={memberHref} className="btn btn-tan hb-cta">
+              {subscribed ? 'לקטלוג התכשיטים' : 'לבחירת מסלול'}
+            </Link>
+          ) : (
+            <span className="btn btn-tan hb-cta">אני רוצה להתחיל</span>
+          )}
         </div>
-      </Link>
+      </HeroTag>
 
       <section className="section">
         <div className="container">
@@ -80,6 +93,7 @@ export default function HomePage() {
         </div>
       </section>
 
+      {!loggedIn && (
       <section className="section alt">
         <div className="container">
           <div className="section-head">
@@ -103,11 +117,11 @@ export default function HomePage() {
                   ))}
                 </ul>
                 <Link
-                  to={loggedIn ? '/plans' : '/signup'}
-                  state={loggedIn ? undefined : { plan: plan.id }}
+                  to="/signup"
+                  state={{ plan: plan.id }}
                   className={`btn${plan.featured ? ' btn-tan' : ''}`}
                 >
-                  {loggedIn ? 'לניהול המנוי' : 'אני בוחרת'}
+                  אני בוחרת
                 </Link>
               </div>
             ))}
@@ -117,15 +131,32 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+      )}
 
       <section className="cta-band" style={{ backgroundImage: 'url(/photos/bg-cream.jpg)' }}>
         <div className="tagline">NEW LOOK. SAME YOU.</div>
         <BrandMark />
-        <h2>מוכנה להתחיל לנצנץ?</h2>
-        <p>ההרשמה לוקחת כמה דקות — והתכשיטים הראשונים כבר בדרך אלייך.</p>
-        <Link to="/signup" className="btn">
-          הצטרפי עכשיו
-        </Link>
+        {loggedIn ? (
+          <>
+            <h2>{subscribed ? 'מוכנה לבחור תכשיטים?' : 'נשאר רק לבחור מסלול'}</h2>
+            <p>
+              {subscribed
+                ? 'הקטלוג מחכה — אפשר להוסיף לקופסה ולהמשיך מהאזור האישי.'
+                : 'החשבון כבר פתוח. בחרי מסלול כדי להתחיל לבחור תכשיטים.'}
+            </p>
+            <Link to={memberHref} className="btn">
+              {subscribed ? 'לקטלוג התכשיטים' : 'לבחירת מסלול'}
+            </Link>
+          </>
+        ) : (
+          <>
+            <h2>מוכנה להתחיל לנצנץ?</h2>
+            <p>ההרשמה לוקחת כמה דקות — והתכשיטים הראשונים כבר בדרך אלייך.</p>
+            <Link to="/signup" className="btn">
+              הצטרפי עכשיו
+            </Link>
+          </>
+        )}
       </section>
     </>
   );

@@ -27,6 +27,7 @@ export default function SiteLayout() {
     location.pathname === '/signup' ||
     location.pathname === '/verify-email' ||
     location.pathname === '/verify-phone';
+  const loggedIn = Boolean(getToken() && state?.auth);
   const cartCount = state?.cart?.length || 0;
   const userName = state?.registration?.name;
   const { count: favCount } = useFavorites();
@@ -125,7 +126,7 @@ export default function SiteLayout() {
           </div>
         </div>
         <nav className="main-nav">
-          {NAV.map((n) => (
+          {NAV.filter((n) => !(loggedIn && n.to === '/plans')).map((n) => (
             <NavLink key={n.to} to={n.to} className={({ isActive }) => (isActive ? 'active' : '')}>
               {n.label}
             </NavLink>
@@ -151,15 +152,23 @@ export default function SiteLayout() {
           <div>
             <h4>עלינו</h4>
             <Link to="/how">איך זה עובד</Link>
-            <Link to="/plans">מסלולי מנוי</Link>
+            {!loggedIn && <Link to="/plans">מסלולי מנוי</Link>}
             <Link to="/catalog">תכשיטים</Link>
             <Link to="/about">אודות</Link>
           </div>
           <div>
             <h4>חשבון</h4>
-            <Link to="/signup">הרשמה</Link>
-            <Link to="/login">התחברות</Link>
-            <Link to={accountPath()}>אזור אישי</Link>
+            {loggedIn ? (
+              <>
+                <Link to={accountPath()}>אזור אישי</Link>
+                <Link to={boxPath()}>הקופסה שלי</Link>
+              </>
+            ) : (
+              <>
+                <Link to="/signup">הרשמה</Link>
+                <Link to="/login">התחברות</Link>
+              </>
+            )}
           </div>
           <div>
             <h4>משפטי</h4>

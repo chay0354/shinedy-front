@@ -1,17 +1,21 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { api } from '../../api';
 import { useApp } from '../../state/AppContext';
-import { applySessionFromResponse } from '../../lib/auth';
-import { homePathForRole } from '../../lib/roles';
+import { applySessionFromResponse, getToken } from '../../lib/auth';
+import { hasActivePlan, homePathForRole } from '../../lib/roles';
 import { nextAfterAuth } from '../../lib/verify';
 import { IconEye, IconEyeOff } from '../../components/icons';
 
 export default function LoginPage() {
   const [error, setError] = useState('');
   const [showPass, setShowPass] = useState(false);
-  const { run } = useApp();
+  const { state, run } = useApp();
   const navigate = useNavigate();
+
+  if (getToken() && state?.auth) {
+    return <Navigate to={hasActivePlan(state) ? '/account/me' : '/account/plans'} replace />;
+  }
 
   async function handleSubmit(e) {
     e.preventDefault();

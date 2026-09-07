@@ -1,4 +1,7 @@
 import { Link } from 'react-router-dom';
+import { useApp } from '../../state/AppContext';
+import { getToken } from '../../lib/auth';
+import { hasActivePlan } from '../../lib/roles';
 import { IconBox, IconDiamond, IconList, IconNecklace } from '../../components/icons';
 
 const STEPS = [
@@ -18,6 +21,10 @@ const JOIN = [
 ];
 
 export default function HowPage() {
+  const { state } = useApp();
+  const loggedIn = Boolean(getToken() && state?.auth);
+  const subscribed = hasActivePlan(state);
+
   return (
     <>
       <div className="page-head container">
@@ -40,8 +47,11 @@ export default function HowPage() {
             ))}
           </div>
           <div style={{ textAlign: 'center', marginTop: 48 }}>
-            <Link to="/plans" className="btn btn-tan">
-              מתחילות
+            <Link
+              to={loggedIn ? (subscribed ? '/catalog' : '/account/plans') : '/plans'}
+              className="btn btn-tan"
+            >
+              {loggedIn ? (subscribed ? 'לקטלוג התכשיטים' : 'לבחירת מסלול') : 'מתחילות'}
             </Link>
           </div>
         </div>
@@ -56,6 +66,8 @@ export default function HowPage() {
               נשאר אצלך לתמיד.
             </p>
           </div>
+          {!loggedIn && (
+            <>
           <div className="section-head" style={{ marginBottom: 20 }}>
             <h2>תהליך ההצטרפות</h2>
             <p>כדי לשמור על התכשיטים ועל הלקוחות שלנו, ההצטרפות כוללת אימות קצר:</p>
@@ -71,6 +83,8 @@ export default function HowPage() {
               </div>
             ))}
           </div>
+            </>
+          )}
         </div>
       </section>
     </>
