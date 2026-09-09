@@ -39,10 +39,19 @@ export default function LoginPage() {
         <div className="form-card">
           <h1>התחברות</h1>
           <p className="sub">ברוכה השבה</p>
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} noValidate>
             <div className="field">
               <label htmlFor="l-email">אימייל</label>
-              <input id="l-email" name="l-email" type="email" required placeholder="name@email.com" dir="ltr" />
+              <input
+                id="l-email"
+                name="l-email"
+                type="email"
+                autoComplete="username"
+                inputMode="email"
+                required
+                placeholder="name@email.com"
+                dir="ltr"
+              />
             </div>
             <div className="field">
               <label htmlFor="l-pass">סיסמה</label>
@@ -51,6 +60,7 @@ export default function LoginPage() {
                   id="l-pass"
                   name="l-pass"
                   type={showPass ? 'text' : 'password'}
+                  autoComplete="current-password"
                   required
                   placeholder="••••••••"
                   dir="ltr"

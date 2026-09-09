@@ -339,11 +339,11 @@ button { font-family: inherit; cursor: pointer; }
   outline: 1px solid var(--ink); border-color: var(--ink);
 }
 .pass-wrap { position: relative; }
-.pass-wrap input { padding-inline-end: 44px; }
+.pass-wrap input { padding-right: 48px; padding-left: 14px; }
 .pass-toggle {
-  position: absolute; inset-inline-end: 10px; top: 50%; transform: translateY(-50%);
-  background: none; border: none; padding: 4px; color: var(--muted); cursor: pointer;
-  display: grid; place-items: center;
+  position: absolute; right: 2px; left: auto; top: 50%; transform: translateY(-50%);
+  width: 44px; height: 44px; background: none; border: none; padding: 0;
+  color: var(--muted); cursor: pointer; display: grid; place-items: center;
 }
 .pass-toggle:hover { color: var(--ink); }
 .check-row { display: flex; gap: 10px; align-items: flex-start; margin: 4px 0 18px; font-size: 0.88rem; color: var(--muted); font-weight: 300; }
@@ -1160,6 +1160,11 @@ button.link-gold { background: none; border: none; padding: 0; cursor: pointer; 
   }
   .site-header.is-auth .nav-toggle,
   .site-header.is-auth .main-nav { display: none; }
+  .auth-photo { display: none; }
+  .auth-split { grid-template-columns: 1fr; min-height: auto; }
+  .auth-form-side { padding: 20px 14px 40px; }
+  .form-card { max-width: none; width: 100%; }
+  .btn-wide { width: 100%; }
   .signup-flow { padding: 20px 0 48px; min-height: auto; }
   .signup-card, .form-card { padding: 22px 16px 28px; }
   .signup-card h1 { font-size: 1.4rem; }
@@ -1188,7 +1193,7 @@ button.link-gold { background: none; border: none; padding: 0; cursor: pointer; 
   .hb-text p { font-size: 16px; }
   .hb-cta { padding: 14px 22px; width: 100%; }
   .auth-photo { display: none; }
-  .auth-form-side { padding: 24px 16px; }
+  .auth-form-side { padding: 20px 14px 40px; }
 }
 
 /* ===== app shell (live React app) ===== */
