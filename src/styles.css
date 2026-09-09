@@ -1080,7 +1080,7 @@ button.link-gold { background: none; border: none; padding: 0; cursor: pointer; 
   .main-nav { gap: 18px; font-size: 0.9rem; }
   .product-layout { grid-template-columns: 1fr; gap: 34px; }
   .auth-split { grid-template-columns: 1fr; }
-  .signup-steps { grid-template-columns: repeat(3, 1fr); }
+  .signup-steps { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .auth-photo { min-height: 220px; }
   .about-split { grid-template-columns: 1fr; gap: 30px; }
   .contact-grid { grid-template-columns: 1fr; }
@@ -1126,12 +1126,12 @@ button.link-gold { background: none; border: none; padding: 0; cursor: pointer; 
 .signup-card h1 { font-size: 1.7rem; margin-bottom: 4px; text-align: center; }
 .signup-card .sub { color: var(--muted); margin-bottom: 22px; text-align: center; font-weight: 300; }
 .signup-steps {
-  display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;
+  display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px;
   list-style: none; padding: 0; margin: 0 0 28px;
 }
 .signup-steps li {
   display: flex; flex-direction: column; align-items: center; gap: 6px;
-  font-size: 0.78rem; color: var(--muted); font-weight: 400; text-align: center;
+  font-size: 0.7rem; color: var(--muted); font-weight: 400; text-align: center;
 }
 .signup-steps li span {
   width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--line);
@@ -1170,6 +1170,10 @@ button.link-gold { background: none; border: none; padding: 0; cursor: pointer; 
   display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 22px; margin: 8px 0 22px; max-width: none;
 }
-.signup-plan-grid .plan-card { cursor: pointer; padding: 32px 22px 28px; }
+.signup-plan-grid .plan-card {
+  cursor: pointer; padding: 32px 22px 28px; text-align: inherit;
+  font: inherit; color: inherit; width: 100%;
+}
+.signup-plan-grid .plan-card.mine { border-color: var(--gold); }
 .pay-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .signup-pay-note { color: var(--muted); font-size: 0.88rem; font-weight: 300; margin-bottom: 16px; }

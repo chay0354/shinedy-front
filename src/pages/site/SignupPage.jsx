@@ -12,12 +12,15 @@ import { PRIVACY, TERMS } from '../../lib/legal';
 import LegalDoc from '../../components/LegalDoc';
 import SignaturePad from '../../components/SignaturePad';
 
-const STEPS = ['פרטים', 'תקנון', 'חתימה', 'תשלום'];
+const STEPS = ['פרטים', 'אימות טלפון', 'אימות מייל', 'בחירת מסלול', 'תקנון', 'חתימה', 'תשלום'];
 const STEP = {
   details: 0,
-  terms: 1,
-  sign: 2,
-  pay: 3,
+  phone: 1,
+  email: 2,
+  plan: 3,
+  terms: 4,
+  sign: 5,
+  pay: 6,
 };
 
 function validIsraeliId(raw) {
@@ -80,8 +83,13 @@ export default function SignupPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const [error, setError] = useState('');
+  const [info, setInfo] = useState('');
   const [busy, setBusy] = useState(false);
   const [step, setStep] = useState(STEP.details);
+  const [phoneCode, setPhoneCode] = useState('');
+  const [emailCode, setEmailCode] = useState('');
+  const [phoneProof, setPhoneProof] = useState('');
+  const [emailProof, setEmailProof] = useState('');
   const [params] = useSearchParams();
   const intendedPlan = location.state?.plan || params.get('plan');
   const livePlans = Array.isArray(state?.plans) ? state.plans : [];
@@ -122,6 +130,14 @@ export default function SignupPage() {
 
   function setField(key, value) {
     setForm((prev) => ({ ...prev, [key]: value }));
+    if (key === 'phone') {
+      setPhoneProof('');
+      setPhoneCode('');
+    }
+    if (key === 'email') {
+      setEmailProof('');
+      setEmailCode('');
+    }
   }
 
   function validateDetails() {
@@ -166,8 +182,17 @@ export default function SignupPage() {
     return '';
   }
 
+  async function sendPhoneCode() {
+    await api.resendPhoneVerification({ phone: toLocalIl(form.phone) });
+  }
+
+  async function sendEmailCode() {
+    await api.resendVerification({ email: form.email.trim() });
+  }
+
   async function goNext() {
     setError('');
+    setInfo('');
     if (step === STEP.details) {
       const err = validateDetails();
       if (err) {
@@ -177,11 +202,68 @@ export default function SignupPage() {
       setBusy(true);
       try {
         await api.checkSignup({ email: form.email.trim(), phone: toLocalIl(form.phone) });
+        if (state?.verify?.sms && !phoneProof) {
+          await sendPhoneCode();
+          setInfo('שלחנו קוד ב-SMS');
+        }
       } catch (e) {
         setError(e.message || 'לא ניתן להמשיך עם הפרטים האלה');
         return;
       } finally {
         setBusy(false);
+      }
+    }
+    if (step === STEP.phone) {
+      if (state?.verify?.sms && !phoneProof) {
+        if (phoneCode.length !== 6) {
+          setError('יש להזין את קוד האימות מה-SMS');
+          return;
+        }
+        setBusy(true);
+        try {
+          const data = await api.checkSignupPhone({ phone: toLocalIl(form.phone), code: phoneCode });
+          setPhoneProof(data.proof || 'ok');
+        } catch (e) {
+          setError(e.message || 'הקוד שגוי');
+          return;
+        } finally {
+          setBusy(false);
+        }
+      }
+      if (state?.verify?.email && !emailProof) {
+        setBusy(true);
+        try {
+          await sendEmailCode();
+          setInfo('שלחנו קוד למייל');
+        } catch (e) {
+          setError(e.message || 'שליחת קוד המייל נכשלה');
+          return;
+        } finally {
+          setBusy(false);
+        }
+      }
+    }
+    if (step === STEP.email && state?.verify?.email && !emailProof) {
+      if (emailCode.length !== 6) {
+        setError('יש להזין את קוד האימות מהמייל');
+        return;
+      }
+      setBusy(true);
+      try {
+        const data = await api.checkSignupEmail({ email: form.email.trim(), code: emailCode });
+        setEmailProof(data.proof || 'ok');
+      } catch (e) {
+        setError(e.message || 'הקוד שגוי');
+        return;
+      } finally {
+        setBusy(false);
+      }
+    }
+    if (step === STEP.plan) {
+      const err = validatePlan();
+      if (err) {
+        setError(err);
+        return;
       }
     }
     if (step === STEP.terms) {
@@ -233,6 +315,17 @@ export default function SignupPage() {
     const planErr = validatePlan();
     if (planErr) {
       setError(planErr);
+      setStep(STEP.plan);
+      return;
+    }
+    if (state?.verify?.sms && !phoneProof) {
+      setError('יש לאמת את מספר הטלפון');
+      setStep(STEP.phone);
+      return;
+    }
+    if (state?.verify?.email && !emailProof) {
+      setError('יש לאמת את כתובת המייל');
+      setStep(STEP.email);
       return;
     }
     const termsErr = validateTerms();
@@ -281,6 +374,8 @@ export default function SignupPage() {
           last4,
           expiry: form.cardExpiry.trim(),
         },
+        emailProof,
+        phoneProof,
       });
       applySessionFromResponse(data);
       await refresh();
@@ -294,16 +389,15 @@ export default function SignupPage() {
         ? 'יש למלא אימייל תקין, למשל name@email.com'
         : raw || 'לא ניתן להירשם — בדקי את הפרטים';
       setError(msg);
-      if (msg.includes('אימייל') || msg.includes('טלפון') || /invalid format/i.test(raw)) {
-        setStep(STEP.details);
-      }
+      if (msg.includes('טלפון')) setStep(STEP.phone);
+      else if (msg.includes('אימייל') || /invalid format/i.test(raw)) setStep(STEP.details);
     } finally {
       setBusy(false);
     }
   }
 
   const selectedPlan = plans.find((p) => p.id === form.plan);
-  const wide = step !== STEP.details;
+  const wide = true;
 
   if (getToken() && state?.auth) {
     return (
@@ -459,6 +553,128 @@ export default function SignupPage() {
               </>
             )}
 
+            {step === STEP.phone && (
+              <>
+                <p className="sub" style={{ textAlign: 'start' }}>
+                  קוד בן 6 ספרות נשלח ב-SMS אל {toLocalIl(form.phone) || 'המספר שלך'}
+                </p>
+                <div className="field">
+                  <label htmlFor="s-phone-code">קוד אימות</label>
+                  <input
+                    id="s-phone-code"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    required={Boolean(state?.verify?.sms)}
+                    maxLength={6}
+                    placeholder="000000"
+                    dir="ltr"
+                    value={phoneCode}
+                    onChange={(e) => setPhoneCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  />
+                </div>
+                {info && <p className="msg-ok">{info}</p>}
+                <p className="form-note">
+                  <button
+                    type="button"
+                    className="link-gold"
+                    disabled={busy}
+                    onClick={async () => {
+                      setError('');
+                      setInfo('');
+                      setBusy(true);
+                      try {
+                        await sendPhoneCode();
+                        setInfo('שלחנו קוד חדש ב-SMS');
+                      } catch (e) {
+                        setError(e.message || 'לא ניתן לשלוח שוב');
+                      } finally {
+                        setBusy(false);
+                      }
+                    }}
+                  >
+                    שלחי קוד שוב
+                  </button>
+                </p>
+              </>
+            )}
+
+            {step === STEP.email && (
+              <>
+                <p className="sub" style={{ textAlign: 'start' }}>
+                  קוד בן 6 ספרות נשלח אל {form.email.trim() || 'המייל שלך'}
+                </p>
+                <div className="field">
+                  <label htmlFor="s-email-code">קוד אימות</label>
+                  <input
+                    id="s-email-code"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    required={Boolean(state?.verify?.email)}
+                    maxLength={6}
+                    placeholder="000000"
+                    dir="ltr"
+                    value={emailCode}
+                    onChange={(e) => setEmailCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  />
+                </div>
+                {info && <p className="msg-ok">{info}</p>}
+                <p className="form-note">
+                  <button
+                    type="button"
+                    className="link-gold"
+                    disabled={busy}
+                    onClick={async () => {
+                      setError('');
+                      setInfo('');
+                      setBusy(true);
+                      try {
+                        await sendEmailCode();
+                        setInfo('שלחנו קוד חדש למייל');
+                      } catch (e) {
+                        setError(e.message || 'לא ניתן לשלוח שוב');
+                      } finally {
+                        setBusy(false);
+                      }
+                    }}
+                  >
+                    שלחי קוד שוב
+                  </button>
+                </p>
+              </>
+            )}
+
+            {step === STEP.plan && (
+              <>
+                <p className="signup-pay-note">בחרי את המסלול שהכי מתאים לך — אפשר לשנות אחר כך.</p>
+                <div className="signup-plan-grid">
+                  {plans.map((plan) => (
+                    <button
+                      key={plan.id}
+                      type="button"
+                      className={`plan-card${plan.featured ? ' featured' : ''}${form.plan === plan.id ? ' mine' : ''}`}
+                      onClick={() => setField('plan', plan.id)}
+                    >
+                      {plan.featured && <div className="flag">הכי פופולרי</div>}
+                      <div className="plan-name">{plan.latin}</div>
+                      <div className="price">
+                        ₪{plan.price}
+                        <small> לחודש</small>
+                      </div>
+                      <div className="materials">{plan.materials}</div>
+                      <ul>
+                        {plan.perks.slice(0, 4).map((perk) => (
+                          <li key={perk}>{perk}</li>
+                        ))}
+                      </ul>
+                      <span className={`btn${plan.featured ? ' btn-tan' : ''}`}>
+                        {form.plan === plan.id ? 'נבחר' : 'אני בוחרת'}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+
             {step === STEP.terms && (
               <>
                 <div className="legal-block">
@@ -593,7 +809,11 @@ export default function SignupPage() {
               )}
               {step < STEPS.length - 1 ? (
                 <button type="button" className="btn btn-wide" disabled={busy} onClick={goNext}>
-                  {busy && step === STEP.details ? 'בודקת…' : 'המשך'}
+                  {busy
+                    ? step === STEP.details || step === STEP.phone || step === STEP.email
+                      ? 'בודקת…'
+                      : 'המשך'
+                    : 'המשך'}
                 </button>
               ) : (
                 <button type="submit" className="btn btn-wide" disabled={busy}>

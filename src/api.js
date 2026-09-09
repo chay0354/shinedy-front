@@ -68,6 +68,10 @@ export const api = {
     request('/auth/verify-phone', { method: 'POST', body: JSON.stringify(payload) }),
   resendPhoneVerification: (payload) =>
     request('/auth/resend-phone-verification', { method: 'POST', body: JSON.stringify(payload) }),
+  checkSignupEmail: (payload) =>
+    request('/auth/check-email-code', { method: 'POST', body: JSON.stringify(payload) }),
+  checkSignupPhone: (payload) =>
+    request('/auth/check-phone-code', { method: 'POST', body: JSON.stringify(payload) }),
   logout: () => request('/auth/logout', { method: 'POST', body: '{}' }),
   updateRegistration: (patch) =>
     request('/auth/registration', { method: 'PATCH', body: JSON.stringify(patch) }),
