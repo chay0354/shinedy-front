@@ -20,9 +20,8 @@ export function isStaff(state) {
   return role === 'admin' || role === 'warehouse';
 }
 
-export function homePathForRole(role, subscribed = true, planId = null) {
+export function homePathForRole(role) {
   if (role === 'admin') return '/admin';
   if (role === 'warehouse') return '/admin/warehouse';
-  if (!subscribed && !planId) return '/account/plans';
   return '/account/me';
 }
