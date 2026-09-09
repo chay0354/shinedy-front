@@ -79,7 +79,7 @@ export default function SiteLayout() {
     <>
       <ScrollToTop />
       <header className={`site-header${isAuthPage ? ' is-auth' : ''}${navOpen ? ' nav-open' : ''}`}>
-        <div className="header-top">
+        <div className={`header-top${searchOpen ? ' search-open' : ''}`}>
           <button
             type="button"
             className="nav-toggle"
