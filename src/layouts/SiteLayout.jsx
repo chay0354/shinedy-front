@@ -5,7 +5,7 @@ import { getToken } from '../lib/auth';
 import { SERVICE_EMAIL, SERVICE_PHONE, SERVICE_PHONE_TEL, INSTAGRAM_URL, FACEBOOK_URL } from '../lib/contact';
 import { useFavorites } from '../lib/favorites';
 import { hasActivePlan, isAdmin, isStaff } from '../lib/roles';
-import { IconBag, IconFacebook, IconHeart, IconInstagram, IconSearch, IconUser } from '../components/icons';
+import { IconBag, IconClose, IconFacebook, IconHeart, IconInstagram, IconMenu, IconSearch, IconUser } from '../components/icons';
 import PointsBar from '../components/PointsBar';
 import ScrollToTop from '../components/ScrollToTop';
 
@@ -33,6 +33,7 @@ export default function SiteLayout() {
   const { count: favCount } = useFavorites();
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQ, setSearchQ] = useState('');
+  const [navOpen, setNavOpen] = useState(false);
 
   useEffect(() => {
     if (!getToken() || !state?.auth) return;
@@ -54,6 +55,11 @@ export default function SiteLayout() {
     }
   }, [state, navigate, isAuthPage, location.pathname]);
 
+  useEffect(() => {
+    setNavOpen(false);
+    setSearchOpen(false);
+  }, [location.pathname]);
+
   function accountPath() {
     if (!getToken()) return '/login';
     if (isAdmin(state)) return '/admin';
@@ -72,8 +78,17 @@ export default function SiteLayout() {
   return (
     <>
       <ScrollToTop />
-      <header className="site-header">
+      <header className={`site-header${isAuthPage ? ' is-auth' : ''}${navOpen ? ' nav-open' : ''}`}>
         <div className="header-top">
+          <button
+            type="button"
+            className="nav-toggle"
+            aria-label={navOpen ? 'סגירת תפריט' : 'פתיחת תפריט'}
+            aria-expanded={navOpen}
+            onClick={() => setNavOpen((v) => !v)}
+          >
+            {navOpen ? <IconClose size={22} /> : <IconMenu size={22} />}
+          </button>
           <Link to="/" className="brand" aria-label="Shinedy — דף הבית">
             <img src="/brand/name-black.png" alt="SHINEDY" />
           </Link>
@@ -129,7 +144,7 @@ export default function SiteLayout() {
             </Link>
           </div>
         </div>
-        <nav className="main-nav">
+        <nav className={`main-nav${navOpen ? ' is-open' : ''}`}>
           {NAV.filter((n) => !(loggedIn && n.to === '/plans')).map((n) => (
             <NavLink key={n.to} to={n.to} className={({ isActive }) => (isActive ? 'active' : '')}>
               {n.label}

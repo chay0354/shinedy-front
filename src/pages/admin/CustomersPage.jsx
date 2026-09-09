@@ -22,7 +22,7 @@ export default function Customers() {
       <div className="admin-section">
         <div className="admin-head-row">
           <input
-            className="select" style={{ minWidth: 280 }} value={q} onChange={(e) => setQ(e.target.value)}
+            className="select admin-search" value={q} onChange={(e) => setQ(e.target.value)}
             placeholder="חיפוש לפי שם, טלפון או אימייל…"
           />
           <span className="cell-sub">{list.length} מתוך {db.users.length}</span>

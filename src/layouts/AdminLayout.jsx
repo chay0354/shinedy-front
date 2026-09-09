@@ -43,7 +43,7 @@ export default function AdminLayout() {
         <div className="admin-bar">
           <div className="admin-bar-inner">
             <img src="/brand/name-white.png" alt="SHINEDY" />
-            <span className="admin-title">מערכת ניהול</span>
+            <span className="admin-title">ניהול</span>
             <span style={{ flex: 1 }} />
             {me && <span className="admin-bar-user">{me.name} · {me.role}</span>}
             {isManager && (

@@ -449,6 +449,7 @@ export default function SignupPage() {
               </li>
             ))}
           </ol>
+          <p className="signup-step-now">{STEPS[step]}</p>
 
           <form onSubmit={handleSubmit}>
             {step === STEP.details && (

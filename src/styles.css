@@ -50,6 +50,10 @@ button { font-family: inherit; cursor: pointer; }
 }
 .header-top .brand { grid-column: 2; }
 .header-top .brand img { height: 40px; }
+.nav-toggle {
+  display: none; grid-column: 1; justify-self: start;
+  background: none; border: none; padding: 4px; color: var(--ink); cursor: pointer;
+}
 .header-icons {
   grid-column: 3; justify-self: end; display: flex; gap: 18px; align-items: center;
 }
@@ -484,6 +488,10 @@ button.link-gold { background: none; border: none; padding: 0; cursor: pointer; 
   .hb-text { padding: 34px 18px 28px; max-width: 620px; margin: 0 auto; }
   .hb-text h1 { font-size: 32px; }
   .hb-benefit { padding: 0 10px; font-size: 12.5px; }
+  .hb-benefits { flex-wrap: wrap; justify-content: center; gap: 16px 0; }
+  .hb-benefit { flex: 1 1 40%; }
+  .hb-benefit + .hb-benefit { border-inline-start: none; }
+  .hb-benefit span { white-space: normal; }
 }
 
 /* ===== points bar (מונה נקודות קבוע) ===== */
@@ -1076,22 +1084,89 @@ button.link-gold { background: none; border: none; padding: 0; cursor: pointer; 
   .benefits { grid-template-columns: repeat(2, 1fr); }
 }
 @media (max-width: 860px) {
-  .header-top { padding: 14px 20px 8px; }
+  .container { padding: 0 18px; }
+  .header-top { padding: 14px 18px 8px; }
   .main-nav { gap: 18px; font-size: 0.9rem; }
   .product-layout { grid-template-columns: 1fr; gap: 34px; }
-  .auth-split { grid-template-columns: 1fr; }
-  .signup-steps { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-  .auth-photo { min-height: 220px; }
+  .product-gallery { grid-template-columns: 1fr; }
+  .product-gallery .thumbs { display: flex; flex-direction: row; gap: 8px; overflow-x: auto; }
+  .product-gallery .thumb { width: 64px; height: 64px; flex-shrink: 0; }
+  .auth-split { grid-template-columns: 1fr; min-height: auto; }
+  .signup-steps { grid-template-columns: repeat(7, minmax(0, 1fr)); }
+  .signup-steps li { font-size: 0; gap: 4px; }
+  .signup-steps li span { font-size: 0.72rem; width: 26px; height: 26px; }
+  .signup-step-now {
+    display: block; text-align: center; font-weight: 500; margin: -16px 0 20px;
+    color: var(--ink);
+  }
+  .auth-photo { min-height: 180px; }
   .about-split { grid-template-columns: 1fr; gap: 30px; }
+  .about-icons { grid-template-columns: 1fr; }
   .contact-grid { grid-template-columns: 1fr; }
   .site-footer .container { grid-template-columns: 1fr; gap: 28px; }
-  .hero-photo { min-height: 460px; }
-  .section { padding: 60px 0; }
+  .hero-photo { min-height: 360px; }
+  .section { padding: 52px 0; }
   .catalog-toolbar { justify-content: center; }
+  .benefits { grid-template-columns: repeat(2, 1fr); }
+  .pay-row { grid-template-columns: 1fr; }
+  .admin-bar-inner, .admin-tabs, .admin-content { padding-inline: 16px; }
+  .admin-bar-inner { flex-wrap: wrap; row-gap: 8px; }
+}
+@media (max-width: 720px) {
+  .nav-toggle { display: flex; }
+  .header-top {
+    grid-template-columns: auto 1fr auto;
+    padding: 12px 14px 8px;
+  }
+  .header-top .brand { grid-column: 2; justify-self: center; }
+  .header-top .brand img { height: 30px; }
+  .header-icons { grid-column: 3; gap: 10px; }
+  .header-search input { width: min(160px, 38vw); }
+  .main-nav {
+    display: none;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 0;
+    padding: 0 14px 12px;
+  }
+  .main-nav.is-open { display: flex; }
+  .main-nav a {
+    padding: 12px 2px;
+    border-bottom: 1px solid var(--line);
+    font-size: 1rem;
+  }
+  .site-header.is-auth .nav-toggle,
+  .site-header.is-auth .main-nav { display: none; }
+  .signup-flow { padding: 20px 0 48px; min-height: auto; }
+  .signup-card, .form-card { padding: 22px 16px 28px; }
+  .signup-card h1 { font-size: 1.4rem; }
+  .signup-nav { flex-direction: column-reverse; }
+  .legal-facts div { grid-template-columns: 1fr; }
+  .legal-scroll { max-height: min(50vh, 360px); padding: 14px 12px; }
+  .item-row { flex-wrap: wrap; gap: 12px; }
+  .ship-steps { flex-wrap: wrap; gap: 12px; }
+  .ship-step { flex: 1 1 40%; min-width: 0; font-size: 0.8rem; }
+  .admin-title { display: none; }
+  .admin-search { width: 100%; min-width: 0; }
+  .admin-head-row { flex-wrap: wrap; }
 }
 @media (max-width: 560px) {
   .how-steps { grid-template-columns: 1fr; }
   .feature-strip { grid-template-columns: 1fr 1fr; gap: 26px 12px; }
+  .buy-fields { grid-template-columns: 1fr; }
+  input, select, textarea { font-size: 16px; }
+  .btn { padding: 12px 18px; }
+  .signup-nav .btn,
+  .product-ctas .btn,
+  .plan-card .btn { width: 100%; }
+  .product-ctas { max-width: none; }
+  .faq-list details { padding: 14px 16px; }
+  .hb-text h1 { font-size: 26px; }
+  .hb-text p { font-size: 16px; }
+  .hb-cta { padding: 14px 22px; width: 100%; }
+  .auth-photo { display: none; }
+  .auth-form-side { padding: 24px 16px; }
 }
 
 /* ===== app shell (live React app) ===== */
@@ -1140,6 +1215,7 @@ button.link-gold { background: none; border: none; padding: 0; cursor: pointer; 
 .signup-steps li.on { color: var(--ink); }
 .signup-steps li.on span { background: var(--gold); color: #fff; border-color: var(--gold); }
 .signup-steps li.done span { background: #171310; color: #fff; border-color: #171310; }
+.signup-step-now { display: none; }
 .legal-block { margin-bottom: 22px; }
 .legal-block-title { font-size: 1.15rem; font-weight: 500; margin: 0 0 10px; text-align: center; }
 .legal-scroll {
@@ -1177,3 +1253,6 @@ button.link-gold { background: none; border: none; padding: 0; cursor: pointer; 
 .signup-plan-grid .plan-card.mine { border-color: var(--gold); }
 .pay-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .signup-pay-note { color: var(--muted); font-size: 0.88rem; font-weight: 300; margin-bottom: 16px; }
+.admin-search { min-width: 0; width: min(280px, 100%); }
+
+html, body { overflow-x: hidden; }
