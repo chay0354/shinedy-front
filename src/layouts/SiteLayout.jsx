@@ -46,13 +46,6 @@ export default function SiteLayout() {
       return;
     }
     if (isAuthPage) return;
-    if (state?.verify?.email && state?.registration && !state.registration.emailVerified) {
-      navigate('/verify-email', { replace: true });
-      return;
-    }
-    if (state?.verify?.sms && state?.registration && !state.registration.phoneVerified) {
-      navigate('/verify-phone', { replace: true });
-    }
   }, [state, navigate, isAuthPage, location.pathname]);
 
   useEffect(() => {
