@@ -3,7 +3,7 @@ import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { api } from '../../api';
 import { useApp } from '../../state/AppContext';
 import { applySessionFromResponse, getToken } from '../../lib/auth';
-import { homePathForRole } from '../../lib/roles';
+import { homePathForRole, isStaff } from '../../lib/roles';
 import { IconEye, IconEyeOff } from '../../components/icons';
 
 export default function LoginPage() {
@@ -12,7 +12,7 @@ export default function LoginPage() {
   const { state, run } = useApp();
   const navigate = useNavigate();
 
-  if (getToken() && state?.auth) {
+  if (getToken() && isStaff(state)) {
     return <Navigate to={homePathForRole(state.auth.role, state.subscribed, state.planId)} replace />;
   }
 

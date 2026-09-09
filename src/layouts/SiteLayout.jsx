@@ -123,10 +123,10 @@ export default function SiteLayout() {
               {favCount > 0 && <span className="badge-count">{favCount}</span>}
             </Link>
             <Link
-              to={accountPath()}
+              to="/login"
               className="icon-link"
-              aria-label={getToken() && state?.auth ? 'האזור האישי שלי' : 'התחברות'}
-              title={userName ? `שלום, ${userName}` : 'התחברות'}
+              aria-label="התחברות"
+              title="התחברות"
             >
               <IconUser size={22} />
             </Link>
