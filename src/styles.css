@@ -1261,8 +1261,9 @@ button.link-gold { background: none; border: none; padding: 0; cursor: pointer; 
 .signup-nav .btn { flex: 1; }
 .sig-wrap { display: grid; gap: 8px; }
 .sig-pad {
-  width: 100%; height: 160px; border: 1px dashed #c9bfb0; background: #fffef9;
+  width: 100%; height: 180px; border: 1px dashed #c9bfb0; background: #fffef9;
   touch-action: none; cursor: crosshair; display: block;
+  -webkit-user-select: none; user-select: none;
 }
 .signup-plan-grid {
   display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -1277,4 +1278,6 @@ button.link-gold { background: none; border: none; padding: 0; cursor: pointer; 
 .signup-pay-note { color: var(--muted); font-size: 0.88rem; font-weight: 300; margin-bottom: 16px; }
 .admin-search { min-width: 0; width: min(280px, 100%); }
 
-html, body { overflow-x: hidden; }
+.signup-flow {
+  padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+}

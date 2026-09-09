@@ -129,6 +129,10 @@ export default function SignupPage() {
     }
   }, [defaultPlan]);
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [step]);
+
   function setField(key, value) {
     setForm((prev) => ({ ...prev, [key]: value }));
     if (key === 'phone') {
@@ -241,6 +245,7 @@ export default function SignupPage() {
       const err = validateDetails();
       if (err) {
         setError(err);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
         return;
       }
       setBusy(true);
@@ -248,6 +253,7 @@ export default function SignupPage() {
         await api.checkSignup({ email: form.email.trim(), phone: toLocalIl(form.phone) });
       } catch (e) {
         setError(e.message || 'לא ניתן להמשיך עם הפרטים האלה');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
         return;
       } finally {
         setBusy(false);
@@ -311,8 +317,9 @@ export default function SignupPage() {
 
   async function onIdFile(file) {
     if (!file) return;
-    const okTypes = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
-    if (!okTypes.includes(file.type)) {
+    const type = String(file.type || '').toLowerCase();
+    const ok = type.startsWith('image/') || type === 'application/pdf' || !type;
+    if (!ok) {
       setError('יש להעלות תמונה או קובץ PDF של תעודת הזהות');
       return;
     }
@@ -450,8 +457,9 @@ export default function SignupPage() {
             ))}
           </ol>
           <p className="signup-step-now">{STEPS[step]}</p>
+          {error && <p className="form-err">{error}</p>}
 
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} noValidate>
             {step === STEP.details && (
               <>
                 <div className="field">
@@ -738,7 +746,7 @@ export default function SignupPage() {
                   <input
                     id="s-id-file"
                     type="file"
-                    accept="image/jpeg,image/png,image/webp,application/pdf"
+                    accept="image/*,application/pdf"
                     onChange={(e) => onIdFile(e.target.files?.[0])}
                   />
                   {form.idFileName && (
