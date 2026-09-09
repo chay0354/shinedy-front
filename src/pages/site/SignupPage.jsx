@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, Navigate, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { api } from '../../api';
 import { useApp } from '../../state/AppContext';
@@ -90,6 +90,7 @@ export default function SignupPage() {
   const [emailCode, setEmailCode] = useState('');
   const [phoneProof, setPhoneProof] = useState('');
   const [emailProof, setEmailProof] = useState('');
+  const sentFor = useRef({ phone: '', email: '' });
   const [params] = useSearchParams();
   const intendedPlan = location.state?.plan || params.get('plan');
   const livePlans = Array.isArray(state?.plans) ? state.plans : [];
@@ -133,10 +134,12 @@ export default function SignupPage() {
     if (key === 'phone') {
       setPhoneProof('');
       setPhoneCode('');
+      sentFor.current.phone = '';
     }
     if (key === 'email') {
       setEmailProof('');
       setEmailCode('');
+      sentFor.current.email = '';
     }
   }
 
@@ -182,13 +185,54 @@ export default function SignupPage() {
     return '';
   }
 
-  async function sendPhoneCode() {
-    await api.resendPhoneVerification({ phone: toLocalIl(form.phone) });
+  function alreadySentMessage(message) {
+    return /להמתין|נשלח קוד/i.test(String(message || ''));
   }
 
-  async function sendEmailCode() {
-    await api.resendVerification({ email: form.email.trim() });
+  async function dispatchCode(kind) {
+    setError('');
+    setInfo('');
+    setBusy(true);
+    try {
+      if (kind === 'phone') {
+        const phone = toLocalIl(form.phone);
+        sentFor.current.phone = phone;
+        await api.resendPhoneVerification({ phone });
+        setInfo('שלחנו קוד ב-SMS');
+      } else {
+        const email = form.email.trim();
+        sentFor.current.email = email.toLowerCase();
+        await api.resendVerification({ email });
+        setInfo('שלחנו קוד למייל');
+      }
+    } catch (e) {
+      if (alreadySentMessage(e.message)) {
+        setInfo(e.message);
+        if (kind === 'phone') sentFor.current.phone = toLocalIl(form.phone);
+        else sentFor.current.email = form.email.trim().toLowerCase();
+      } else {
+        if (kind === 'phone') sentFor.current.phone = '';
+        else sentFor.current.email = '';
+        setError(e.message || (kind === 'phone' ? 'שליחת ה-SMS נכשלה' : 'שליחת המייל נכשלה'));
+      }
+    } finally {
+      setBusy(false);
+    }
   }
+
+  useEffect(() => {
+    if (step !== STEP.phone) return;
+    const phone = toLocalIl(form.phone);
+    if (!phone || sentFor.current.phone === phone) return;
+    dispatchCode('phone');
+  }, [step, form.phone]);
+
+  useEffect(() => {
+    if (step !== STEP.email) return;
+    const email = form.email.trim().toLowerCase();
+    if (!email || sentFor.current.email === email) return;
+    dispatchCode('email');
+  }, [step, form.email]);
 
   async function goNext() {
     setError('');
@@ -202,10 +246,6 @@ export default function SignupPage() {
       setBusy(true);
       try {
         await api.checkSignup({ email: form.email.trim(), phone: toLocalIl(form.phone) });
-        if (state?.verify?.sms && !phoneProof) {
-          await sendPhoneCode();
-          setInfo('שלחנו קוד ב-SMS');
-        }
       } catch (e) {
         setError(e.message || 'לא ניתן להמשיך עם הפרטים האלה');
         return;
@@ -213,37 +253,23 @@ export default function SignupPage() {
         setBusy(false);
       }
     }
-    if (step === STEP.phone) {
-      if (state?.verify?.sms && !phoneProof) {
-        if (phoneCode.length !== 6) {
-          setError('יש להזין את קוד האימות מה-SMS');
-          return;
-        }
-        setBusy(true);
-        try {
-          const data = await api.checkSignupPhone({ phone: toLocalIl(form.phone), code: phoneCode });
-          setPhoneProof(data.proof || 'ok');
-        } catch (e) {
-          setError(e.message || 'הקוד שגוי');
-          return;
-        } finally {
-          setBusy(false);
-        }
+    if (step === STEP.phone && !phoneProof) {
+      if (phoneCode.length !== 6) {
+        setError('יש להזין את קוד האימות מה-SMS');
+        return;
       }
-      if (state?.verify?.email && !emailProof) {
-        setBusy(true);
-        try {
-          await sendEmailCode();
-          setInfo('שלחנו קוד למייל');
-        } catch (e) {
-          setError(e.message || 'שליחת קוד המייל נכשלה');
-          return;
-        } finally {
-          setBusy(false);
-        }
+      setBusy(true);
+      try {
+        const data = await api.checkSignupPhone({ phone: toLocalIl(form.phone), code: phoneCode });
+        setPhoneProof(data.proof || 'ok');
+      } catch (e) {
+        setError(e.message || 'הקוד שגוי');
+        return;
+      } finally {
+        setBusy(false);
       }
     }
-    if (step === STEP.email && state?.verify?.email && !emailProof) {
+    if (step === STEP.email && !emailProof) {
       if (emailCode.length !== 6) {
         setError('יש להזין את קוד האימות מהמייל');
         return;
@@ -318,12 +344,12 @@ export default function SignupPage() {
       setStep(STEP.plan);
       return;
     }
-    if (state?.verify?.sms && !phoneProof) {
+    if (!phoneProof) {
       setError('יש לאמת את מספר הטלפון');
       setStep(STEP.phone);
       return;
     }
-    if (state?.verify?.email && !emailProof) {
+    if (!emailProof) {
       setError('יש לאמת את כתובת המייל');
       setStep(STEP.email);
       return;
@@ -564,7 +590,7 @@ export default function SignupPage() {
                     id="s-phone-code"
                     inputMode="numeric"
                     autoComplete="one-time-code"
-                    required={Boolean(state?.verify?.sms)}
+                    required
                     maxLength={6}
                     placeholder="000000"
                     dir="ltr"
@@ -578,18 +604,9 @@ export default function SignupPage() {
                     type="button"
                     className="link-gold"
                     disabled={busy}
-                    onClick={async () => {
-                      setError('');
-                      setInfo('');
-                      setBusy(true);
-                      try {
-                        await sendPhoneCode();
-                        setInfo('שלחנו קוד חדש ב-SMS');
-                      } catch (e) {
-                        setError(e.message || 'לא ניתן לשלוח שוב');
-                      } finally {
-                        setBusy(false);
-                      }
+                    onClick={() => {
+                      sentFor.current.phone = '';
+                      dispatchCode('phone');
                     }}
                   >
                     שלחי קוד שוב
@@ -609,7 +626,7 @@ export default function SignupPage() {
                     id="s-email-code"
                     inputMode="numeric"
                     autoComplete="one-time-code"
-                    required={Boolean(state?.verify?.email)}
+                    required
                     maxLength={6}
                     placeholder="000000"
                     dir="ltr"
@@ -623,18 +640,9 @@ export default function SignupPage() {
                     type="button"
                     className="link-gold"
                     disabled={busy}
-                    onClick={async () => {
-                      setError('');
-                      setInfo('');
-                      setBusy(true);
-                      try {
-                        await sendEmailCode();
-                        setInfo('שלחנו קוד חדש למייל');
-                      } catch (e) {
-                        setError(e.message || 'לא ניתן לשלוח שוב');
-                      } finally {
-                        setBusy(false);
-                      }
+                    onClick={() => {
+                      sentFor.current.email = '';
+                      dispatchCode('email');
                     }}
                   >
                     שלחי קוד שוב
