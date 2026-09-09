@@ -13,6 +13,7 @@ import {
   pointsUsed,
 } from '../../lib/accountHelpers';
 import { enrichPlan } from '../../lib/plans';
+import { hasActivePlan } from '../../lib/roles';
 import Art from '../../components/Art';
 import PurchaseDialog from '../../components/PurchaseDialog';
 
@@ -36,6 +37,7 @@ export default function DashboardPage() {
 
   const name = state?.registration?.name || state?.registration?.fullName || 'לקוחה';
   const plan = enrichPlan(state?.plan || {});
+  const subscribed = hasActivePlan(state);
   const units = activeUnits(state);
   const marked = state?.exchangeReturns || [];
   const used = pointsUsed(state);
@@ -102,41 +104,59 @@ export default function DashboardPage() {
         </div>
       ))}
 
-      <div className="page-head container" style={{ textAlign: 'right', paddingBottom: 32 }}>
-        <h1>שלום, {name} ✦</h1>
-        <p className="account-plan-line" style={{ margin: '8px 0 0' }}>
-          {planLatin(plan)} · {plan.name} · ₪{plan.price} לחודש
-          {state?.subscribed && !state?.registration?.suspended && (
-            <button
-              type="button"
-              className="btn-mini"
-              style={{ marginInlineStart: 14 }}
-              onClick={async () => {
-                if (
-                  !window.confirm(
-                    'להקפיא את המנוי? לא תחויבי ולא תוכלי להזמין עד ההפעלה מחדש. יש להחזיר קודם את התכשיטים שאצלך.',
-                  )
-                ) {
-                  return;
-                }
-                await run(() => api.suspendSubscription());
-              }}
-            >
-              הקפאת מנוי
+      <div className="account-hero">
+        <div className="container">
+          <p className="account-hello">האזור האישי שלך</p>
+          <h1>שלום, {name} ✦</h1>
+          <div className="account-plan-line">
+            {subscribed ? (
+              <>
+                <span className="plan-chip">{planLatin(plan)}</span>
+                <span className="plan-meta">
+                  {plan.name} · ₪{plan.price} לחודש
+                </span>
+              </>
+            ) : (
+              <span className="plan-meta">עדיין לא בחרת מסלול מנוי</span>
+            )}
+          </div>
+          <div className="account-links">
+            {subscribed && !state?.registration?.suspended && (
+              <button
+                type="button"
+                className="btn-mini"
+                onClick={async () => {
+                  if (
+                    !window.confirm(
+                      'להקפיא את המנוי? לא תחויבי ולא תוכלי להזמין עד ההפעלה מחדש. יש להחזיר קודם את התכשיטים שאצלך.',
+                    )
+                  ) {
+                    return;
+                  }
+                  await run(() => api.suspendSubscription());
+                }}
+              >
+                הקפאת מנוי
+              </button>
+            )}
+            <Link to="/account/plans" className="btn-mini">
+              {subscribed ? 'שינוי / ביטול מנוי' : 'בחירת מסלול'}
+            </Link>
+            <button type="button" className="btn-mini" onClick={logout}>
+              התנתקות
             </button>
-          )}
-          <Link to="/plans" className="btn-mini" style={{ marginInlineStart: 8 }}>
-            שינוי / ביטול מנוי
-          </Link>
-          <button type="button" className="btn-mini" style={{ marginInlineStart: 8 }} onClick={logout}>
-            התנתקות
-          </button>
-        </p>
+          </div>
+        </div>
       </div>
 
-      <section className="container" style={{ paddingBottom: 72 }}>
+      <section className="container account-body">
         <div className="account-actions">
-          {!state?.registration?.suspended && (
+          {!subscribed && (
+            <Link to="/account/plans" className="btn btn-tan">
+              לבחירת מסלול מנוי
+            </Link>
+          )}
+          {subscribed && !state?.registration?.suspended && (
             <>
               <Link to="/exchange" className="btn btn-tan">
                 בצעי החלפה
@@ -158,9 +178,11 @@ export default function DashboardPage() {
             </button>
           )}
         </div>
-        <p style={{ color: 'var(--muted)', fontSize: '0.88rem', fontWeight: 300, margin: '12px 0 28px' }}>
-          מחליפות פשוט: מסמנות מה מחזירות, בוחרות חדשים בקטלוג — ונרתיק ההחזרה מגיע עם המשלוח.
-        </p>
+        {subscribed && (
+          <p className="account-tip">
+            מחליפות פשוט: מסמנות מה מחזירות, בוחרות חדשים בקטלוג — ונרתיק ההחזרה מגיע עם המשלוח.
+          </p>
+        )}
         <div className="account-grid">
           <div className="stat-card">
             <div className="label">נקודות זמינות</div>
@@ -183,9 +205,7 @@ export default function DashboardPage() {
           </div>
           <div className="stat-card">
             <div className="label">החלפות</div>
-            <div className="value" style={{ fontSize: '1.5rem' }}>
-              ללא הגבלה
-            </div>
+            <div className="value value-sm">ללא הגבלה</div>
             <div className="hint">משלוח דו-חודשי כלול · נוסף ₪65</div>
           </div>
         </div>
@@ -209,7 +229,7 @@ export default function DashboardPage() {
 
         {lastShip && (
           <>
-            <h2 style={{ marginBottom: 14 }}>המשלוח האחרון</h2>
+            <h2 className="account-h2 first">המשלוח האחרון</h2>
             <div className="ship-card">
               <div className="ship-head">
                 <span>
@@ -229,7 +249,7 @@ export default function DashboardPage() {
                 })}
               </div>
               {lastShip.tracking && (
-                <div style={{ marginTop: 14, fontSize: '0.88rem', color: 'var(--muted)', fontWeight: 300 }}>
+                <div className="ship-tracking">
                   מספר מעקב אצל חברת המשלוחים: <b dir="ltr">{lastShip.tracking}</b>
                   {lastShip.trackingStatus ? ` · ${lastShip.trackingStatus}` : ''}
                 </div>
@@ -238,9 +258,9 @@ export default function DashboardPage() {
           </>
         )}
 
-        <h2 style={{ margin: '38px 0 14px' }}>התכשיטים שאצלך</h2>
+        <h2 className="account-h2">התכשיטים שאצלך</h2>
         {units.length === 0 ? (
-          <p style={{ color: 'var(--muted)', fontWeight: 300 }}>
+          <p className="account-empty">
             עדיין אין תכשיטים אצלך —{' '}
             <Link to="/catalog" className="link-gold">
               בואי לבחור מהקטלוג
@@ -248,7 +268,7 @@ export default function DashboardPage() {
           </p>
         ) : (
           <>
-            <p style={{ color: 'var(--muted)', fontSize: '0.9rem', fontWeight: 300, marginBottom: 10 }}>
+            <p className="account-tip">
               רוצה לפנות נקודות? סמני תכשיט להחלפה — הנקודות שלו משתחררות מיד, ותחזירי אותו בנרתיק עם
               המשלוח הבא.
             </p>
@@ -261,8 +281,8 @@ export default function DashboardPage() {
                       <Art product={u.product} />
                     </div>
                     <div className="grow">
-                      <div style={{ fontWeight: 600 }}>{u.product.name}</div>
-                      <div style={{ color: 'var(--muted)', fontSize: '0.88rem', fontWeight: 300 }}>
+                      <div className="item-name">{u.product.name}</div>
+                      <div className="item-sub">
                         {u.product.metal} · {u.product.stone} · {u.product.points} נק׳
                       </div>
                       {isMarked && (
@@ -271,7 +291,7 @@ export default function DashboardPage() {
                         </div>
                       )}
                     </div>
-                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                    <div className="item-actions">
                       <button type="button" className="btn-mini" onClick={() => run(() => api.toggleReturn(u.serial))}>
                         {isMarked ? 'ביטול סימון' : 'סמני להחלפה'}
                       </button>
@@ -298,16 +318,16 @@ export default function DashboardPage() {
                 {buyMsg}
               </p>
             )}
-            <p style={{ color: 'var(--muted)', fontSize: '0.88rem', fontWeight: 300, marginTop: 10 }}>
+            <p className="account-tip">
               אפשר לרכוש כל תכשיט שאצלך — הקרדיטים שצברת ({`₪${Math.round(credits)}`}) משמשים כשקלים
               ומופחתים מהמחיר.
             </p>
           </>
         )}
 
-        <h2 style={{ margin: '38px 0 14px' }}>השכרות קודמות</h2>
+        <h2 className="account-h2">השכרות קודמות</h2>
         {pastRentals.length === 0 ? (
-          <p style={{ color: 'var(--muted)', fontWeight: 300 }}>עדיין אין תכשיטים שהוחזרו.</p>
+          <p className="account-empty">עדיין אין תכשיטים שהוחזרו.</p>
         ) : (
           <div className="items-list">
             {pastRentals.map((r, i) => (
@@ -316,12 +336,12 @@ export default function DashboardPage() {
                   <Art product={r.product} />
                 </div>
                 <div className="grow">
-                  <div style={{ fontWeight: 600 }}>{r.product.name}</div>
-                  <div style={{ color: 'var(--muted)', fontSize: '0.88rem', fontWeight: 300 }}>
+                  <div className="item-name">{r.product.name}</div>
+                  <div className="item-sub">
                     {r.product.metal} · {r.product.stone} · הזמנה {r.orderId}
                   </div>
                 </div>
-                <div className="status" style={{ color: 'var(--muted)' }}>
+                <div className="status muted">
                   {heDate(r.date)}
                   {r.returnedAt ? ` — ${heDate(r.returnedAt)}` : ''}
                 </div>
@@ -330,9 +350,9 @@ export default function DashboardPage() {
           </div>
         )}
 
-        <h2 style={{ margin: '38px 0 14px' }}>רכישות קודמות</h2>
+        <h2 className="account-h2">רכישות קודמות</h2>
         {purchases.length === 0 ? (
-          <p style={{ color: 'var(--muted)', fontWeight: 300 }}>
+          <p className="account-empty">
             עדיין לא רכשת תכשיטים. כל תכשיט שאצלך ניתן לרכישה, והקרדיטים שצברת מופחתים מהמחיר.
           </p>
         ) : (
@@ -347,17 +367,17 @@ export default function DashboardPage() {
                     </div>
                   )}
                   <div className="grow">
-                    <div style={{ fontWeight: 600 }}>
+                    <div className="item-name">
                       {p.name} <span className="pill ok">נרכש ✓</span>
                     </div>
-                    <div style={{ color: 'var(--muted)', fontSize: '0.88rem', fontWeight: 300 }}>
+                    <div className="item-sub">
                       {heDate(p.date)} · מק״ט <span dir="ltr">{p.sku}</span> · פריט{' '}
                       <span dir="ltr">{p.serial}</span>
                     </div>
                   </div>
-                  <div className="status" style={{ textAlign: 'start' }}>
+                  <div className="status">
                     ₪{Number(p.price || 0).toLocaleString()}
-                    <div style={{ color: 'var(--muted)', fontWeight: 300, fontSize: '0.82rem' }}>
+                    <div className="item-sub">
                       קרדיט ₪{Math.round(p.creditUsed || 0)} · שולם ₪{Math.round(p.paid || 0)}
                     </div>
                   </div>

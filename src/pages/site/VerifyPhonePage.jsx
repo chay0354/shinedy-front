@@ -31,7 +31,7 @@ export default function VerifyPhonePage() {
       applySessionFromResponse(data);
       await refresh();
       sessionStorage.removeItem('shinedy_verify_phone');
-      navigate(homePathForRole(data.auth?.role, data.subscribed, data.planId), { replace: true });
+      navigate(homePathForRole(data.auth?.role), { replace: true });
     } catch (err) {
       setError(err.message || 'האימות נכשל');
     } finally {

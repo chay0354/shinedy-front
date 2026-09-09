@@ -123,10 +123,10 @@ export default function SiteLayout() {
               {favCount > 0 && <span className="badge-count">{favCount}</span>}
             </Link>
             <Link
-              to="/login"
+              to={accountPath()}
               className="icon-link"
-              aria-label="התחברות"
-              title="התחברות"
+              aria-label={loggedIn ? 'אזור אישי' : 'התחברות'}
+              title={loggedIn ? 'אזור אישי' : 'התחברות'}
             >
               <IconUser size={22} />
             </Link>

@@ -434,10 +434,7 @@ export default function SignupPage() {
 
   if (getToken() && state?.auth) {
     return (
-      <Navigate
-        to={homePathForRole(state.auth.role, state.subscribed, state.planId)}
-        replace
-      />
+      <Navigate to={homePathForRole(state.auth.role)} replace />
     );
   }
 

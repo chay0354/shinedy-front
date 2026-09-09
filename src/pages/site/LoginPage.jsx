@@ -3,7 +3,7 @@ import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { api } from '../../api';
 import { useApp } from '../../state/AppContext';
 import { applySessionFromResponse, getToken } from '../../lib/auth';
-import { homePathForRole, isStaff } from '../../lib/roles';
+import { homePathForRole } from '../../lib/roles';
 import { IconEye, IconEyeOff } from '../../components/icons';
 
 export default function LoginPage() {
@@ -12,8 +12,8 @@ export default function LoginPage() {
   const { state, run } = useApp();
   const navigate = useNavigate();
 
-  if (getToken() && isStaff(state)) {
-    return <Navigate to={homePathForRole(state.auth.role, state.subscribed, state.planId)} replace />;
+  if (getToken() && state?.auth?.userId) {
+    return <Navigate to={homePathForRole(state.auth.role)} replace />;
   }
 
   async function handleSubmit(e) {
@@ -28,7 +28,7 @@ export default function LoginPage() {
       return;
     }
     applySessionFromResponse(data);
-    navigate(homePathForRole(data.auth?.role, data.subscribed, data.planId));
+    navigate(homePathForRole(data.auth?.role));
   }
 
   return (
