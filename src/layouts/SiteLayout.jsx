@@ -54,15 +54,14 @@ export default function SiteLayout() {
   }, [location.pathname]);
 
   function accountPath() {
-    if (!getToken()) return '/login';
+    if (!getToken() || !state?.auth) return '/login';
     if (isAdmin(state)) return '/admin';
     if (isStaff(state)) return '/admin/warehouse';
-    if (!hasActivePlan(state)) return '/account/plans';
     return '/account/me';
   }
 
   function boxPath() {
-    if (!getToken()) return '/login';
+    if (!getToken() || !state?.auth) return '/login';
     if (isAdmin(state) || isStaff(state)) return accountPath();
     if (!hasActivePlan(state)) return '/account/plans';
     return '/box';
@@ -126,7 +125,7 @@ export default function SiteLayout() {
             <Link
               to={accountPath()}
               className="icon-link"
-              aria-label={getToken() ? 'האזור האישי שלי' : 'התחברות'}
+              aria-label={getToken() && state?.auth ? 'האזור האישי שלי' : 'התחברות'}
               title={userName ? `שלום, ${userName}` : 'התחברות'}
             >
               <IconUser size={22} />
