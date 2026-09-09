@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { api } from '../../api';
 import { useApp } from '../../state/AppContext';
 import { applySessionFromResponse } from '../../lib/auth';
 import { homePathForRole } from '../../lib/roles';
-import { nextAfterAuth } from '../../lib/verify';
+import { leaveVerification, nextAfterAuth } from '../../lib/verify';
 
 export default function VerifyEmailPage() {
   const { state, refresh } = useApp();
@@ -75,19 +75,24 @@ export default function VerifyEmailPage() {
             </div>
             {error && <p className="form-err">{error}</p>}
             {info && <p className="msg-ok">{info}</p>}
-            <button type="submit" className="btn btn-wide" disabled={busy || code.length !== 6}>
-              {busy ? 'מאמתת…' : 'אימות'}
-            </button>
+            <div className="signup-nav">
+              <button
+                type="button"
+                className="btn btn-outline"
+                disabled={busy}
+                onClick={() => leaveVerification({ refresh, navigate })}
+              >
+                חזרה
+              </button>
+              <button type="submit" className="btn btn-wide" disabled={busy || code.length !== 6}>
+                {busy ? 'מאמתת…' : 'אימות'}
+              </button>
+            </div>
           </form>
           <p className="form-note">
             <button type="button" className="link-gold" disabled={busy} onClick={resend}>
               שלחי קוד שוב
             </button>
-          </p>
-          <p className="form-note">
-            <Link to="/login" className="link-gold">
-              חזרה להתחברות
-            </Link>
           </p>
         </div>
       </div>
