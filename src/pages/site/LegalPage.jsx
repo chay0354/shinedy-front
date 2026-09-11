@@ -1,14 +1,14 @@
 import LegalDoc from '../../components/LegalDoc';
 import { PRIVACY, TERMS } from '../../lib/legal';
+import PageHead from '../../components/PageHead';
 
 export default function LegalPage({ kind }) {
   const data = kind === 'privacy' ? PRIVACY : TERMS;
   return (
     <>
-      <div className="page-head container">
-        <h1>{data.title}</h1>
+      <PageHead eyebrow="LEGAL" title={data.title}>
         <p>עודכן לאחרונה: {data.updated}</p>
-      </div>
+      </PageHead>
       <section className="section" style={{ paddingTop: 28 }}>
         <div className="container" style={{ maxWidth: 820 }}>
           <LegalDoc data={data} />

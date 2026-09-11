@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { useApp } from '../../state/AppContext';
 import { useFavorites } from '../../lib/favorites';
 import ProductCard from '../../components/ProductCard';
+import PageHead from '../../components/PageHead';
 
 export default function FavoritesPage() {
   const { state } = useApp();
@@ -11,10 +12,9 @@ export default function FavoritesPage() {
 
   return (
     <>
-      <div className="page-head container">
-        <h1>מועדפים</h1>
+      <PageHead eyebrow="WISHLIST" title="מועדפים">
         <p>התכשיטים שסימנת בלב — לחזרה מהירה כשתרצי להזמין.</p>
-      </div>
+      </PageHead>
 
       <section className="section" style={{ paddingTop: 36 }}>
         <div className="container">

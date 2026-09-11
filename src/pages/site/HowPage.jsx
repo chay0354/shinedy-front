@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { useApp } from '../../state/AppContext';
 import { getToken } from '../../lib/auth';
 import { hasActivePlan } from '../../lib/roles';
+import PageHead from '../../components/PageHead';
 import { IconBox, IconDiamond, IconList, IconNecklace } from '../../components/icons';
 
 const STEPS = [
@@ -27,10 +28,9 @@ export default function HowPage() {
 
   return (
     <>
-      <div className="page-head container">
-        <h1>איך זה עובד?</h1>
+      <PageHead eyebrow="HOW IT WORKS" title="איך זה עובד?">
         <p>פשוט. גמיש. מותאם לך.</p>
-      </div>
+      </PageHead>
 
       <section className="section" style={{ paddingTop: 48 }}>
         <div className="container">
@@ -60,6 +60,7 @@ export default function HowPage() {
       <section className="section alt">
         <div className="container" style={{ maxWidth: 900 }}>
           <div className="section-head">
+            <div className="section-eyebrow" dir="ltr">CREDITS</div>
             <h2>והקרדיטים?</h2>
             <p>
               לאורך המנוי נצברים לזכותך קרדיטים. התאהבת בתכשיט מסוים? אפשר להשתמש בקרדיטים להנחה ברכישתו — והוא
@@ -69,6 +70,7 @@ export default function HowPage() {
           {!loggedIn && (
             <>
           <div className="section-head" style={{ marginBottom: 20 }}>
+            <div className="section-eyebrow" dir="ltr">JOIN</div>
             <h2>תהליך ההצטרפות</h2>
             <p>כדי לשמור על התכשיטים ועל הלקוחות שלנו, ההצטרפות כוללת אימות קצר:</p>
           </div>

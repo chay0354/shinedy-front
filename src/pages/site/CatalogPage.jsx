@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useApp } from '../../state/AppContext';
 import ProductCard from '../../components/ProductCard';
+import PageHead from '../../components/PageHead';
 
 const CATALOG_TABS = [
   { id: 'הכל', label: 'כל הקולקציות' },
@@ -75,10 +76,9 @@ export default function CatalogPage() {
 
   return (
     <>
-      <div className="page-head container">
-        <h1>תכשיטים</h1>
-        {searchQ ? <p>תוצאות עבור «{searchQ}»</p> : null}
-      </div>
+      <PageHead eyebrow="THE COLLECTION" title="תכשיטים">
+        {searchQ ? <p>תוצאות עבור «{searchQ}»</p> : <p>בחרי מהקולקציה לפי נקודות — או רכישה מלאה.</p>}
+      </PageHead>
 
       <section className="section" style={{ paddingTop: 36 }}>
         <div className="container">

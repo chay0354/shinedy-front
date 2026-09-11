@@ -4,6 +4,7 @@ import { useApp } from '../../state/AppContext';
 import { getToken } from '../../lib/auth';
 import { activeUnits, exchangeBlocked, openReturns, planLatin, pointsUsed } from '../../lib/accountHelpers';
 import Art from '../../components/Art';
+import PageHead from '../../components/PageHead';
 
 export default function ExchangePage() {
   const { state, run } = useApp();
@@ -22,8 +23,7 @@ export default function ExchangePage() {
 
   if (blocked) {
     return (
-      <div className="page-head container" style={{ paddingBottom: 64 }}>
-        <h1>החלפת תכשיטים</h1>
+      <PageHead eyebrow="EXCHANGE" title="החלפת תכשיטים" mark={false}>
         <div className="blocked-panel">
           <p>
             <b>לא ניתן לבצע כרגע החלפה חדשה</b> מכיוון שההחזרה מההחלפה הקודמת עדיין לא הושלמה.
@@ -35,33 +35,29 @@ export default function ExchangePage() {
             </Link>
           </p>
         </div>
-      </div>
+      </PageHead>
     );
   }
 
   if (units.length === 0) {
     return (
-      <div className="page-head container" style={{ paddingBottom: 64 }}>
-        <h1>החלפת תכשיטים</h1>
+      <PageHead eyebrow="EXCHANGE" title="החלפת תכשיטים">
         <p>עדיין אין אצלך תכשיטים להחזרה — פשוט בוחרים מהקטלוג.</p>
-        <div style={{ marginTop: 24 }}>
-          <Link to="/catalog" className="btn">
-            לקטלוג התכשיטים
-          </Link>
-        </div>
-      </div>
+        <Link to="/catalog" className="btn">
+          לקטלוג התכשיטים
+        </Link>
+      </PageHead>
     );
   }
 
   return (
     <>
-      <div className="page-head container">
-        <h1>החלפת תכשיטים</h1>
+      <PageHead eyebrow="EXCHANGE" title="החלפת תכשיטים">
         <p>
           שלב 1: סמני אילו תכשיטים תרצי להחזיר — הנקודות שלהם משתחררות מיד.
           שלב 2: בוחרים חדשים בקטלוג. את המוחזרים מכניסים לנרתיק שמגיע עם המשלוח.
         </p>
-      </div>
+      </PageHead>
 
       <section className="section" style={{ paddingTop: 30 }}>
         <div className="container" style={{ maxWidth: 820 }}>

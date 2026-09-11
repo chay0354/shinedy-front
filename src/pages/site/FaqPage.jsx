@@ -1,12 +1,11 @@
 import { Link } from 'react-router-dom';
 import { FAQ } from '../../lib/site';
+import PageHead from '../../components/PageHead';
 
 export default function FaqPage() {
   return (
     <>
-      <div className="page-head container">
-        <h1>שאלות נפוצות</h1>
-      </div>
+      <PageHead eyebrow="FAQ" title="שאלות נפוצות" />
 
       <section className="section" style={{ paddingTop: 44 }}>
         <div className="container">

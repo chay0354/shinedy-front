@@ -7,6 +7,7 @@ import { hasActivePlan } from '../../lib/roles';
 import NoPointsOptions from '../../components/NoPointsOptions';
 import { exchangeBlocked, planLatin, pointsUsed } from '../../lib/accountHelpers';
 import Art from '../../components/Art';
+import PageHead from '../../components/PageHead';
 
 export default function CartPage() {
   const { state, run } = useApp();
@@ -22,30 +23,28 @@ export default function CartPage() {
 
   if (!loggedIn) {
     return (
-      <div className="page-head container" style={{ paddingBottom: 64 }}>
-        <h1>הקופסה שלי</h1>
+      <PageHead eyebrow="THE BOX" title="הקופסה שלי">
         <p>כדי למלא את הקופסה בתכשיטים, קודם מתחברות.</p>
-        <div style={{ marginTop: 24 }}>
+        <div className="page-head-actions">
           <Link to="/login" className="btn">
             התחברות
-          </Link>{' '}
-          <Link to="/signup" className="btn btn-outline" style={{ marginInlineStart: 10 }}>
+          </Link>
+          <Link to="/signup" className="btn btn-outline">
             הרשמה
           </Link>
         </div>
-      </div>
+      </PageHead>
     );
   }
 
   if (!hasActivePlan(state)) {
     return (
-      <div className="page-head container" style={{ paddingBottom: 64 }}>
-        <h1>הקופסה שלי</h1>
+      <PageHead eyebrow="THE BOX" title="הקופסה שלי">
         <p>כדי להזמין תכשיטים, קודם בוחרות מסלול.</p>
-        <Link to="/account/plans" className="btn" style={{ marginTop: 24 }}>
+        <Link to="/account/plans" className="btn">
           לבחירת מסלול
         </Link>
-      </div>
+      </PageHead>
     );
   }
 
@@ -58,26 +57,22 @@ export default function CartPage() {
 
   if (placed) {
     return (
-      <div className="page-head container" style={{ paddingBottom: 64 }}>
-        <h1>ההזמנה התקבלה! ✦</h1>
+      <PageHead eyebrow="THE BOX" title="ההזמנה התקבלה! ✦">
         <p>המחסן שלנו כבר מתחיל לארוז. אפשר לעקוב אחרי המשלוח באזור האישי.</p>
-        <div style={{ marginTop: 24 }}>
-          <Link to="/account/me" className="btn">
-            לאזור האישי
-          </Link>
-        </div>
-      </div>
+        <Link to="/account/me" className="btn">
+          לאזור האישי
+        </Link>
+      </PageHead>
     );
   }
 
   return (
     <>
-      <div className="page-head container">
-        <h1>הקופסה שלי</h1>
+      <PageHead eyebrow="THE BOX" title="הקופסה שלי">
         <p>
           {planLatin(state.plan)} · נוצלו {used} נק׳ · נותרו {state.pointsTotal - used} נק׳ לבחירה
         </p>
-      </div>
+      </PageHead>
 
       <section className="section" style={{ paddingTop: 36 }}>
         <div className="container" style={{ maxWidth: 820 }}>

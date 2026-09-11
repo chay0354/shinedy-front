@@ -9,6 +9,7 @@ import {
   publicCatalogPlans,
   subscribePlanId,
 } from '../../lib/plans';
+import PageHead from '../../components/PageHead';
 
 export default function PlansPage() {
   const { state, run, error } = useApp();
@@ -91,8 +92,7 @@ export default function PlansPage() {
 
   return (
     <>
-      <div className="page-head container">
-        <h1>מסלולי מנוי</h1>
+      <PageHead eyebrow="MEMBERSHIP" title="מסלולי מנוי">
         <p>
           {checkout
             ? `מסלול ${checkout.latin} · ממשיכים לפרטי הכרטיס`
@@ -102,7 +102,7 @@ export default function PlansPage() {
                 ? 'בחרי מסלול — ואז ממלאים את פרטי הכרטיס כמו בפתיחת חשבון'
                 : 'בחרי מסלול — כל בחירה מתחילה את אותה הרשמה'}
         </p>
-      </div>
+      </PageHead>
 
       <section className="section" style={{ paddingTop: 48 }}>
         <div className="container">

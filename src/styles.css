@@ -1,14 +1,16 @@
 /* ===== Shinedy — design system v3 (לפי מוקאפי העיצוב) ===== */
 :root {
-  --bg: #ffffff;
+  --bg: #fffefd;
   --cream: #faf6f0;
-  --cream-2: #f4ede3;
+  --cream-2: #f4eee5;
   --ink: #171310;
+  --charcoal: #443d34;
   --muted: #7a736a;
   --gold: #b49b73;
   --gold-dark: #9a815a;
   --gold-soft: #efe6d8;
-  --line: #e9e3d9;
+  --line: rgba(154, 129, 90, 0.25);
+  --line-solid: #e9e3d9;
   --danger: #a4483f;
   --font-body: 'Assistant', sans-serif;
   --font-display: 'Frank Ruhl Libre', serif;
@@ -26,10 +28,10 @@ body {
   line-height: 1.7;
 }
 
-h1, h2, h3, h4 { font-weight: 500; line-height: 1.25; letter-spacing: 0.01em; }
+h1, h2, h3, h4 { font-weight: 300; line-height: 1.25; letter-spacing: 0.01em; }
 h1 { font-size: clamp(2rem, 4.2vw, 3.1rem); }
-h2 { font-size: clamp(1.5rem, 3vw, 2.2rem); font-weight: 400; }
-h3 { font-size: 1.15rem; }
+h2 { font-size: clamp(1.5rem, 3vw, 2.2rem); font-weight: 300; }
+h3 { font-size: 1.15rem; font-weight: 500; }
 
 a { color: inherit; text-decoration: none; }
 img { max-width: 100%; display: block; }
@@ -45,9 +47,9 @@ button { font-family: inherit; cursor: pointer; }
 /* ===== header — שתי שורות: לוגו ממורכז + תפריט ===== */
 .site-header {
   position: sticky; top: 0; z-index: 50;
-  background: rgba(255, 255, 255, 0.97);
+  background: rgba(255, 254, 253, 0.98);
   backdrop-filter: blur(8px);
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid rgba(23, 19, 16, 0.06);
 }
 .header-top {
   display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
@@ -137,13 +139,26 @@ button { font-family: inherit; cursor: pointer; }
   color: var(--gold-dark); font-size: 10px; font-weight: 500;
   letter-spacing: 0.28em; margin-bottom: 9px;
 }
-.home-trust { display: none; }
+.section-head h2 { font-weight: 300; }
+.section-action { text-align: center; margin-top: 36px; }
+.section-action .btn-outline { min-width: 220px; }
+.home-trust {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  background: var(--bg); padding: 22px 18px;
+  border-bottom: 1px solid var(--line);
+  max-width: 1100px; margin: 0 auto;
+}
+.home-trust-item {
+  min-width: 0; display: grid; justify-items: center; gap: 8px;
+  text-align: center; padding: 0 12px; color: var(--charcoal);
+  font-size: 12px; line-height: 1.35;
+}
+.home-trust-item + .home-trust-item { border-inline-start: 1px solid var(--line); }
+.home-trust-item svg { color: var(--gold); width: 20px; height: 20px; }
 .brand-mark { display: flex; align-items: center; justify-content: center; gap: 16px; margin: 16px auto 0; max-width: 280px; }
 .brand-mark .ln { flex: 1; height: 1px; background: rgba(180, 155, 115, 0.45); }
 .brand-mark img { height: 36px; width: auto; }
 .cta-band .brand-mark { margin: 0 auto 22px; }
-.hb-text .brand-mark { margin: 26px auto 22px; max-width: 300px; }
-.hb-text .brand-mark img { height: 42px; }
 
 /* ===== how it works — עיגולי אייקונים ===== */
 .how-steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 28px; }
@@ -179,10 +194,11 @@ button { font-family: inherit; cursor: pointer; }
   letter-spacing: 0.08em; padding: 4px 18px; white-space: nowrap;
 }
 .plan-card .plan-name {
-  color: var(--ink); font-size: 1.05rem; letter-spacing: 0.24em; font-weight: 600;
+  color: var(--ink); font-size: 0.95rem; letter-spacing: 0.2em; font-weight: 500;
+  direction: ltr;
 }
 .plan-card.featured .plan-name { color: var(--gold-dark); }
-.plan-card .price { font-size: 2.6rem; font-weight: 400; margin-top: 12px; }
+.plan-card .price { font-size: 2.6rem; font-weight: 300; margin-top: 12px; }
 .plan-card .price small { font-size: 0.95rem; color: var(--muted); font-weight: 300; letter-spacing: 0.05em; }
 .plan-card .materials { color: var(--muted); font-size: 0.9rem; font-weight: 300; margin-top: 2px; }
 .plan-card ul { list-style: none; margin: 24px auto 28px; display: grid; gap: 10px; text-align: start; }
@@ -190,7 +206,11 @@ button { font-family: inherit; cursor: pointer; }
 .plan-card li::before {
   content: '✓'; position: absolute; inset-inline-start: 2px; color: var(--gold-dark); font-weight: 700;
 }
-.plan-card .btn { margin-top: auto; }
+.plan-card .btn { margin-top: auto; min-height: 45px; }
+.plan-card.featured .btn, .plan-card.featured .btn-tan {
+  background: var(--gold); border-color: var(--gold); color: #fff;
+}
+.plan-card.featured .btn:hover { background: var(--gold-dark); border-color: var(--gold-dark); color: #fff; }
 .plan-actions { display: grid; gap: 8px; margin-top: auto; }
 .plan-actions .btn { margin-top: 0; }
 .link-quiet {
@@ -243,7 +263,7 @@ button { font-family: inherit; cursor: pointer; }
   font-family: inherit; font-size: 0.9rem; color: var(--ink); border-radius: 0;
 }
 
-.products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr)); gap: 40px 26px; }
+.products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(240px, 100%), 1fr)); gap: 36px 22px; }
 .product-card { background: var(--bg); overflow: hidden; position: relative; }
 .product-card .art {
   background: var(--cream); aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
@@ -271,10 +291,10 @@ button { font-family: inherit; cursor: pointer; }
 .related-products h2 { text-align: center; margin-bottom: 28px; }
 .product-card .art svg { width: 56%; height: 56%; transition: transform 0.35s ease; }
 .product-card:hover .art svg { transform: scale(1.07); }
-.product-card .info { padding: 16px 6px 4px; text-align: center; }
+.product-card .info { padding: 14px 2px 4px; text-align: start; }
 .product-card .name { font-size: 1.04rem; font-weight: 500; }
 .product-card .meta { color: var(--muted); font-size: 0.87rem; margin-top: 2px; font-weight: 300; }
-.product-card .row { display: flex; justify-content: center; gap: 14px; align-items: center; margin-top: 8px; }
+.product-card .row { display: flex; justify-content: flex-start; gap: 10px; align-items: center; margin-top: 8px; flex-wrap: wrap; }
 .points-badge { color: var(--gold-dark); font-weight: 600; font-size: 0.92rem; letter-spacing: 0.03em; }
 .oos { color: var(--danger); font-size: 0.85rem; font-weight: 600; }
 
@@ -337,7 +357,7 @@ button { font-family: inherit; cursor: pointer; }
   width: 100%; max-width: 440px; margin: 0 auto; background: #fff;
   border: 1px solid var(--line); padding: 42px 38px;
 }
-.form-card h1 { font-size: 1.7rem; margin-bottom: 4px; text-align: center; }
+.form-card h1 { font-size: 1.7rem; margin-bottom: 4px; text-align: center; font-weight: 300; }
 .form-card .sub { color: var(--muted); margin-bottom: 26px; font-size: 0.95rem; font-weight: 300; text-align: center; }
 .field { margin-bottom: 16px; }
 .field label { display: block; font-weight: 500; font-size: 0.9rem; margin-bottom: 6px; }
@@ -465,85 +485,38 @@ button.link-gold { background: none; border: none; padding: 0; cursor: pointer; 
 .item-sub { color: var(--muted); font-size: 0.86rem; font-weight: 300; }
 .item-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 
-/* ===== full designed hero image ===== */
-/* ===== הירו: הצילום המקורי — אחד ושלם — כרקע על כל רוחב המסך =====
-   הדוגמנית משמאל בתוך הצילום; הטקסט (HTML חד) יושב מעל הקיר הנקי מימין.
-   בגריד RTL העמודה הראשונה היא הימנית: [שוליים][טקסט][הדוגמנית שבצילום] */
 .hero-band {
-  /* RTL: [שוליים גמישים מימין][טקסט][שוליים גמישים][אזור הדוגמנית ~46vw משמאל]
-     שני ה-1fr שווים ⇒ הטקסט ממורכז בין הדוגמנית לקצה הימני של העמוד */
-  display: grid; grid-template-columns: 1fr minmax(0, 640px) 1fr 46vw;
-  align-items: center; width: 100%; overflow: hidden; color: inherit;
-  /* עד תחתית המסך (ההדר 114px) — כך שהצילום ממשיך עד סוף המסך והחיתוך לא נראה בעין */
-  height: max(520px, calc(100vh - 114px));
-  background: url('/photos/hero-full2.jpg') left top / cover no-repeat;
+  display: flex; flex-direction: column; width: 100%; overflow: hidden;
+  background: var(--cream); color: inherit; text-decoration: none;
 }
-.hb-mobile { display: none; }
-.hb-art { display: none; }
-.hb-kicker-art { display: none; }
-.hb-text {
-  grid-column: 2; text-align: center; padding: 30px 0;
+.hb-art {
+  position: relative; overflow: hidden; height: min(62vh, 620px); background: var(--cream-2);
 }
-/* טיפוגרפיה אלגנטית בסגנון פאדני: משקל דק, אוויר, ריווח עדין — בלי סריף כבד */
+.hb-art img {
+  width: 100%; height: 100%; object-fit: cover; object-position: left center; display: block;
+}
 .hb-kicker {
-  display: block; color: var(--gold-dark); font-size: 13px; font-weight: 600;
-  letter-spacing: 0.38em; margin-bottom: 20px;
+  position: absolute; top: 28px; right: 32px;
+  color: var(--gold-dark); font-size: 11px; font-weight: 500; letter-spacing: 0.28em;
 }
+.hb-text { text-align: center; padding: 42px 24px 40px; max-width: 640px; margin: 0 auto; }
 .hb-text h1 {
-  /* שחור כהה וחד — לבקשת המשתמשת */
-  font-family: var(--font-body); font-weight: 400; color: var(--ink);
-  font-size: 46px; line-height: 1.45; letter-spacing: 0.015em; margin: 0;
-  -webkit-font-smoothing: antialiased;
+  font-family: var(--font-body); font-weight: 300; color: var(--ink);
+  font-size: clamp(32px, 4.4vw, 46px); line-height: 1.18; letter-spacing: 0.01em; margin: 0 0 14px;
 }
-.hb-divider { display: flex; align-items: center; gap: 18px; margin: 26px 0 22px; }
-.hb-divider .ln { flex: 1; height: 1px; background: rgba(180, 155, 115, 0.45); }
-.hb-divider img { height: 20px; width: auto; opacity: 0.85; }
 .hb-text p {
-  color: #443d34; font-weight: 400; font-size: 18px; line-height: 1.95; margin: 0 0 32px;
+  color: var(--charcoal); font-weight: 400; font-size: 16px; line-height: 1.6; margin: 0 auto 22px;
 }
-.hb-benefits {
-  display: flex; justify-content: center; align-items: stretch; margin-bottom: 36px;
-}
-.hb-benefit {
-  display: flex; flex-direction: column; align-items: center; gap: 12px;
-  color: var(--gold-dark); font-size: 14px; padding: 0 22px;
-}
-.hb-benefit + .hb-benefit { border-inline-start: 1px solid rgba(180, 155, 115, 0.4); }
-.hb-benefit span { color: #574e44; font-weight: 400; white-space: nowrap; letter-spacing: 0.02em; }
-.hb-benefit svg { opacity: 0.9; }
-.hb-cta { padding: 15px 56px; font-size: 16px; letter-spacing: 0.14em; font-weight: 500; }
-@media (max-width: 1150px) {
-  .hb-text h1 { font-size: 40px; }
-  .hb-benefit { padding: 0 14px; }
-}
+.hb-cta { min-height: 48px; padding: 13px 42px; letter-spacing: 0.04em; }
 @media (max-width: 900px) {
-  .hero-band {
-    display: flex; flex-direction: column; height: auto;
-    background: var(--cream); text-decoration: none; color: inherit;
-  }
-  .hb-art { display: block; position: relative; order: 1; overflow: hidden; height: min(405px, 72vw); }
-  .hb-mobile { display: block; width: 100%; height: 100%; object-fit: cover; object-position: left center; }
-  .hb-kicker-art {
-    display: block; position: absolute; top: 22px; right: 18px;
-    color: var(--gold-dark); font-size: 10px; font-weight: 500; letter-spacing: 0.28em;
-  }
-  .hb-kicker-text { display: none; }
-  .hb-text { order: 2; padding: 26px 22px 24px; max-width: none; margin: 0; }
-  .hb-text h1 { font-size: 34px; line-height: 1.14; font-weight: 300; }
-  .hb-text p { font-size: 15px; line-height: 1.55; margin: 0 auto 18px; }
-  .hb-text .brand-mark { display: none; }
-  .hb-benefits { display: none; }
-  .hb-cta { width: 100%; min-height: 48px; padding: 13px 18px; letter-spacing: 0.04em; }
-  .home-trust {
-    display: grid; grid-template-columns: repeat(4, 1fr);
-    background: #fff; padding: 16px 7px; border-bottom: 1px solid rgba(154, 129, 90, 0.25);
-  }
-  .home-trust-item {
-    min-width: 0; display: grid; justify-items: center; gap: 6px;
-    text-align: center; padding: 0 4px; color: #443d34; font-size: 9.5px; line-height: 1.25;
-  }
-  .home-trust-item + .home-trust-item { border-inline-start: 1px solid rgba(154, 129, 90, 0.25); }
-  .home-trust-item svg { color: var(--gold); }
+  .hb-art { height: min(405px, 72vw); }
+  .hb-kicker { top: 22px; right: 18px; font-size: 10px; }
+  .hb-text { padding: 26px 22px 24px; max-width: none; }
+  .hb-text h1 { font-size: 34px; }
+  .hb-text p { font-size: 15px; margin-bottom: 18px; }
+  .hb-cta { width: 100%; }
+  .home-trust { padding: 16px 7px; max-width: none; }
+  .home-trust-item { font-size: 9.5px; padding: 0 4px; gap: 6px; }
 }
 
 /* ===== points bar (מונה נקודות קבוע) ===== */
@@ -1121,17 +1094,31 @@ button.link-gold { background: none; border: none; padding: 0; cursor: pointer; 
 }
 
 /* ===== misc ===== */
-.page-head { text-align: center; padding: 64px 0 6px; }
+.page-head {
+  text-align: center; padding: 52px 0 36px;
+  background: var(--cream); border-bottom: 1px solid var(--line);
+}
+.page-head h1 { font-weight: 300; }
 .page-head p { color: var(--muted); max-width: 640px; margin: 12px auto 0; font-weight: 300; }
+.page-head .brand-mark { margin-top: 14px; }
+.page-head .btn { margin-top: 22px; }
+.page-head-actions { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-top: 22px; }
+.page-head-actions .btn { margin-top: 0; }
+.page-head .blocked-panel { max-width: 640px; margin: 18px auto 0; text-align: start; }
 .prose { display: grid; gap: 16px; color: var(--muted); font-weight: 300; }
 .prose strong { color: var(--ink); font-weight: 600; }
 .cta-band {
-  position: relative; text-align: center; padding: 100px 24px;
-  background-size: cover; background-position: center; color: var(--ink);
+  position: relative; text-align: center; padding: 88px 24px; color: var(--ink);
+  background:
+    radial-gradient(circle at 12% 18%, rgba(255,255,255,.75), transparent 32%),
+    radial-gradient(circle at 80% 70%, rgba(188,174,153,.28), transparent 38%),
+    linear-gradient(120deg, #eee9df, #dcd4c8 52%, #f5f1eb);
 }
-.cta-band .tagline { letter-spacing: 0.4em; color: var(--gold-dark); font-size: 0.85rem; font-weight: 600; margin-bottom: 14px; }
-.cta-band h2 { margin-bottom: 10px; }
-.cta-band p { color: var(--muted); margin-bottom: 30px; font-weight: 300; }
+.cta-band .tagline,
+.cta-band .section-eyebrow { letter-spacing: 0.28em; color: var(--gold-dark); font-size: 10px; font-weight: 500; margin-bottom: 14px; }
+.cta-band h2 { margin-bottom: 10px; font-weight: 300; }
+.cta-band p { color: var(--muted); margin-bottom: 22px; font-weight: 300; font-size: 15px; }
+.cta-band .btn { min-height: 48px; min-width: 190px; }
 .back-link { color: var(--muted); font-size: 0.93rem; display: inline-block; margin-bottom: 24px; }
 .back-link:hover { color: var(--gold-dark); }
 
@@ -1274,16 +1261,9 @@ button.link-gold { background: none; border: none; padding: 0; cursor: pointer; 
   .plan-card .btn { width: 100%; min-height: 45px; }
   .plan-card.featured .btn { background: var(--gold); border-color: var(--gold); color: #fff; }
   .plans-note-line { margin-top: 18px; font-size: 12px; }
-  .cta-band {
-    padding: 62px 24px;
-    background-image:
-      radial-gradient(circle at 12% 18%, rgba(255,255,255,.75), transparent 32%),
-      radial-gradient(circle at 80% 70%, rgba(188,174,153,.28), transparent 38%),
-      linear-gradient(120deg, #eee9df, #dcd4c8 52%, #f5f1eb) !important;
-  }
-  .cta-band h2 { font-size: 30px; font-weight: 300; }
-  .cta-band p { font-size: 14px; margin-bottom: 20px; }
-  .cta-band .btn { width: 190px; min-height: 48px; }
+  .cta-band { padding: 62px 24px; }
+  .cta-band h2 { font-size: 30px; }
+  .cta-band p { font-size: 14px; }
   .site-header.is-auth .nav-toggle,
   .site-header.is-auth .main-nav { display: none; }
   .auth-photo { display: none; }
@@ -1391,7 +1371,7 @@ button.link-gold { background: none; border: none; padding: 0; cursor: pointer; 
 .signup-card {
   background: #fff; border: 1px solid var(--line); padding: 36px 34px 42px;
 }
-.signup-card h1 { font-size: 1.7rem; margin-bottom: 4px; text-align: center; }
+.signup-card h1 { font-size: 1.7rem; margin-bottom: 4px; text-align: center; font-weight: 300; }
 .signup-card .sub { color: var(--muted); margin-bottom: 22px; text-align: center; font-weight: 300; }
 .signup-steps {
   display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px;

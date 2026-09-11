@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { api } from '../../api';
 import { SERVICE_EMAIL, SERVICE_PHONE, SERVICE_PHONE_TEL } from '../../lib/contact';
 import { IconClock, IconMail, IconPhone } from '../../components/icons';
+import PageHead from '../../components/PageHead';
 
 export default function ContactPage() {
   const [sent, setSent] = useState(false);
@@ -25,10 +26,9 @@ export default function ContactPage() {
 
   return (
     <>
-      <div className="page-head container">
-        <h1>יצירת קשר</h1>
+      <PageHead eyebrow="CONTACT" title="יצירת קשר">
         <p>אנחנו כאן לעזור</p>
-      </div>
+      </PageHead>
 
       <section className="section" style={{ paddingTop: 44 }}>
         <div className="container">

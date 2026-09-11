@@ -1,15 +1,17 @@
 import { IconDiamond, IconInfinity, IconUser } from '../../components/icons';
+import PageHead from '../../components/PageHead';
 
 export default function AboutPage() {
   return (
-    <section className="section">
+    <>
+    <PageHead eyebrow="ABOUT" title="אודות Shinedy" />
+    <section className="section" style={{ paddingTop: 48 }}>
       <div className="container">
         <div className="about-split">
           <div className="photo">
             <img src="/photos/pearls.jpg" alt="שרשרת פנינים עם סמל Shinedy" />
           </div>
           <div>
-            <h1 style={{ marginBottom: 18 }}>אודות Shinedy</h1>
             <div className="prose">
               <p>
                 <strong>Shinedy נולדה מתוך אהבה לעולם התכשיטים</strong> — ומתוך רעיון פשוט: למה לקנות תכשיט אחד,
@@ -46,5 +48,6 @@ export default function AboutPage() {
         </div>
       </div>
     </section>
+    </>
   );
 }
