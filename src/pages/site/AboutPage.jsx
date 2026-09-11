@@ -1,5 +1,6 @@
 import { IconDiamond, IconInfinity, IconUser } from '../../components/icons';
 import PageHead from '../../components/PageHead';
+import HeroArt from '../../components/HeroArt';
 
 export default function AboutPage() {
   return (
@@ -8,8 +9,8 @@ export default function AboutPage() {
     <section className="section" style={{ paddingTop: 48 }}>
       <div className="container">
         <div className="about-split">
-          <div className="photo">
-            <img src="/photos/pearls.jpg" alt="שרשרת פנינים עם סמל Shinedy" />
+          <div className="photo about-hero-art">
+            <HeroArt />
           </div>
           <div>
             <div className="prose">

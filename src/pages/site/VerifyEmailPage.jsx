@@ -5,6 +5,7 @@ import { useApp } from '../../state/AppContext';
 import { applySessionFromResponse } from '../../lib/auth';
 import { homePathForRole } from '../../lib/roles';
 import { leaveVerification, nextAfterAuth } from '../../lib/verify';
+import HeroArt from '../../components/HeroArt';
 
 export default function VerifyEmailPage() {
   const { state, refresh } = useApp();
@@ -96,12 +97,9 @@ export default function VerifyEmailPage() {
           </p>
         </div>
       </div>
-      <div
-        className="auth-photo"
-        style={{ backgroundImage: 'url(/photos/bag.jpg)' }}
-        role="img"
-        aria-label="שקית מתנה של Shinedy"
-      />
+      <div className="auth-photo">
+        <HeroArt />
+      </div>
     </div>
   );
 }

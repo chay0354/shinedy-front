@@ -5,6 +5,7 @@ import { hasActivePlan } from '../../lib/roles';
 import { publicCatalogPlans } from '../../lib/plans';
 import ProductCard from '../../components/ProductCard';
 import BrandMark from '../../components/BrandMark';
+import HeroArt from '../../components/HeroArt';
 import { IconDiamond, IconRefresh, IconShield, IconTruck } from '../../components/icons';
 
 const HERO_BENEFITS = [
@@ -30,12 +31,7 @@ export default function HomePage() {
   return (
     <>
       <HeroTag {...heroProps}>
-        <div className="hb-art">
-          <img src="/photos/hero-full2.jpg" alt="" />
-          <span className="hb-kicker" dir="ltr">
-            NEW LOOK. SAME YOU.
-          </span>
-        </div>
+        <HeroArt />
         <div className="hb-text">
           <h1>
             תכשיטים יוקרתיים.

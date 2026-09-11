@@ -11,6 +11,7 @@ import { homePathForRole } from '../../lib/roles';
 import { PRIVACY, TERMS } from '../../lib/legal';
 import LegalDoc from '../../components/LegalDoc';
 import SignaturePad from '../../components/SignaturePad';
+import HeroArt from '../../components/HeroArt';
 
 const STEPS = ['פרטים', 'אימות טלפון', 'אימות מייל', 'בחירת מסלול', 'תקנון', 'חתימה', 'תשלום'];
 const STEP = {
@@ -845,12 +846,9 @@ export default function SignupPage() {
         </div>
       </div>
       {step === STEP.details && (
-        <div
-          className="auth-photo"
-          style={{ backgroundImage: 'url(/photos/bag.jpg)' }}
-          role="img"
-          aria-label="שקית מתנה של Shinedy"
-        />
+        <div className="auth-photo">
+          <HeroArt />
+        </div>
       )}
     </div>
   );

@@ -6,6 +6,7 @@ import { applySessionFromResponse } from '../../lib/auth';
 import { homePathForRole } from '../../lib/roles';
 import { leaveVerification } from '../../lib/verify';
 import { toLocalIl } from '../../lib/phone';
+import HeroArt from '../../components/HeroArt';
 
 export default function VerifyPhonePage() {
   const { state, refresh } = useApp();
@@ -108,12 +109,9 @@ export default function VerifyPhonePage() {
           </p>
         </div>
       </div>
-      <div
-        className="auth-photo"
-        style={{ backgroundImage: 'url(/photos/bag.jpg)' }}
-        role="img"
-        aria-label="שקית מתנה של Shinedy"
-      />
+      <div className="auth-photo">
+        <HeroArt />
+      </div>
     </div>
   );
 }

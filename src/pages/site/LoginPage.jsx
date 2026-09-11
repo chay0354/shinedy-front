@@ -5,6 +5,7 @@ import { useApp } from '../../state/AppContext';
 import { applySessionFromResponse, getToken } from '../../lib/auth';
 import { homePathForRole } from '../../lib/roles';
 import { IconEye, IconEyeOff } from '../../components/icons';
+import HeroArt from '../../components/HeroArt';
 
 export default function LoginPage() {
   const [error, setError] = useState('');
@@ -87,12 +88,9 @@ export default function LoginPage() {
           </p>
         </div>
       </div>
-      <div
-        className="auth-photo"
-        style={{ backgroundImage: 'url(/photos/bag.jpg)' }}
-        role="img"
-        aria-label="שקית מתנה של Shinedy"
-      />
+      <div className="auth-photo">
+        <HeroArt />
+      </div>
     </div>
   );
 }
