@@ -39,9 +39,14 @@ export default function HomePage() {
   return (
     <>
       <HeroTag {...heroProps}>
-        <img className="hb-mobile" src="/photos/hero-full2.jpg" alt="" />
+        <div className="hb-art">
+          <img className="hb-mobile" src="/photos/hero-full2.jpg" alt="" />
+          <span className="hb-kicker hb-kicker-art" dir="ltr">
+            NEW LOOK. SAME YOU.
+          </span>
+        </div>
         <div className="hb-text">
-          <span className="hb-kicker" dir="ltr">
+          <span className="hb-kicker hb-kicker-text" dir="ltr">
             NEW LOOK. SAME YOU.
           </span>
           <h1>
@@ -64,18 +69,28 @@ export default function HomePage() {
             ))}
           </div>
           {loggedIn ? (
-            <Link to={memberHref} className="btn btn-tan hb-cta">
+            <Link to={memberHref} className="btn hb-cta">
               {subscribed ? 'לקטלוג התכשיטים' : 'לבחירת מסלול'}
             </Link>
           ) : (
-            <span className="btn btn-tan hb-cta">אני רוצה להתחיל</span>
+            <span className="btn hb-cta">אני רוצה להתחיל</span>
           )}
         </div>
       </HeroTag>
 
+      <section className="home-trust" aria-label="יתרונות השירות">
+        {HERO_BENEFITS.map((b) => (
+          <div className="home-trust-item" key={b.t}>
+            <b.icon size={18} />
+            <span>{b.t}</span>
+          </div>
+        ))}
+      </section>
+
       <section className="section">
         <div className="container">
           <div className="section-head">
+            <div className="section-eyebrow" dir="ltr">THE COLLECTION</div>
             <h2>מהקטלוג שלנו</h2>
             <BrandMark />
             <p>טעימה קטנה ממה שמחכה לך בפנים.</p>
@@ -97,7 +112,8 @@ export default function HomePage() {
       <section className="section alt">
         <div className="container">
           <div className="section-head">
-            <h2>מסלולי מנוי</h2>
+            <div className="section-eyebrow" dir="ltr">MEMBERSHIP</div>
+            <h2>מסלולי המנוי</h2>
             <BrandMark />
             <p>בחרי את המסלול שהכי מתאים לך — אפשר לשדרג או לבטל בכל עת.</p>
           </div>

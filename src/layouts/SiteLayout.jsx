@@ -71,6 +71,9 @@ export default function SiteLayout() {
     <>
       <ScrollToTop />
       <header className={`site-header${isAuthPage ? ' is-auth' : ''}${navOpen ? ' nav-open' : ''}`}>
+        {!isAuthPage && (
+          <div className="site-topline">מנוי חודשי · החלפה חופשית · משלוח עד הבית</div>
+        )}
         <div className={`header-top${searchOpen ? ' search-open' : ''}`}>
           <button
             type="button"
@@ -110,7 +113,7 @@ export default function SiteLayout() {
             ) : (
               <button
                 type="button"
-                className="icon-link"
+                className="icon-link desktop-only-icon"
                 aria-label="חיפוש"
                 title="חיפוש"
                 onClick={() => setSearchOpen(true)}
@@ -118,19 +121,19 @@ export default function SiteLayout() {
                 <IconSearch size={22} />
               </button>
             )}
-            <Link to="/favorites" className="icon-link" aria-label="מועדפים" title="מועדפים">
+            <Link to="/favorites" className="icon-link desktop-only-icon" aria-label="מועדפים" title="מועדפים">
               <IconHeart size={22} filled={favCount > 0} />
               {favCount > 0 && <span className="badge-count">{favCount}</span>}
             </Link>
             <Link
               to={accountPath()}
-              className="icon-link"
+              className="icon-link desktop-only-icon"
               aria-label={loggedIn ? 'אזור אישי' : 'התחברות'}
               title={loggedIn ? 'אזור אישי' : 'התחברות'}
             >
               <IconUser size={22} />
             </Link>
-            <Link to={boxPath()} className="icon-link" aria-label="הקופסה שלי" title="הקופסה שלי">
+            <Link to={boxPath()} className="icon-link icon-bag" aria-label="הקופסה שלי" title="הקופסה שלי">
               <IconBag size={22} />
               {cartCount > 0 && <span className="badge-count">{cartCount}</span>}
             </Link>
@@ -142,6 +145,28 @@ export default function SiteLayout() {
               {n.label}
             </NavLink>
           ))}
+          <div className="nav-extra">
+            <form
+              className="header-search nav-search"
+              onSubmit={(e) => {
+                e.preventDefault();
+                const q = searchQ.trim();
+                setNavOpen(false);
+                navigate(q ? `/catalog?q=${encodeURIComponent(q)}` : '/catalog');
+              }}
+            >
+              <input
+                type="search"
+                placeholder="חיפוש תכשיט..."
+                value={searchQ}
+                onChange={(e) => setSearchQ(e.target.value)}
+                aria-label="חיפוש בקטלוג"
+              />
+            </form>
+            <NavLink to="/favorites">מועדפים{favCount > 0 ? ` (${favCount})` : ''}</NavLink>
+            <NavLink to={accountPath()}>{loggedIn ? (userName ? `שלום, ${userName}` : 'אזור אישי') : 'התחברות'}</NavLink>
+            {!loggedIn && <NavLink to="/signup">הרשמה</NavLink>}
+          </div>
         </nav>
         <PointsBar />
       </header>
@@ -152,55 +177,62 @@ export default function SiteLayout() {
 
       <footer className="site-footer">
         <div className="container">
-          <div>
+          <div className="footer-brand">
             <img src="/brand/name-white.png" alt="SHINEDY" />
-            <p style={{ fontSize: '0.93rem', maxWidth: 320, fontWeight: 300 }}>
+            <p>
               תכשיטים יוקרתיים במודל מנוי — בוחרות, עונדות, מחליפות.
               <br />
               NEW LOOK. SAME YOU.
             </p>
           </div>
-          <div>
-            <h4>עלינו</h4>
-            <Link to="/how">איך זה עובד</Link>
-            {!loggedIn && <Link to="/plans">מסלולי מנוי</Link>}
-            <Link to="/catalog">תכשיטים</Link>
-            <Link to="/about">אודות</Link>
-          </div>
-          <div>
-            <h4>חשבון</h4>
-            {loggedIn ? (
-              <>
-                <Link to={accountPath()}>אזור אישי</Link>
-                <Link to={boxPath()}>הקופסה שלי</Link>
-              </>
-            ) : (
-              <>
-                <Link to="/signup">הרשמה</Link>
-                <Link to="/login">התחברות</Link>
-              </>
-            )}
-          </div>
-          <div>
-            <h4>משפטי</h4>
-            <Link to="/terms">תקנון והסכם מנוי</Link>
-            <Link to="/privacy">מדיניות פרטיות</Link>
-          </div>
-          <div>
-            <h4>צריכים עזרה</h4>
-            <Link to="/contact">צור קשר</Link>
-            <Link to="/faq">שאלות נפוצות</Link>
-            <a href={`tel:${SERVICE_PHONE_TEL}`} dir="ltr">{SERVICE_PHONE}</a>
-            <a href={`mailto:${SERVICE_EMAIL}`} dir="ltr">{SERVICE_EMAIL}</a>
-            <p className="footer-follow">עקבו אחרינו</p>
-            <div className="footer-socials">
-              <a href={INSTAGRAM_URL} target="_blank" rel="noreferrer" aria-label="Instagram">
-                <IconInstagram size={22} />
-              </a>
-              <a href={FACEBOOK_URL} target="_blank" rel="noreferrer" aria-label="Facebook">
-                <IconFacebook size={22} />
-              </a>
+          <details className="footer-group">
+            <summary>עלינו</summary>
+            <div className="footer-links">
+              <Link to="/how">איך זה עובד</Link>
+              {!loggedIn && <Link to="/plans">מסלולי מנוי</Link>}
+              <Link to="/catalog">תכשיטים</Link>
+              <Link to="/about">אודות</Link>
             </div>
+          </details>
+          <details className="footer-group">
+            <summary>חשבון</summary>
+            <div className="footer-links">
+              {loggedIn ? (
+                <>
+                  <Link to={accountPath()}>אזור אישי</Link>
+                  <Link to={boxPath()}>הקופסה שלי</Link>
+                </>
+              ) : (
+                <>
+                  <Link to="/signup">הרשמה</Link>
+                  <Link to="/login">התחברות</Link>
+                </>
+              )}
+            </div>
+          </details>
+          <details className="footer-group">
+            <summary>משפטי</summary>
+            <div className="footer-links">
+              <Link to="/terms">תקנון והסכם מנוי</Link>
+              <Link to="/privacy">מדיניות פרטיות</Link>
+            </div>
+          </details>
+          <details className="footer-group">
+            <summary>צריכים עזרה</summary>
+            <div className="footer-links">
+              <Link to="/contact">צור קשר</Link>
+              <Link to="/faq">שאלות נפוצות</Link>
+              <a href={`tel:${SERVICE_PHONE_TEL}`} dir="ltr">{SERVICE_PHONE}</a>
+              <a href={`mailto:${SERVICE_EMAIL}`} dir="ltr">{SERVICE_EMAIL}</a>
+            </div>
+          </details>
+          <div className="footer-socials">
+            <a href={INSTAGRAM_URL} target="_blank" rel="noreferrer" aria-label="Instagram">
+              <IconInstagram size={22} />
+            </a>
+            <a href={FACEBOOK_URL} target="_blank" rel="noreferrer" aria-label="Facebook">
+              <IconFacebook size={22} />
+            </a>
           </div>
         </div>
         <div className="fine">© Shinedy 2026 · כל הזכויות שמורות</div>
