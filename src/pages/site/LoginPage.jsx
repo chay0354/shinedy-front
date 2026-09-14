@@ -25,7 +25,7 @@ export default function LoginPage() {
     setError('');
     const data = await run(() => api.login({ email, password }));
     if (!data) {
-      setError('פרטי התחברות שגויים');
+      setError('פרטי ההתחברות שגויים או שהשרת לא אישר את הכניסה');
       return;
     }
     applySessionFromResponse(data);

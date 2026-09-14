@@ -20,10 +20,14 @@ export function RequireRole({ role, roles, children }) {
   }
 
   const userRole = state?.auth?.role;
-  if (!userRole || !allowed.includes(userRole)) {
-    if (!userRole) {
-      return <Navigate to="/login" replace />;
-    }
+  if (!userRole) {
+    return (
+      <div className="app-shell">
+        <div className="loading">טוען…</div>
+      </div>
+    );
+  }
+  if (!allowed.includes(userRole)) {
     return <Navigate to={homePathForRole(userRole)} replace />;
   }
 
