@@ -44,7 +44,9 @@ async function request(path, options = {}) {
           : 'הפעולה לא זמינה כרגע. נסי שוב בעוד רגע.',
       );
     }
-    throw new Error(heError(data.error, 'הפעולה נכשלה. נסי שוב'));
+    const err = new Error(heError(data.error, 'הפעולה נכשלה. נסי שוב'));
+    err.status = res.status;
+    throw err;
   }
   return data;
 }

@@ -36,11 +36,16 @@ import SettingsAdminPage from './pages/admin/SettingsAdminPage';
 import CustomerProfilePage from './pages/admin/CustomerProfilePage';
 
 export default function App() {
-  const { loading, error, setError } = useApp();
+  const { loading, error, setError, state } = useApp();
 
-  if (loading) {
+  if (loading && !state) {
     return (
       <div className="app-shell">
+        {error && (
+          <div className="error-banner" onClick={() => setError(null)} style={{ cursor: 'pointer' }}>
+            {error}
+          </div>
+        )}
         <div className="loading">טוען…</div>
       </div>
     );

@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { api } from '../api';
-import { applySessionFromResponse } from '../lib/auth';
+import { applySessionFromResponse, clearSession } from '../lib/auth';
 import { heError } from '../lib/heError';
 
 const AppContext = createContext(null);
@@ -16,6 +16,7 @@ export function AppProvider({ children }) {
       setState(data);
       setError(null);
     } catch (e) {
+      if (e.status === 401) clearSession();
       setError(heError(e.message));
     } finally {
       setLoading(false);
