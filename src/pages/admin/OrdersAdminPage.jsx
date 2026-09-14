@@ -1,7 +1,10 @@
 import { useApp } from '../../state/AppContext';
+import { buildDbFromState } from '../../lib/dbFromState';
+import AdminUserCell from '../../components/AdminUserCell.jsx';
 
 export default function OrdersAdminPage() {
   const { state } = useApp();
+  const db = buildDbFromState(state);
 
   return (
     <>
@@ -22,15 +25,18 @@ export default function OrdersAdminPage() {
             </tr>
           </thead>
           <tbody>
-            {state.orders.map((o) => (
-              <tr key={o.id}>
-                <td>{o.id}</td>
-                <td>{o.type}</td>
-                <td>{o.customerName}</td>
-                <td>{o.itemsLabel}</td>
-                <td>{o.status}</td>
-              </tr>
-            ))}
+            {state.orders.map((o) => {
+              const u = db.users.find((x) => x.id === o.userId) || db.users.find((x) => x.name === o.customerName)
+              return (
+                <tr key={o.id}>
+                  <td>{o.id}</td>
+                  <td>{o.type}</td>
+                  <td><AdminUserCell db={db} user={u} name={o.customerName} /></td>
+                  <td>{o.itemsLabel}</td>
+                  <td>{o.status}</td>
+                </tr>
+              )
+            })}
           </tbody>
         </table>
       )}

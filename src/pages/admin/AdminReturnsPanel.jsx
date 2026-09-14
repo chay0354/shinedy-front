@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { daysSince, heDate, shipmentOf, useAdminDb } from '../../lib/useAdminDb.js'
 import Art from '../../components/Art.jsx'
+import AdminUserCell from '../../components/AdminUserCell.jsx'
 
 const FILTERS = [
   { id: 'attention', label: 'דורשות טיפול' },
@@ -107,9 +108,8 @@ export default function Returns({ embedded }) {
                   <tr key={r.id}>
                     <td dir="ltr">{r.id}</td>
                     <td>
-                      {u ? u.name : '—'}<br />
-                      <span className="cell-sub" dir="ltr">{u ? u.phone : ''}</span><br />
-                      <span className="cell-sub" dir="ltr">{u ? u.email : ''}</span>
+                      <AdminUserCell db={db} user={u} />
+                      {u?.email ? <><br /><span className="cell-sub" dir="ltr">{u.email}</span></> : null}
                     </td>
                     <td dir="ltr">{r.orderId}<br /><span className="cell-sub">{heDate(r.createdAt)}</span></td>
                     <td className={overdue ? 'overdue-cell' : ''}>{heDate(r.deadline)}</td>

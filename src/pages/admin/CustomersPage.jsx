@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { activeItems, heDate, isActiveSubscriber, openReturnsFor, planOf, pointsUsed, useAdminDb } from '../../lib/useAdminDb.js'
+import AdminUserCell from '../../components/AdminUserCell.jsx'
 
 export default function Customers() {
   const { db } = useAdminDb()
@@ -39,7 +40,7 @@ export default function Customers() {
                 const openRet = openReturnsFor(db, u.id).length
                 return (
                   <tr key={u.id}>
-                    <td><Link className="cust-link" to={`/admin/customers/${u.id}`}>{u.name}</Link></td>
+                    <td><AdminUserCell db={db} user={u} /></td>
                     <td dir="ltr">{u.phone}</td>
                     <td dir="ltr">{u.email}</td>
                     <td>{plan.latin} · ₪{plan.price}</td>

@@ -48,7 +48,7 @@ export default function CustomerProfile() {
     .filter(Boolean).join(', ')
 
   // כל היחידות שאי פעם היו אצלה — עם תקופת ההשכרה
-  const rentalRows = orders.flatMap((o) => o.items.map((it) => {
+  const rentalRows = orders.flatMap((o) => (o.items || []).map((it) => {
     const p = db.products.find((x) => x.id === it.pid)
     return {
       key: o.id + it.serial, order: o, product: p, serial: it.serial,
@@ -84,7 +84,14 @@ export default function CustomerProfile() {
       </p>
 
       <div className="admin-head-row">
-        <h1>{u.name}</h1>
+        <div>
+          <h1>{u.name}</h1>
+          <p className="admin-sub" style={{ margin: '4px 0 0' }}>
+            {plan?.latin || plan?.name || ''}
+            {(plan?.latin || plan?.name) && u.phone ? ' · ' : ''}
+            {u.phone ? <span dir="ltr">{u.phone}</span> : null}
+          </p>
+        </div>
         <div style={{ display: 'flex', gap: 8 }}>
           {u.canceledAt
             ? <span className="pill warn">עזבה {heDate(u.canceledAt)}</span>

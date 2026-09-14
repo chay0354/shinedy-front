@@ -642,17 +642,35 @@ button.link-gold { background: none; border: none; padding: 0; cursor: pointer; 
 .slip-items th { font-weight: 600; background: var(--cream); }
 .slip-items td:first-child { color: var(--ink); width: auto; }
 .slip-items-title { text-align: start; font-weight: 600; font-size: 0.92rem; margin: 12px 0 6px; }
-.slip-qr { margin: 10px auto 4px; width: 170px; height: 170px; }
+.slip-qr { margin: 10px auto 4px; display: flex; justify-content: center; }
 .slip-foot { color: var(--muted); font-size: 0.82rem; margin-bottom: 16px; }
 .slip-actions { display: flex; gap: 10px; justify-content: center; }
 
 @media print {
-  /* הדפסת פתק ליקוט: כשהפתק פתוח — מדפיסים רק אותו */
+  /* הדפסת פתק ליקוט: כשהפתק פתוח — מדפיסים רק את הברקוד */
   body.has-slip * { visibility: hidden; }
+  body.has-slip .slip-overlay,
+  body.has-slip .slip,
+  body.has-slip .slip-qr,
+  body.has-slip .slip-qr * { visibility: visible; }
   body.has-slip .slip-overlay { position: absolute; inset: 0; background: #fff; padding: 0; }
-  body.has-slip .slip, body.has-slip .slip * { visibility: visible; }
-  body.has-slip .slip { width: 100%; box-shadow: none; }
-  .slip-actions { display: none; }
+  body.has-slip .slip {
+    width: 100%;
+    min-height: 100vh;
+    box-shadow: none;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  body.has-slip .slip-brand,
+  body.has-slip .slip-title,
+  body.has-slip .slip-table,
+  body.has-slip .slip-items-title,
+  body.has-slip .slip-foot,
+  body.has-slip .slip-actions { display: none !important; }
+  body.has-slip .slip-qr { margin: 0; width: auto; height: auto; }
+  body.has-slip .slip-qr svg { width: 72mm; height: 72mm; }
   /* הדפסת דוח: מסתירים את סרגלי הניהול והכפתורים */
   body:not(.has-slip) .admin-bar,
   body:not(.has-slip) .admin-tabs,

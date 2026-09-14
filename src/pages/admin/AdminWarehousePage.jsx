@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom'
 import { QRCodeSVG } from 'qrcode.react'
 import { planOf, heDate, useAdminDb } from '../../lib/useAdminDb.js'
 import { courierActionLabel, resolveCourierJob } from '../../lib/courierJob.js'
+import AdminUserCell from '../../components/AdminUserCell.jsx'
 import Returns from './AdminReturnsPanel.jsx'
 
 function orderPill(status) {
@@ -49,7 +50,7 @@ function Slip({ order, db, onClose }) {
         <table className="slip-table slip-items">
           <thead><tr><th>תכשיט</th><th>מספר פריט</th><th>נק׳</th></tr></thead>
           <tbody>
-            {order.items.map((it) => {
+            {(order.items || []).map((it) => {
               const p = db.products.find((x) => x.id === it.pid)
               return (
                 <tr key={it.serial}>
@@ -79,12 +80,12 @@ function Slip({ order, db, onClose }) {
             </table>
           </>
         )}
-        <div className="slip-qr" style={{ display: 'flex', justifyContent: 'center', padding: 12 }}>
-          <QRCodeSVG value={payload} size={180} includeMargin />
+        <div className="slip-qr">
+          <QRCodeSVG value={payload} size={220} includeMargin />
         </div>
-        <div className="slip-foot">להדפיס, להכניס לנרתיק ולסרוק בקבלת ההחזרה</div>
+        <div className="slip-foot">בהדפסה יוצא רק הברקוד — להכניס לנרתיק ולסרוק בקבלת ההחזרה</div>
         <div className="slip-actions">
-          <button className="btn btn-sm" onClick={() => window.print()}>הדפסה</button>
+          <button className="btn btn-sm" onClick={() => window.print()}>הדפסת ברקוד</button>
           <button className="btn btn-outline btn-sm" onClick={onClose}>סגירה</button>
         </div>
       </div>
@@ -97,6 +98,7 @@ function Outgoing() {
   const { db, api } = useAdminDb()
   const [slipOrder, setSlipOrder] = useState(null)
   const [showDone, setShowDone] = useState(false)
+  const [busyId, setBusyId] = useState(null)
 
   const OPEN = ['חדשה', 'בליקוט', 'ליקוט', 'נארזה', 'בקרה', 'אריזה']
   const SENT = ['נשלחה', 'נשלח', 'נמסרה']
@@ -105,14 +107,24 @@ function Outgoing() {
   // רכישות שהתכשיט אינו אצל הרוכשת (אורחת / מהקטלוג) — המחסן צריך לשלוח
   const pursToShip = db.purchases.filter((x) => x.needsShipping && !x.shippedAt)
 
+  async function act(orderId, fn) {
+    setBusyId(orderId)
+    try {
+      await fn()
+    } finally {
+      setBusyId(null)
+    }
+  }
+
   const rowsOf = (list) => list.map((o) => {
     const u = db.users.find((x) => x.id === o.userId) || db.users.find((x) => x.name === o.customerName)
+    const busy = busyId === o.id
     return (
       <tr key={o.id}>
         <td dir="ltr">{o.id}</td>
-        <td>{u ? u.name : '—'}<br /><span className="cell-sub" dir="ltr">{u ? u.phone : ''}</span></td>
+        <td><AdminUserCell db={db} user={u} name={o.customerName} /></td>
         <td>
-          {o.items.map((it) => {
+          {(o.items || []).map((it) => {
             const p = db.products.find((x) => x.id === it.pid)
             return (
               <div key={it.serial}>
@@ -133,11 +145,23 @@ function Outgoing() {
         </td>
         <td>{o.date}</td>
         <td><span className={`pill ${orderPill(o.status)}`}>{o.status}</span></td>
-        <td><button className="btn-mini" onClick={() => setSlipOrder(o)}>פתק + QR</button></td>
+        <td><button type="button" className="btn-mini" onClick={() => setSlipOrder(o)}>פתק + QR</button></td>
         <td>
-          {(o.status === 'חדשה' || o.status === 'ליקוט' || o.status === 'בליקוט') && <button type="button" className="btn-mini" onClick={() => api.advanceFulfillment(o.id)}>התחילי ליקוט / קדמי</button>}
-          {(o.status === 'בקרה' || o.status === 'נארזה') && <button type="button" className="btn-mini" onClick={() => api.advanceFulfillment(o.id)}>אישור אריזה</button>}
-          {o.status === 'אריזה' && <button type="button" className="btn-mini strong" onClick={() => api.orderCourier(o.id)}>{courierActionLabel(resolveCourierJob(o))} ↗</button>}
+          {(o.status === 'חדשה' || o.status === 'ליקוט' || o.status === 'בליקוט') && (
+            <button type="button" className="btn-mini" disabled={busy} onClick={() => act(o.id, () => api.advanceFulfillment(o.id))}>
+              {busy ? 'מקדמת…' : 'התחילי ליקוט / קדמי'}
+            </button>
+          )}
+          {(o.status === 'בקרה' || o.status === 'נארזה') && (
+            <button type="button" className="btn-mini" disabled={busy} onClick={() => act(o.id, () => api.advanceFulfillment(o.id))}>
+              {busy ? 'מקדמת…' : 'אישור אריזה'}
+            </button>
+          )}
+          {o.status === 'אריזה' && (
+            <button type="button" className="btn-mini strong" disabled={busy} onClick={() => act(o.id, () => api.orderCourier(o.id))}>
+              {busy ? 'מזמינה שליח…' : `${courierActionLabel(resolveCourierJob(o))} ↗`}
+            </button>
+          )}
           {o.status === 'נמסרה' && o.returns && o.returns.length > 0 && (
             <span className="cell-sub">קליטת המוחזרים — בלשונית "החזרות נכנסות"</span>
           )}
@@ -262,7 +286,7 @@ export default function Warehouse() {
               const missing = r.items.filter((i) => !i.received).map((i) => i.serial).join(', ')
               return (
                 <li key={r.id}>
-                  <b>{u ? u.name : r.userId}</b>
+                  <AdminUserCell db={db} user={u} name={r.userId} fallback={r.userId} />
                   {' · '}הזמנה <span dir="ltr">{r.orderId}</span>
                   {missing ? <> · חסרים: <span dir="ltr">{missing}</span></> : null}
                   <span className="alert-meta">אישור שליח: {r.courierConfirmedAt ? heDate(r.courierConfirmedAt) : '—'} · יעד סריקה: {heDate(r.deadline)}</span>

@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { SHIP_FLOW, heDate, useAdminDb } from '../../lib/useAdminDb.js'
 import Art from '../../components/Art.jsx'
+import AdminUserCell from '../../components/AdminUserCell.jsx'
 
 const DAY = 86400000
 const daysBetween = (a, b) => Math.max(0, Math.round(((b ? new Date(b) : new Date()) - new Date(a)) / DAY))
@@ -23,7 +23,7 @@ export default function Rentals() {
     const out = []
     for (const o of db.orders) {
       const u = db.users.find((x) => x.id === o.userId)
-      for (const it of o.items) {
+      for (const it of o.items || []) {
         const p = db.products.find((x) => x.id === it.pid)
         if (!p) continue
         const start = new Date(it.since || o.createdAt).getTime()
@@ -42,7 +42,7 @@ export default function Rentals() {
     const term = q.trim().toLowerCase()
     return out
       .filter((r) => (!onlyActive || !r.to))
-      .filter((r) => !term || [r.user && r.user.name, r.product.name, r.serial, r.product.sku, r.order.id]
+      .filter((r) => !term || [r.user && r.user.name, r.user && r.user.phone, r.product.name, r.serial, r.product.sku, r.order.id]
         .some((v) => (v || '').toString().toLowerCase().includes(term)))
       .sort((a, b) => new Date(b.from) - new Date(a.from))
   }, [db, fromT, toT, q, onlyActive])
@@ -119,7 +119,7 @@ export default function Rentals() {
                   <td>{r.product.name}</td>
                   <td dir="ltr">{r.product.sku}</td>
                   <td dir="ltr">{r.serial}</td>
-                  <td>{r.user ? <Link className="cust-link" to={`/admin/customers/${r.user.id}`}>{r.user.name}</Link> : '—'}</td>
+                  <td><AdminUserCell db={db} user={r.user} /></td>
                   <td dir="ltr">{r.order.id}</td>
                   <td>{heDate(r.from)}</td>
                   <td>{r.to ? heDate(r.to) : <span className="cell-sub">—</span>}</td>
@@ -166,7 +166,7 @@ export default function Rentals() {
                         {s.deliverySignatureLabel || o?.deliverySignatureLabel || (o?.deliverySignatureRequired ? 'חתימת מסירה נדרשת' : 'ללא חתימת מסירה')}
                       </span>
                     </td>
-                    <td>{u ? <Link className="cust-link" to={`/admin/customers/${u.id}`}>{u.name}</Link> : '—'}</td>
+                    <td><AdminUserCell db={db} user={u} /></td>
                     <td>{s.date}</td>
                     <td><span className={`pill ${s.status === 'נמסר ללקוחה' ? 'ok' : 'info'}`}>{s.status}</span></td>
                     <td>

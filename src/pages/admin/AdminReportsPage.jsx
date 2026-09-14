@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { heDate, useAdminDb } from '../../lib/useAdminDb.js'
+import AdminUserCell from '../../components/AdminUserCell.jsx'
 import { PERIODS, computeKpis, fmtMoney, fmtNum, fmtPct, periodRange } from '../../lib/kpi.js'
 
 const money = (n) => fmtMoney(n) || '—'
@@ -324,7 +325,7 @@ export default function Reports() {
                 return (
                   <tr key={i}>
                     <td>{heDate(n.ts)}</td>
-                    <td>{u ? u.name : '—'}</td>
+                    <td><AdminUserCell db={db} user={u} /></td>
                     <td>{n.channel}</td>
                     <td><span className="pill ok">{n.status}</span></td>
                     <td style={{ maxWidth: 420, fontSize: '0.85rem', color: 'var(--muted)' }}>{n.text}</td>
