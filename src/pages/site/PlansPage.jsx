@@ -161,7 +161,7 @@ export default function PlansPage() {
                   חזרה למסלולים
                 </button>
                 <button type="button" className="btn btn-wide" disabled={busyPay} onClick={confirmCheckout}>
-                  {busyPay ? 'מאשרת…' : 'אישור והפעלת מנוי'}
+                  {busyPay ? 'מאשר…' : 'אישור והפעלת מנוי'}
                 </button>
               </div>
             </div>

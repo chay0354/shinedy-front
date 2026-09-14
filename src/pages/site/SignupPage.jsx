@@ -739,11 +739,11 @@ export default function SignupPage() {
               )}
               {step < STEPS.length - 1 ? (
                 <button type="button" className="btn btn-wide" disabled={busy} onClick={goNext}>
-                  {busy ? (step === STEP.details ? 'בודקת…' : 'המשך') : 'המשך'}
+                  {busy ? (step === STEP.details ? 'בודק…' : 'המשך') : 'המשך'}
                 </button>
               ) : (
                 <button type="submit" className="btn btn-wide" disabled={busy}>
-                  {busy ? (phoneProof || phoneCode.length === 6 ? 'נרשמת…' : 'שולחת קוד…') : 'אישור והרשמה'}
+                  {busy ? (phoneProof || phoneCode.length === 6 ? 'נרשם…' : 'שולח קוד…') : 'אישור והרשמה'}
                 </button>
               )}
             </div>

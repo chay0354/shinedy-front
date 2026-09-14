@@ -287,7 +287,7 @@ export default function StoreHome({ guest = false, hideHero = false }) {
                         type="button"
                         className={`btn btn-sm${p.inCart && subscribed && !guest ? ' btn-primary' : ''}`}
                         disabled={buyDisabled(p)}
-                        loadingText="מוסיפה…"
+                        loadingText="מוסיף…"
                         onClick={() => handleBuy(p)}
                       >
                         {buyLabel(p)}

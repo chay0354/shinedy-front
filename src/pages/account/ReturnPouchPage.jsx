@@ -156,7 +156,7 @@ export default function ReturnPouchPage() {
                   type="button"
                   className="btn"
                   style={{ marginTop: 24, borderColor: 'var(--danger, #c44)' }}
-                  loadingText="מבטלת…"
+                  loadingText="מבטל…"
                   onClick={() => handleCancel(pouch)}
                 >
                   ביטול החזרה

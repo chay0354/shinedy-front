@@ -89,7 +89,7 @@ export default function ContactPage() {
                   </div>
                   {error && <p className="form-err">{error}</p>}
                   <button type="submit" className="btn btn-wide" disabled={busy}>
-                    {busy ? 'שולחת…' : 'שליחה'}
+                    {busy ? 'שולח…' : 'שליחה'}
                   </button>
                 </form>
               )}

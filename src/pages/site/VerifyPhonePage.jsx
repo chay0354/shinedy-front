@@ -90,7 +90,7 @@ export default function VerifyPhonePage() {
                 חזרה
               </button>
               <button type="submit" className="btn btn-wide" disabled={busy || code.length !== 6}>
-                {busy ? 'מאמתת…' : 'אימות'}
+                {busy ? 'מאמת…' : 'אימות'}
               </button>
             </div>
           </form>

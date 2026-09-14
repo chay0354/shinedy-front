@@ -101,7 +101,7 @@ export default function Subscriptions() {
                 disabled={busyId === plan.id}
                 onClick={() => save(plan)}
               >
-                {busyId === plan.id ? 'שומרת…' : 'שמירת מסלול'}
+                {busyId === plan.id ? 'שומר…' : 'שמירת מסלול'}
               </button>
             </article>
           )
