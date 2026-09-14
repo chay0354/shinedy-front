@@ -3,7 +3,7 @@ import { Link, Navigate, useLocation, useNavigate, useSearchParams } from 'react
 import { api } from '../../api';
 import { useApp } from '../../state/AppContext';
 import { applySessionFromResponse } from '../../lib/auth';
-import { publicCatalogPlans, subscribePlanId } from '../../lib/plans';
+import { planRequiresSignupSignature, publicCatalogPlans, subscribePlanId } from '../../lib/plans';
 import { nextAfterAuth } from '../../lib/verify';
 import { isIsraeliMobile, toLocalIl } from '../../lib/phone';
 import { getToken } from '../../lib/auth';
@@ -171,7 +171,9 @@ export default function SignupPage() {
     if (!form.agreeLegal) return 'יש לאשר את התקנון ואת מדיניות הפרטיות';
     if (!form.agreeMarketing) return 'יש לאשר קבלת דיוור בטלפון ובמייל';
     if (!form.idDocument) return 'יש להעלות צילום או סריקה של תעודת הזהות';
-    if (!signatureHasInk(form.signature)) return 'יש לחתום בשדה החתימה';
+    if (planRequiresSignupSignature(form.plan) && !signatureHasInk(form.signature)) {
+      return 'יש לחתום בשדה החתימה';
+    }
     return '';
   }
 
@@ -358,8 +360,8 @@ export default function SignupPage() {
         termsAccepted: true,
         privacyAccepted: true,
         noticesAccepted: form.agreeMarketing,
-        signatureCompleted: true,
-        signatureData: form.signature,
+        signatureCompleted: planRequiresSignupSignature(form.plan),
+        signatureData: planRequiresSignupSignature(form.plan) ? form.signature : '',
         idDocumentUrl: form.idDocument,
         planId: subscribePlanId(form.plan, livePlans),
         payment: {
@@ -389,6 +391,8 @@ export default function SignupPage() {
   }
 
   const selectedPlan = plans.find((p) => p.id === form.plan);
+  const needsSignature = planRequiresSignupSignature(form.plan);
+  const stepLabels = STEPS.map((label, i) => (i === STEP.sign && !needsSignature ? 'תעודת זהות' : label));
 
   if (getToken() && state?.auth) {
     return (
@@ -404,14 +408,14 @@ export default function SignupPage() {
           <p className="sub">כמה שלבים קצרים להצטרפות</p>
 
           <ol className="signup-steps" aria-label="שלבי הרשמה">
-            {STEPS.map((label, i) => (
-              <li key={label} className={i === step ? 'on' : i < step ? 'done' : ''}>
+            {stepLabels.map((label, i) => (
+              <li key={`${label}-${i}`} className={i === step ? 'on' : i < step ? 'done' : ''}>
                 <span>{i + 1}</span>
                 {label}
               </li>
             ))}
           </ol>
-          <p className="signup-step-now">{STEPS[step]}</p>
+          <p className="signup-step-now">{stepLabels[step]}</p>
           {error && <p className="form-err">{error}</p>}
 
           <form onSubmit={handleSubmit} noValidate>
@@ -651,7 +655,9 @@ export default function SignupPage() {
             {step === STEP.sign && (
               <>
                 <p className="signup-confirm-lead">
-                  החתימה והעלאת תעודת הזהות מהווים אישור אלקטרוני מחייב, בהתאם לתקנון.
+                  {needsSignature
+                    ? 'החתימה והעלאת תעודת הזהות מהווים אישור אלקטרוני מחייב, בהתאם לתקנון.'
+                    : 'במסלול זה אין צורך בחתימה. יש להעלות תעודת זהות, והאישור הוא סימון התקנון.'}
                 </p>
 
                 <div className="field" style={{ marginTop: 18 }}>
@@ -669,10 +675,12 @@ export default function SignupPage() {
                   )}
                 </div>
 
-                <div className="field">
-                  <label>חתימה</label>
-                  <SignaturePad value={form.signature} onChange={(v) => setField('signature', v)} />
-                </div>
+                {needsSignature && (
+                  <div className="field">
+                    <label>חתימה</label>
+                    <SignaturePad value={form.signature} onChange={(v) => setField('signature', v)} />
+                  </div>
+                )}
               </>
             )}
 

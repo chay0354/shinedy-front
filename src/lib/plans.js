@@ -60,6 +60,13 @@ export function publicCatalogPlans(livePlans) {
   });
 }
 
+const NO_SIGNUP_SIGNATURE = new Set(['silver', 'essentials']);
+
+export function planRequiresSignupSignature(planId) {
+  if (!planId) return true;
+  return !NO_SIGNUP_SIGNATURE.has(planId);
+}
+
 export function matchesPlanId(planId, otherId) {
   if (!planId || !otherId) return false;
   if (planId === otherId) return true;
