@@ -14,6 +14,7 @@ export default function AdminUserCell({
   name,
   to,
   fallback = '—',
+  details = true,
 }) {
   const displayName = (user && user.name) || name || fallback
   const plan = userPlanLabel(db, user)
@@ -26,7 +27,7 @@ export default function AdminUserCell({
   return (
     <>
       {title}
-      {(plan || phone) ? (
+      {details && (plan || phone) ? (
         <>
           <br />
           <span className="cell-sub">

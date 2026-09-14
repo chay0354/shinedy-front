@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom'
 import { QRCodeSVG } from 'qrcode.react'
 import { planOf, heDate, useAdminDb } from '../../lib/useAdminDb.js'
 import { courierActionLabel, resolveCourierJob } from '../../lib/courierJob.js'
-import AdminUserCell from '../../components/AdminUserCell.jsx'
+import AdminUserCell, { userPlanLabel } from '../../components/AdminUserCell.jsx'
 import Returns from './AdminReturnsPanel.jsx'
 
 function orderPill(status) {
@@ -119,10 +119,14 @@ function Outgoing() {
   const rowsOf = (list) => list.map((o) => {
     const u = db.users.find((x) => x.id === o.userId) || db.users.find((x) => x.name === o.customerName)
     const busy = busyId === o.id
+    const plan = userPlanLabel(db, u)
+    const phone = (u && u.phone) || ''
     return (
       <tr key={o.id}>
         <td dir="ltr">{o.id}</td>
-        <td><AdminUserCell db={db} user={u} name={o.customerName} /></td>
+        <td><AdminUserCell db={db} user={u} name={o.customerName} details={false} /></td>
+        <td>{plan || '—'}</td>
+        <td dir="ltr">{phone || '—'}</td>
         <td>
           {(o.items || []).map((it) => {
             const p = db.products.find((x) => x.id === it.pid)
@@ -185,10 +189,10 @@ function Outgoing() {
         <div className="table-wrap">
           <table className="admin-table">
             <thead>
-              <tr><th>מס׳ הזמנה</th><th>לקוחה</th><th>פריטים ללקט (מס׳ פריט)</th><th>סוג</th><th>תאריך</th><th>סטטוס</th><th>פתק</th><th>פעולה</th></tr>
+              <tr><th>מס׳ הזמנה</th><th>לקוחה</th><th>מסלול</th><th>טלפון</th><th>פריטים ללקט (מס׳ פריט)</th><th>סוג</th><th>תאריך</th><th>סטטוס</th><th>פתק</th><th>פעולה</th></tr>
             </thead>
             <tbody>
-              {inProcess.length === 0 && <tr><td colSpan="8" style={{ color: 'var(--muted)' }}>אין הזמנות שממתינות לטיפול — הכול טופל ✓</td></tr>}
+              {inProcess.length === 0 && <tr><td colSpan="10" style={{ color: 'var(--muted)' }}>אין הזמנות שממתינות לטיפול — הכול טופל ✓</td></tr>}
               {rowsOf(inProcess)}
             </tbody>
           </table>
@@ -204,19 +208,22 @@ function Outgoing() {
           <div className="table-wrap">
             <table className="admin-table">
               <thead>
-                <tr><th>מס׳ רכישה</th><th>רוכשת</th><th>תכשיט</th><th>כתובת למשלוח</th><th>שולם</th><th>פעולה</th></tr>
+                <tr><th>מס׳ רכישה</th><th>רוכשת</th><th>מסלול</th><th>טלפון</th><th>תכשיט</th><th>כתובת למשלוח</th><th>שולם</th><th>פעולה</th></tr>
               </thead>
               <tbody>
                 {pursToShip.map((pur) => {
-                  const buyerName = pur.recipient || (pur.buyer && pur.buyer.name) || '—'
+                  const buyer = db.users.find((x) => x.id === pur.userId) || pur.buyer || null
+                  const buyerName = pur.recipient || (buyer && buyer.name) || '—'
                   const a = pur.address || {}
                   return (
                     <tr key={pur.id}>
                       <td dir="ltr">{pur.id}</td>
                       <td>
-                        {buyerName}{!pur.userId && <span className="cell-sub"> (אורחת)</span>}
-                        {pur.buyer && pur.buyer.phone && <><br /><span className="cell-sub" dir="ltr">{pur.buyer.phone}</span></>}
+                        <AdminUserCell db={db} user={buyer} name={buyerName} details={false} />
+                        {!pur.userId && <span className="cell-sub"> (אורחת)</span>}
                       </td>
+                      <td>{userPlanLabel(db, buyer) || '—'}</td>
+                      <td dir="ltr">{(buyer && buyer.phone) || '—'}</td>
                       <td>{pur.name} <span className="cell-sub" dir="ltr">{pur.serial}</span></td>
                       <td>{[a.street, a.houseNo, a.apt && `דירה ${a.apt}`, a.city].filter(Boolean).join(', ') || '—'}</td>
                       <td>₪{Math.round(pur.paid).toLocaleString()}</td>
@@ -241,10 +248,10 @@ function Outgoing() {
           <div className="table-wrap">
             <table className="admin-table">
               <thead>
-                <tr><th>מס׳ הזמנה</th><th>לקוחה</th><th>פריטים</th><th>סוג</th><th>תאריך</th><th>סטטוס</th><th>פתק</th><th>פעולה</th></tr>
+                <tr><th>מס׳ הזמנה</th><th>לקוחה</th><th>מסלול</th><th>טלפון</th><th>פריטים</th><th>סוג</th><th>תאריך</th><th>סטטוס</th><th>פתק</th><th>פעולה</th></tr>
               </thead>
               <tbody>
-                {onTheWay.length === 0 && <tr><td colSpan="8" style={{ color: 'var(--muted)' }}>אין הזמנות שיצאו</td></tr>}
+                {onTheWay.length === 0 && <tr><td colSpan="10" style={{ color: 'var(--muted)' }}>אין הזמנות שיצאו</td></tr>}
                 {rowsOf(onTheWay)}
               </tbody>
             </table>
