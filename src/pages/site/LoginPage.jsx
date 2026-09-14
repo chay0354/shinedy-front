@@ -14,7 +14,7 @@ export default function LoginPage() {
   const { state, run } = useApp();
   const navigate = useNavigate();
 
-  if (getToken() && state?.auth?.userId) {
+  if (getToken() && (state?.auth?.role === 'admin' || state?.auth?.role === 'warehouse')) {
     return <Navigate to={homePathForRole(state.auth.role)} replace />;
   }
 
