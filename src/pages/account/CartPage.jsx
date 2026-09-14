@@ -5,7 +5,7 @@ import { useApp } from '../../state/AppContext';
 import { getToken } from '../../lib/auth';
 import { hasActivePlan } from '../../lib/roles';
 import NoPointsOptions from '../../components/NoPointsOptions';
-import { exchangeBlocked, planLatin, pointsUsed } from '../../lib/accountHelpers';
+import { activeUnits, exchangeBlocked, planLatin, pointsUsed } from '../../lib/accountHelpers';
 import Art from '../../components/Art';
 import PageHead from '../../components/PageHead';
 
@@ -54,6 +54,14 @@ export default function CartPage() {
   const remaining = state.remaining ?? 0;
   const over = remaining < 0;
   const blocked = exchangeBlocked(state);
+  const markedReturns = state?.exchangeReturns || [];
+  const heldCount = activeUnits(state).length;
+  const isExchangeCheckout = markedReturns.length > 0;
+  const courierNote = isExchangeCheckout
+    ? 'החלפה: השליח יביא את התכשיטים החדשים ויאסוף את המוחזרים.'
+    : heldCount > 0
+      ? 'משלוח נוסף: השליח יביא את התכשיטים בלבד.'
+      : 'הזמנה ראשונה: השליח יביא את התכשיטים בלבד.';
 
   if (placed) {
     return (
@@ -134,6 +142,10 @@ export default function CartPage() {
                     onChange={(e) => setNotes(e.target.value)}
                   />
                 </div>
+                <p className="signup-pay-note" style={{ marginTop: 18 }}>{courierNote}</p>
+                {isExchangeCheckout && (
+                  <p className="cell-sub">מוחזרים באיסוף: {markedReturns.length} תכשיטים</p>
+                )}
                 <div style={{ display: 'flex', gap: 12, marginTop: 16, flexWrap: 'wrap' }}>
                 <button
                   type="button"
@@ -144,7 +156,7 @@ export default function CartPage() {
                     if (data) setPlaced(true);
                   }}
                 >
-                  אישור הזמנה
+                  {isExchangeCheckout ? 'אישור החלפה' : 'אישור הזמנה'}
                 </button>
                 <button type="button" className="btn btn-outline" onClick={() => navigate('/catalog')}>
                   להוסיף עוד
@@ -153,8 +165,9 @@ export default function CartPage() {
                 </>
               )}
               <p style={{ color: 'var(--muted)', fontSize: '0.88rem', fontWeight: 300, marginTop: 14 }}>
-                משלוח דו-חודשי כלול במנוי · החלפות ללא הגבלה · משלוח החלפה נוסף ₪65.
-                את המוחזרים מכניסים לנרתיק שמגיע עם המשלוח.
+                {isExchangeCheckout
+                  ? 'את המוחזרים מכניסים לנרתיק שמגיע עם המשלוח — השליח גם מביא וגם אוסף.'
+                  : 'משלוח דו-חודשי כלול במנוי. בהחלפה השליח יביא חדשים ויאסוף מוחזרים.'}
               </p>
             </>
           )}

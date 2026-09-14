@@ -86,8 +86,8 @@ export default function PlansPage() {
     setErr('');
     const data = await run(() => api.cancelSubscription());
     if (!data) return;
-    setDone('המנוי בוטל. אפשר לבחור מסלול ולהצטרף מחדש בכל עת.');
     setCancelOpen(false);
+    navigate('/account/end-pickup');
   }
 
   return (
@@ -335,7 +335,7 @@ export default function PlansPage() {
             <h2>ביטול מנוי</h2>
             <p className="modal-sub">מסלול {current.latin} · ₪{current.price} לחודש</p>
             <p className="modal-legal">
-              לא יבוצע חיוב נוסף אחרי הביטול. אם יש תכשיטים אצלך או החזרה פתוחה — צריך להשלים אותם קודם, לפי התקנון.
+              התכשיטים שאצלך ייאספו בימים הקרובים. אם כבר היה משלוח או החזרה בחודש המנוי — תחויבי ב-₪65 דמי משלוח.
             </p>
             <button type="button" className="btn btn-wide btn-danger-ghost" onClick={cancelSub}>
               כן, לבטל את המנוי

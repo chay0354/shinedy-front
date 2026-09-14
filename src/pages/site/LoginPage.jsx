@@ -6,6 +6,7 @@ import { applySessionFromResponse, getToken } from '../../lib/auth';
 import { homePathForRole } from '../../lib/roles';
 import { IconEye, IconEyeOff } from '../../components/icons';
 import HeroArt from '../../components/HeroArt';
+import { heError } from '../../lib/heError';
 
 export default function LoginPage() {
   const [error, setError] = useState('');
@@ -23,13 +24,14 @@ export default function LoginPage() {
     const email = f.elements['l-email'].value.trim();
     const password = f.elements['l-pass'].value;
     setError('');
-    const data = await run(() => api.login({ email, password }));
-    if (!data) {
-      setError('פרטי ההתחברות שגויים או שהשרת לא אישר את הכניסה');
-      return;
+    try {
+      const data = await api.login({ email, password });
+      await run(async () => data);
+      applySessionFromResponse(data);
+      navigate(homePathForRole(data.auth?.role));
+    } catch (e) {
+      setError(heError(e.message, 'פרטי ההתחברות שגויים או שהשרת לא אישר את הכניסה'));
     }
-    applySessionFromResponse(data);
-    navigate(homePathForRole(data.auth?.role));
   }
 
   return (

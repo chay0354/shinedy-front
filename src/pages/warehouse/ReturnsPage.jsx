@@ -17,7 +17,7 @@ export default function ReturnsPage() {
       await run(() => api.scanPouch(code));
       setQrInput('');
     } catch (e) {
-      setScanError(e.message);
+      setScanError(e.message || 'הסריקה נכשלה');
     }
   }
 

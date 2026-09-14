@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { api as live } from '../api.js';
 import { useApp } from '../state/AppContext';
+import { heError } from './heError';
 import { heDate } from './accountHelpers.js';
 import {
   adminApiFromState,
@@ -133,7 +134,7 @@ export function useAdminDb() {
           await run(() => live.scanPouch(code));
           return { ok: true, msg: 'הפריט נסרק ✓' };
         } catch (e) {
-          return { ok: false, msg: e.message };
+          return { ok: false, msg: heError(e.message, 'הסריקה נכשלה') };
         }
       },
       runReturnCheck() {
@@ -159,6 +160,9 @@ export function useAdminDb() {
       },
       cancelSubscription(id) {
         local.updateCustomer(id, { canceledAt: new Date().toISOString() });
+      },
+      openIdDocument(id) {
+        return live.getCustomerIdDocument(id);
       },
       reactivateSubscription(id) {
         local.updateCustomer(id, { canceledAt: null, suspendedAt: null });

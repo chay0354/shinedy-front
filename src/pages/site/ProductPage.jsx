@@ -49,7 +49,7 @@ export default function ProductPage() {
         phone: state?.registration?.phone,
         email: state?.registration?.email,
         address: state?.registration?.address,
-        payment: state?.registration?.payment,
+        payment: state?.payment || state?.registration?.payment,
       }
     : null;
 

@@ -1,4 +1,5 @@
 import { getToken } from './lib/auth.js';
+import { heError } from './lib/heError.js';
 
 const DEV_API = 'http://127.0.0.1:4000/api';
 
@@ -43,7 +44,7 @@ async function request(path, options = {}) {
           : 'הפעולה לא זמינה כרגע. נסי שוב בעוד רגע.',
       );
     }
-    throw new Error(data.error || 'בקשה נכשלה');
+    throw new Error(heError(data.error, 'הפעולה נכשלה. נסי שוב'));
   }
   return data;
 }
@@ -161,6 +162,8 @@ export const api = {
       body: '{}',
     }),
   reset: () => request('/reset', { method: 'POST', body: '{}' }),
+  getCustomerIdDocument: (id) =>
+    request(`/admin/customers/${encodeURIComponent(id)}/id-document`),
   contact: (payload) =>
     request('/contact', { method: 'POST', body: JSON.stringify(payload) }),
 };

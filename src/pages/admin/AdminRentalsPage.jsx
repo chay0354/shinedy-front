@@ -147,10 +147,10 @@ export default function Rentals() {
         <div className="table-wrap">
           <table className="admin-table">
             <thead>
-              <tr><th>מס׳ משלוח</th><th>מעקב</th><th>הזמנה</th><th>לקוחה</th><th>תאריך</th><th>סטטוס שליח</th><th>עדכון</th></tr>
+              <tr><th>מס׳ משלוח</th><th>מעקב</th><th>הזמנה</th><th>לשליח</th><th>לקוחה</th><th>תאריך</th><th>סטטוס שליח</th><th>עדכון</th></tr>
             </thead>
             <tbody>
-              {db.shipments.length === 0 && <tr><td colSpan="7" style={{ color: 'var(--muted)' }}>אין משלוחים עדיין</td></tr>}
+              {db.shipments.length === 0 && <tr><td colSpan="8" style={{ color: 'var(--muted)' }}>אין משלוחים עדיין</td></tr>}
               {db.shipments.map((s) => {
                 const o = db.orders.find((x) => x.id === s.orderId)
                 const u = o && db.users.find((x) => x.id === o.userId)
@@ -159,6 +159,13 @@ export default function Rentals() {
                     <td dir="ltr">{s.id}</td>
                     <td dir="ltr">{s.tracking}</td>
                     <td dir="ltr">{s.orderId}</td>
+                    <td>
+                      {s.jobLabel || o?.courierJobLabel || 'משלוח'}
+                      <br />
+                      <span className="cell-sub">
+                        {s.deliverySignatureLabel || o?.deliverySignatureLabel || (o?.deliverySignatureRequired ? 'חתימת מסירה נדרשת' : 'ללא חתימת מסירה')}
+                      </span>
+                    </td>
                     <td>{u ? <Link className="cust-link" to={`/admin/customers/${u.id}`}>{u.name}</Link> : '—'}</td>
                     <td>{s.date}</td>
                     <td><span className={`pill ${s.status === 'נמסר ללקוחה' ? 'ok' : 'info'}`}>{s.status}</span></td>

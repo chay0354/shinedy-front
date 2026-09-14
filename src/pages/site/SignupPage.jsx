@@ -11,17 +11,16 @@ import { homePathForRole } from '../../lib/roles';
 import { PRIVACY, TERMS } from '../../lib/legal';
 import LegalDoc from '../../components/LegalDoc';
 import SignaturePad from '../../components/SignaturePad';
-import HeroArt from '../../components/HeroArt';
+import { heError } from '../../lib/heError';
 
-const STEPS = ['פרטים', 'אימות טלפון', 'אימות מייל', 'בחירת מסלול', 'תקנון', 'חתימה', 'תשלום'];
+const STEPS = ['פרטים', 'בחירת מסלול', 'תקנון', 'חתימה', 'תשלום', 'אימות טלפון'];
 const STEP = {
   details: 0,
-  phone: 1,
-  email: 2,
-  plan: 3,
-  terms: 4,
-  sign: 5,
-  pay: 6,
+  plan: 1,
+  terms: 2,
+  sign: 3,
+  pay: 4,
+  phone: 5,
 };
 
 function validIsraeliId(raw) {
@@ -88,10 +87,8 @@ export default function SignupPage() {
   const [busy, setBusy] = useState(false);
   const [step, setStep] = useState(STEP.details);
   const [phoneCode, setPhoneCode] = useState('');
-  const [emailCode, setEmailCode] = useState('');
   const [phoneProof, setPhoneProof] = useState('');
-  const [emailProof, setEmailProof] = useState('');
-  const sentFor = useRef({ phone: '', email: '' });
+  const sentFor = useRef({ phone: '' });
   const [params] = useSearchParams();
   const intendedPlan = location.state?.plan || params.get('plan');
   const livePlans = Array.isArray(state?.plans) ? state.plans : [];
@@ -141,11 +138,6 @@ export default function SignupPage() {
       setPhoneCode('');
       sentFor.current.phone = '';
     }
-    if (key === 'email') {
-      setEmailProof('');
-      setEmailCode('');
-      sentFor.current.email = '';
-    }
   }
 
   function validateDetails() {
@@ -194,31 +186,22 @@ export default function SignupPage() {
     return /להמתין|נשלח קוד/i.test(String(message || ''));
   }
 
-  async function dispatchCode(kind) {
+  async function dispatchCode() {
     setError('');
     setInfo('');
     setBusy(true);
     try {
-      if (kind === 'phone') {
-        const phone = toLocalIl(form.phone);
-        sentFor.current.phone = phone;
-        await api.resendPhoneVerification({ phone });
-        setInfo('שלחנו קוד ב-SMS');
-      } else {
-        const email = form.email.trim();
-        sentFor.current.email = email.toLowerCase();
-        await api.resendVerification({ email });
-        setInfo('שלחנו קוד למייל');
-      }
+      const phone = toLocalIl(form.phone);
+      sentFor.current.phone = phone;
+      await api.resendPhoneVerification({ phone });
+      setInfo('שלחנו קוד ב-SMS');
     } catch (e) {
       if (alreadySentMessage(e.message)) {
         setInfo(e.message);
-        if (kind === 'phone') sentFor.current.phone = toLocalIl(form.phone);
-        else sentFor.current.email = form.email.trim().toLowerCase();
+        sentFor.current.phone = toLocalIl(form.phone);
       } else {
-        if (kind === 'phone') sentFor.current.phone = '';
-        else sentFor.current.email = '';
-        setError(e.message || (kind === 'phone' ? 'שליחת ה-SMS נכשלה' : 'שליחת המייל נכשלה'));
+        sentFor.current.phone = '';
+        setError(heError(e.message, 'שליחת ה-SMS נכשלה'));
       }
     } finally {
       setBusy(false);
@@ -229,15 +212,8 @@ export default function SignupPage() {
     if (step !== STEP.phone) return;
     const phone = toLocalIl(form.phone);
     if (!phone || sentFor.current.phone === phone) return;
-    dispatchCode('phone');
+    dispatchCode();
   }, [step, form.phone]);
-
-  useEffect(() => {
-    if (step !== STEP.email) return;
-    const email = form.email.trim().toLowerCase();
-    if (!email || sentFor.current.email === email) return;
-    dispatchCode('email');
-  }, [step, form.email]);
 
   async function goNext() {
     setError('');
@@ -253,40 +229,8 @@ export default function SignupPage() {
       try {
         await api.checkSignup({ email: form.email.trim(), phone: toLocalIl(form.phone) });
       } catch (e) {
-        setError(e.message || 'לא ניתן להמשיך עם הפרטים האלה');
+        setError(heError(e.message, 'לא ניתן להמשיך עם הפרטים האלה'));
         window.scrollTo({ top: 0, behavior: 'smooth' });
-        return;
-      } finally {
-        setBusy(false);
-      }
-    }
-    if (step === STEP.phone && !phoneProof) {
-      if (phoneCode.length !== 6) {
-        setError('יש להזין את קוד האימות מה-SMS');
-        return;
-      }
-      setBusy(true);
-      try {
-        const data = await api.checkSignupPhone({ phone: toLocalIl(form.phone), code: phoneCode });
-        setPhoneProof(data.proof || 'ok');
-      } catch (e) {
-        setError(e.message || 'הקוד שגוי');
-        return;
-      } finally {
-        setBusy(false);
-      }
-    }
-    if (step === STEP.email && !emailProof) {
-      if (emailCode.length !== 6) {
-        setError('יש להזין את קוד האימות מהמייל');
-        return;
-      }
-      setBusy(true);
-      try {
-        const data = await api.checkSignupEmail({ email: form.email.trim(), code: emailCode });
-        setEmailProof(data.proof || 'ok');
-      } catch (e) {
-        setError(e.message || 'הקוד שגוי');
         return;
       } finally {
         setBusy(false);
@@ -313,6 +257,13 @@ export default function SignupPage() {
         return;
       }
     }
+    if (step === STEP.pay) {
+      const err = validatePayment();
+      if (err) {
+        setError(err);
+        return;
+      }
+    }
     setStep((s) => Math.min(STEPS.length - 1, s + 1));
   }
 
@@ -330,7 +281,7 @@ export default function SignupPage() {
       setField('idFileName', file.name);
       setError('');
     } catch (e) {
-      setError(e.message || 'העלאת תעודת הזהות נכשלה');
+      setError(heError(e.message, 'העלאת תעודת הזהות נכשלה'));
     }
   }
 
@@ -352,16 +303,6 @@ export default function SignupPage() {
       setStep(STEP.plan);
       return;
     }
-    if (!phoneProof) {
-      setError('יש לאמת את מספר הטלפון');
-      setStep(STEP.phone);
-      return;
-    }
-    if (!emailProof) {
-      setError('יש לאמת את כתובת המייל');
-      setStep(STEP.email);
-      return;
-    }
     const termsErr = validateTerms();
     if (termsErr) {
       setError(termsErr);
@@ -377,7 +318,25 @@ export default function SignupPage() {
     const payErr = validatePayment();
     if (payErr) {
       setError(payErr);
+      setStep(STEP.pay);
       return;
+    }
+    let proof = phoneProof;
+    if (!proof) {
+      if (phoneCode.length !== 6) {
+        setError('יש להזין את קוד האימות מה-SMS');
+        return;
+      }
+      setBusy(true);
+      try {
+        const checked = await api.checkSignupPhone({ phone: toLocalIl(form.phone), code: phoneCode });
+        proof = checked.proof || 'ok';
+        setPhoneProof(proof);
+      } catch (e) {
+        setError(heError(e.message, 'הקוד שגוי'));
+        setBusy(false);
+        return;
+      }
     }
     setError('');
     setBusy(true);
@@ -408,9 +367,10 @@ export default function SignupPage() {
           last4,
           expiry: form.cardExpiry.trim(),
         },
-        emailProof,
-        phoneProof,
+        phoneProof: proof,
       });
+      setField('idDocument', '');
+      setField('signature', '');
       applySessionFromResponse(data);
       await refresh();
       if (nextAfterAuth(data, navigate, { email: form.email.trim(), phone: toLocalIl(form.phone) })) {
@@ -419,9 +379,7 @@ export default function SignupPage() {
       navigate('/catalog');
     } catch (e) {
       const raw = e.message || '';
-      const msg = /unable to validate email|invalid format/i.test(raw)
-        ? 'יש למלא אימייל תקין, למשל name@email.com'
-        : raw || 'לא ניתן להירשם — בדקי את הפרטים';
+      const msg = heError(raw, 'לא ניתן להירשם — בדקי את הפרטים');
       setError(msg);
       if (msg.includes('טלפון')) setStep(STEP.phone);
       else if (msg.includes('אימייל') || /invalid format/i.test(raw)) setStep(STEP.details);
@@ -431,7 +389,6 @@ export default function SignupPage() {
   }
 
   const selectedPlan = plans.find((p) => p.id === form.plan);
-  const wide = true;
 
   if (getToken() && state?.auth) {
     return (
@@ -440,11 +397,11 @@ export default function SignupPage() {
   }
 
   return (
-    <div className={wide ? 'signup-flow' : 'auth-split'}>
-      <div className={wide ? 'container signup-wide' : 'auth-form-side'}>
-        <div className={wide ? 'signup-card' : 'form-card'}>
+    <div className={`signup-flow${step === STEP.plan ? ' is-plans' : ''}${step === STEP.terms ? ' is-terms' : ''}`}>
+      <div className="container signup-wide">
+        <div className="signup-card">
           <h1>יצירת חשבון</h1>
-          <p className="sub">הצטרפי לעולם של תכשיטים יוקרתיים</p>
+          <p className="sub">כמה שלבים קצרים להצטרפות</p>
 
           <ol className="signup-steps" aria-label="שלבי הרשמה">
             {STEPS.map((label, i) => (
@@ -459,7 +416,7 @@ export default function SignupPage() {
 
           <form onSubmit={handleSubmit} noValidate>
             {step === STEP.details && (
-              <>
+              <div className="signup-fields">
                 <div className="field">
                   <label htmlFor="s-name">שם מלא</label>
                   <input
@@ -471,7 +428,7 @@ export default function SignupPage() {
                   />
                 </div>
                 <div className="field">
-                  <label htmlFor="s-id">מספר תעודת זהות</label>
+                  <label htmlFor="s-id">תעודת זהות</label>
                   <input
                     id="s-id"
                     required
@@ -507,7 +464,7 @@ export default function SignupPage() {
                   />
                 </div>
                 <p className="signup-pay-note">כתובת למשלוח</p>
-                <div className="field">
+                <div className="field signup-span">
                   <label htmlFor="s-street">רחוב</label>
                   <input
                     id="s-street"
@@ -517,45 +474,41 @@ export default function SignupPage() {
                     onChange={(e) => setField('street', e.target.value)}
                   />
                 </div>
-                <div className="pay-row">
-                  <div className="field">
-                    <label htmlFor="s-house">מספר בית</label>
-                    <input
-                      id="s-house"
-                      required
-                      value={form.houseNo}
-                      onChange={(e) => setField('houseNo', e.target.value)}
-                    />
-                  </div>
-                  <div className="field">
-                    <label htmlFor="s-apt">דירה</label>
-                    <input
-                      id="s-apt"
-                      value={form.apt}
-                      onChange={(e) => setField('apt', e.target.value)}
-                    />
-                  </div>
+                <div className="field">
+                  <label htmlFor="s-house">מספר בית</label>
+                  <input
+                    id="s-house"
+                    required
+                    value={form.houseNo}
+                    onChange={(e) => setField('houseNo', e.target.value)}
+                  />
                 </div>
-                <div className="pay-row">
-                  <div className="field">
-                    <label htmlFor="s-city">עיר</label>
-                    <input
-                      id="s-city"
-                      required
-                      value={form.city}
-                      onChange={(e) => setField('city', e.target.value)}
-                    />
-                  </div>
-                  <div className="field">
-                    <label htmlFor="s-zip">מיקוד</label>
-                    <input
-                      id="s-zip"
-                      inputMode="numeric"
-                      dir="ltr"
-                      value={form.zip}
-                      onChange={(e) => setField('zip', e.target.value)}
-                    />
-                  </div>
+                <div className="field">
+                  <label htmlFor="s-apt">דירה</label>
+                  <input
+                    id="s-apt"
+                    value={form.apt}
+                    onChange={(e) => setField('apt', e.target.value)}
+                  />
+                </div>
+                <div className="field">
+                  <label htmlFor="s-city">עיר</label>
+                  <input
+                    id="s-city"
+                    required
+                    value={form.city}
+                    onChange={(e) => setField('city', e.target.value)}
+                  />
+                </div>
+                <div className="field">
+                  <label htmlFor="s-zip">מיקוד</label>
+                  <input
+                    id="s-zip"
+                    inputMode="numeric"
+                    dir="ltr"
+                    value={form.zip}
+                    onChange={(e) => setField('zip', e.target.value)}
+                  />
                 </div>
                 <div className="field">
                   <label htmlFor="s-pass">סיסמה</label>
@@ -583,12 +536,12 @@ export default function SignupPage() {
                     onChange={(e) => setField('pass2', e.target.value)}
                   />
                 </div>
-              </>
+              </div>
             )}
 
             {step === STEP.phone && (
               <>
-                <p className="sub" style={{ textAlign: 'start' }}>
+                <p className="signup-pay-note">
                   קוד בן 6 ספרות נשלח ב-SMS אל {toLocalIl(form.phone) || 'המספר שלך'}
                 </p>
                 <div className="field">
@@ -613,43 +566,7 @@ export default function SignupPage() {
                     disabled={busy}
                     onClick={() => {
                       sentFor.current.phone = '';
-                      dispatchCode('phone');
-                    }}
-                  >
-                    שלחי קוד שוב
-                  </button>
-                </p>
-              </>
-            )}
-
-            {step === STEP.email && (
-              <>
-                <p className="sub" style={{ textAlign: 'start' }}>
-                  קוד בן 6 ספרות נשלח אל {form.email.trim() || 'המייל שלך'}
-                </p>
-                <div className="field">
-                  <label htmlFor="s-email-code">קוד אימות</label>
-                  <input
-                    id="s-email-code"
-                    inputMode="numeric"
-                    autoComplete="one-time-code"
-                    required
-                    maxLength={6}
-                    placeholder="000000"
-                    dir="ltr"
-                    value={emailCode}
-                    onChange={(e) => setEmailCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                  />
-                </div>
-                {info && <p className="msg-ok">{info}</p>}
-                <p className="form-note">
-                  <button
-                    type="button"
-                    className="link-gold"
-                    disabled={busy}
-                    onClick={() => {
-                      sentFor.current.email = '';
-                      dispatchCode('email');
+                      dispatchCode();
                     }}
                   >
                     שלחי קוד שוב
@@ -670,20 +587,14 @@ export default function SignupPage() {
                       onClick={() => setField('plan', plan.id)}
                     >
                       {plan.featured && <div className="flag">הכי פופולרי</div>}
-                      <div className="plan-name">{plan.latin}</div>
+                      <div className="signup-plan-copy">
+                        <div className="plan-name">{plan.latin}</div>
+                        <div className="materials">{plan.materials}</div>
+                      </div>
                       <div className="price">
                         ₪{plan.price}
-                        <small> לחודש</small>
+                        <small> / חודש</small>
                       </div>
-                      <div className="materials">{plan.materials}</div>
-                      <ul>
-                        {plan.perks.slice(0, 4).map((perk) => (
-                          <li key={perk}>{perk}</li>
-                        ))}
-                      </ul>
-                      <span className={`btn${plan.featured ? ' btn-tan' : ''}`}>
-                        {form.plan === plan.id ? 'נבחר' : 'אני בוחרת'}
-                      </span>
                     </button>
                   ))}
                 </div>
@@ -718,6 +629,10 @@ export default function SignupPage() {
                     {' '}ול
                     <Link to="/privacy" target="_blank" className="link-gold">
                       מדיניות הפרטיות
+                    </Link>
+                    {' '}ול
+                    <Link to="/cookies" target="_blank" className="link-gold">
+                      מדיניות העוגיות
                     </Link>
                     , על כל סעיפיהם ונספחיהם.
                   </span>
@@ -824,15 +739,11 @@ export default function SignupPage() {
               )}
               {step < STEPS.length - 1 ? (
                 <button type="button" className="btn btn-wide" disabled={busy} onClick={goNext}>
-                  {busy
-                    ? step === STEP.details || step === STEP.phone || step === STEP.email
-                      ? 'בודקת…'
-                      : 'המשך'
-                    : 'המשך'}
+                  {busy ? (step === STEP.details ? 'בודקת…' : 'המשך') : 'המשך'}
                 </button>
               ) : (
                 <button type="submit" className="btn btn-wide" disabled={busy}>
-                  {busy ? 'נרשמת…' : 'אישור והרשמה'}
+                  {busy ? (phoneProof || phoneCode.length === 6 ? 'נרשמת…' : 'שולחת קוד…') : 'אישור והרשמה'}
                 </button>
               )}
             </div>
@@ -845,11 +756,6 @@ export default function SignupPage() {
           </p>
         </div>
       </div>
-      {step === STEP.details && (
-        <div className="auth-photo">
-          <HeroArt />
-        </div>
-      )}
     </div>
   );
 }

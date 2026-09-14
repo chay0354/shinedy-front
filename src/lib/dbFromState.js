@@ -2,6 +2,7 @@ import { DEFAULT_RATES } from './kpiSupport.js';
 import { enrichPlan } from './plans.js';
 import { ROLE_PRESETS } from './staff.js';
 import { PRODUCTS } from './site.js';
+import { courierJobLabel, deliverySignatureLabel, resolveCourierJob, resolveDeliverySignature } from './courierJob.js';
 
 const META_KEY = 'shinedy-admin-meta';
 const DAY = 86400000;
@@ -106,6 +107,14 @@ function skuFor(p) {
   return `${cat}-${(tail.slice(0, 3) || 'X').padEnd(3, '0')}`;
 }
 
+function mapReturnRows(list, idx) {
+  return (list || []).map((uid, i) => {
+    const serial = typeof uid === 'string' ? uid : uid?.serial || `RET-${idx}-${i}`;
+    const pid = typeof uid === 'string' ? uid.split('-')[0] : uid?.pid || uid?.modelId;
+    return { pid, serial };
+  });
+}
+
 function mapOrder(o, idx) {
   const items = (o.items || o.itemIds || []).map((uid, i) => {
     const serial = typeof uid === 'string' ? uid : uid?.serial || `UNIT-${idx}-${i}`;
@@ -118,6 +127,10 @@ function mapOrder(o, idx) {
       returnedAt: o.status === 'הוחזרה' ? o.date : null,
     };
   });
+  const returns = mapReturnRows(o.returnItems || o.returns, idx);
+  const courierJob = resolveCourierJob({ ...o, items, returnItems: returns, returns });
+  const jobLabel = o.courierJobLabel || courierJobLabel(courierJob);
+  const signatureRequired = resolveDeliverySignature(o, o.planId);
   return {
     id: o.id,
     userId: o.userId || o.customerId || o.customerName || `user-${idx}`,
@@ -127,8 +140,15 @@ function mapOrder(o, idx) {
     date: o.date,
     createdAt: o.createdAt || o.date || nowIso(),
     courierConfirmedAt: o.courierConfirmedAt || null,
+    courierJob,
+    courierJobLabel: jobLabel,
+    needsDelivery: courierJob === 'delivery' || courierJob === 'both',
+    needsPickup: courierJob === 'pickup' || courierJob === 'both',
+    planId: o.planId || null,
+    deliverySignatureRequired: signatureRequired,
+    deliverySignatureLabel: o.deliverySignatureLabel || deliverySignatureLabel(signatureRequired),
     items,
-    returns: o.returns || [],
+    returns,
   };
 }
 
@@ -212,7 +232,7 @@ function mapUser(c, i, plans, patch) {
   const id = c.id || `seed-${i}`;
   const plan =
     plans.find((pl) => pl.id === c.planId || pl.name === c.plan || pl.latin === c.plan)?.id || plans[0]?.id;
-  const canceledAt = c.status === 'מוקפא' || c.status === 'עזבה' ? nowIso() : null;
+  const canceledAt = c.canceledAt || (c.status === 'עזבה' ? nowIso() : null);
   const base = {
     id,
     name: c.name,
@@ -225,7 +245,12 @@ function mapUser(c, i, plans, patch) {
     creditsBalance: 0,
     exchangeBlocked: Boolean(c.exchangeBlocked),
     canceledAt,
-    suspendedAt: c.status === 'מוקפא' ? nowIso() : null,
+    suspendedAt: c.suspendedAt || (c.status === 'מוקפא' ? nowIso() : null),
+    shippingCharges: Array.isArray(c.shippingCharges)
+      ? c.shippingCharges
+      : Array.isArray(c.address?.shippingCharges)
+        ? c.address.shippingCharges
+        : [],
     address: {
       street: '',
       houseNo: '',
@@ -344,6 +369,10 @@ export function buildDbFromState(state) {
       orderId: o.id,
       tracking: `TRK-${o.id}`,
       courier: 'שליח',
+      job: o.courierJob,
+      jobLabel: o.courierJobLabel,
+      deliverySignatureRequired: o.deliverySignatureRequired,
+      deliverySignatureLabel: o.deliverySignatureLabel,
       date: o.date,
       status: o.status === 'נמסרה' ? 'נמסר ללקוחה' : 'נאסף מהמחסן',
     }));

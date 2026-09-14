@@ -105,7 +105,18 @@ export default function ExchangePage() {
 
           <div style={{ display: 'flex', gap: 12, marginTop: 24, flexWrap: 'wrap' }}>
             <button type="button" className="btn btn-tan" onClick={() => navigate('/catalog')}>
-              המשיכי לבחירת תכשיטים בקטלוג ←
+              החלפה — בחירת תכשיטים חדשים ←
+            </button>
+            <button
+              type="button"
+              className="btn btn-outline"
+              disabled={marked.length === 0}
+              onClick={async () => {
+                const data = await run(() => api.confirmExchange());
+                if (data) navigate('/account/returns');
+              }}
+            >
+              החזרה בלבד — איסוף
             </button>
             <Link to="/account/me" className="btn btn-outline">
               חזרה לאזור האישי

@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { api } from '../api';
 import { applySessionFromResponse } from '../lib/auth';
+import { heError } from '../lib/heError';
 
 const AppContext = createContext(null);
 
@@ -15,7 +16,7 @@ export function AppProvider({ children }) {
       setState(data);
       setError(null);
     } catch (e) {
-      setError(e.message);
+      setError(heError(e.message));
     } finally {
       setLoading(false);
     }
@@ -29,7 +30,7 @@ export function AppProvider({ children }) {
       setError(null);
       return data;
     } catch (e) {
-      setError(e.message);
+      setError(heError(e.message));
       try {
         const fresh = await api.getState();
         setState(fresh);

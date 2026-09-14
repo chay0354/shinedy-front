@@ -70,6 +70,8 @@ export default function CustomerProfile() {
         city: f.elements['city'].value,
         zip: f.elements['zip'].value,
         notes: f.elements['notes'].value,
+        shippingCharges: addr.shippingCharges || u.shippingCharges || [],
+        canceledAt: addr.canceledAt || u.canceledAt || null,
       },
     })
     setMsg('הפרטים נשמרו ✓')
@@ -141,6 +143,29 @@ export default function CustomerProfile() {
           {addr.notes && <div><span className="il">הערות משלוח</span><b>{addr.notes}</b></div>}
         </div>
       </div>
+
+      {((u.shippingCharges && u.shippingCharges.length) || (addr.shippingCharges && addr.shippingCharges.length)) > 0 && (
+        <div className="admin-section">
+          <h2>חיוב דמי משלוח</h2>
+          <div className="table-wrap">
+            <table className="admin-table">
+              <thead>
+                <tr><th>תאריך</th><th>סכום</th><th>סיבה</th><th>הזמנה</th></tr>
+              </thead>
+              <tbody>
+                {(u.shippingCharges || addr.shippingCharges || []).map((c) => (
+                  <tr key={c.id || c.at}>
+                    <td>{heDate(c.at)}</td>
+                    <td>₪{Number(c.amount || 0)}</td>
+                    <td>{c.reason || 'דמי משלוח'}</td>
+                    <td dir="ltr">{c.relatedOrderId || '—'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {/* התכשיטים שאצלה */}
       <div className="admin-section">
@@ -327,7 +352,28 @@ export default function CustomerProfile() {
             <h3>אישור הרשמה</h3>
             <div className="info-grid">
               <div><span className="il">תעודת זהות</span><b dir="ltr">{u.nationalId || '—'}</b></div>
-              <div><span className="il">העלאת ת״ז</span><b>{u.idDocumentUploaded ? 'הועלה' : 'לא הועלה'}</b></div>
+              <div>
+                <span className="il">העלאת ת״ז</span>
+                <b>{u.idDocumentUploaded ? 'הועלה' : 'לא הועלה'}</b>
+                {u.idDocumentUploaded && (
+                  <button
+                    type="button"
+                    className="btn-mini"
+                    style={{ marginInlineStart: 10 }}
+                    onClick={async () => {
+                      try {
+                        const data = await api.openIdDocument(u.id);
+                        if (data?.url) window.open(data.url, '_blank', 'noopener,noreferrer');
+                        else setMsg('לא ניתן לפתוח את הסריקה כרגע');
+                      } catch (e) {
+                        setMsg(e.message || 'לא ניתן לפתוח את הסריקה כרגע');
+                      }
+                    }}
+                  >
+                    צפייה בסריקה
+                  </button>
+                )}
+              </div>
               <div><span className="il">חתימה אלקטרונית</span><b>{u.signatureCompleted ? 'הושלמה' : 'חסרה'}</b></div>
               <div><span className="il">אישור תקנון ומדיניות</span><b>{u.termsAcceptedAt ? heDate(u.termsAcceptedAt) : '—'}</b></div>
             </div>

@@ -1,6 +1,17 @@
 import { useEffect, useState } from 'react'
 import Art from './Art.jsx'
 
+function savedCard(payment) {
+  if (!payment) return null;
+  const last4 = String(payment.last4 || '').replace(/\D/g, '').slice(-4);
+  if (last4.length < 4) return null;
+  return {
+    holder: String(payment.holder || '').trim(),
+    last4,
+    expiry: String(payment.expiry || '').trim(),
+  };
+}
+
 const FIELDS = [
   { k: 'street', lab: 'רחוב', req: true },
   { k: 'houseNo', lab: 'מס׳ בית', req: true },
@@ -37,16 +48,18 @@ export default function PurchaseDialog({ open, onClose, item, price, credit, use
 
   const maxCredit = guest ? 0 : Math.min(Math.floor(credit || 0), price || 0)
 
+  const storedCard = savedCard(user && user.payment)
+
   useEffect(() => {
     if (!open) return
     setName(user ? user.name : '')
     setPhone(user ? user.phone || '' : '')
     setEmail(user ? user.email || '' : '')
     setAddr(user ? { ...user.address } : {})
-    setEditAddr(!addressLine(user && user.address))   // אין כתובת שמורה — ישר מצב עריכה
+    setEditAddr(!addressLine(user && user.address))
     setSaveAddr(true)
-    setEditCard(!(user && user.payment))              // אין כרטיס שמור — ישר מצב עריכה
-    setCardNum(''); setCardExp(''); setCardHolder(user ? user.name : '')
+    setEditCard(!savedCard(user && user.payment))
+    setCardNum(''); setCardExp(''); setCardHolder((user && user.name) || '')
     setSaveCard(true)
     setUseCredit(maxCredit > 0)
     setAmount(maxCredit)
@@ -80,6 +93,9 @@ export default function PurchaseDialog({ open, onClose, item, price, credit, use
     if (editCard) {
       opts.payment = { holder: cardHolder.trim() || name.trim(), last4: digits.slice(-4), expiry: cardExp.trim() }
       opts.savePayment = !guest && saveCard
+    } else if (storedCard) {
+      opts.payment = storedCard
+      opts.savePayment = false
     }
     if (guest) opts.buyer = { name: name.trim(), phone: phone.trim(), email: email.trim() }
     onConfirm(opts)
@@ -146,14 +162,27 @@ export default function PurchaseDialog({ open, onClose, item, price, credit, use
         <div className="buy-sec">
           <div className="buy-sec-head">
             <span>אמצעי תשלום</span>
-            {!editCard && <button type="button" className="link-btn" onClick={() => setEditCard(true)}>החלפת כרטיס</button>}
           </div>
-          {/* הרינדור הראשון רץ לפני ה-effect — חייבים לוודא שיש כרטיס שמור לפני שמציגים אותו */}
-          {!editCard && user && user.payment ? (
-            <p className="buy-addr pay-line" dir="ltr">
-              •••• •••• •••• {user.payment.last4} · {user.payment.expiry} · {user.payment.holder}
-            </p>
-          ) : (
+          {storedCard && (
+            <label className="check-row">
+              <input type="radio" name="pay-card" checked={!editCard} onChange={() => setEditCard(false)} />
+              <span>
+                הכרטיס השמור · <span dir="ltr">•••• {storedCard.last4}</span>
+                {storedCard.expiry ? ` · ${storedCard.expiry}` : ''}
+                {storedCard.holder ? ` · ${storedCard.holder}` : ''}
+              </span>
+            </label>
+          )}
+          <label className="check-row">
+            <input
+              type="radio"
+              name="pay-card"
+              checked={editCard || !storedCard}
+              onChange={() => setEditCard(true)}
+            />
+            <span>{storedCard ? 'החלפת כרטיס אשראי' : 'פרטי כרטיס אשראי'}</span>
+          </label>
+          {(editCard || !storedCard) && (
             <>
               <div className="buy-fields">
                 <div className="field"><label>מספר כרטיס *</label>
@@ -168,11 +197,11 @@ export default function PurchaseDialog({ open, onClose, item, price, credit, use
               {!guest && (
                 <label className="check-row">
                   <input type="checkbox" checked={saveCard} onChange={(e) => setSaveCard(e.target.checked)} />
-                  <span>לשמור את הכרטיס לרכישות הבאות</span>
+                  <span>לשמור את הכרטיס החדש לרכישות הבאות</span>
                 </label>
               )}
               <p className="cell-sub" style={{ marginTop: 6 }}>
-                דמו — הפרטים אינם נשלחים לסליקה; נשמרות רק 4 הספרות האחרונות.
+                נשמרות רק 4 הספרות האחרונות והתוקף — לא מספר הכרטיס המלא.
               </p>
             </>
           )}

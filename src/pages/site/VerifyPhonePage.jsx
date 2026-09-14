@@ -7,6 +7,7 @@ import { homePathForRole } from '../../lib/roles';
 import { leaveVerification } from '../../lib/verify';
 import { toLocalIl } from '../../lib/phone';
 import HeroArt from '../../components/HeroArt';
+import { heError } from '../../lib/heError';
 
 export default function VerifyPhonePage() {
   const { state, refresh } = useApp();
@@ -34,7 +35,7 @@ export default function VerifyPhonePage() {
       sessionStorage.removeItem('shinedy_verify_phone');
       navigate(homePathForRole(data.auth?.role), { replace: true });
     } catch (err) {
-      setError(err.message || 'האימות נכשל');
+      setError(heError(err.message, 'האימות נכשל'));
     } finally {
       setBusy(false);
     }
@@ -48,7 +49,7 @@ export default function VerifyPhonePage() {
       await api.resendPhoneVerification({ phone });
       setInfo('שלחנו קוד חדש ב-SMS');
     } catch (err) {
-      setError(err.message || 'לא ניתן לשלוח שוב');
+      setError(heError(err.message, 'לא ניתן לשלוח שוב'));
     } finally {
       setBusy(false);
     }
@@ -83,15 +84,6 @@ export default function VerifyPhonePage() {
                 className="btn btn-outline"
                 disabled={busy}
                 onClick={() => {
-                  const email =
-                    location.state?.email ||
-                    state?.registration?.email ||
-                    sessionStorage.getItem('shinedy_verify_email') ||
-                    '';
-                  if (email || state?.verify?.email) {
-                    navigate('/verify-email', { state: { email, phone } });
-                    return;
-                  }
                   leaveVerification({ refresh, navigate });
                 }}
               >

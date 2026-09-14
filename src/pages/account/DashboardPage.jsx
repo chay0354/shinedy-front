@@ -1,4 +1,4 @@
-import { Link, Navigate } from 'react-router-dom';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { api } from '../../api';
 import { useApp } from '../../state/AppContext';
@@ -30,8 +30,11 @@ function stepIndex(status) {
 
 export default function DashboardPage() {
   const { state, run, refresh } = useApp();
+  const navigate = useNavigate();
   const [buyMsg, setBuyMsg] = useState('');
   const [buying, setBuying] = useState(null);
+  const endCharges = state?.shippingCharges || state?.registration?.shippingCharges || [];
+  const latestEndFee = [...endCharges].reverse().find((c) => Number(c.amount) > 0);
 
   if (!getToken()) return <Navigate to="/login" replace />;
 
@@ -56,7 +59,7 @@ export default function DashboardPage() {
     phone: state?.registration?.phone,
     email: state?.registration?.email,
     address: state?.registration?.address,
-    payment: state?.registration?.payment,
+    payment: state?.payment || state?.registration?.payment,
   };
 
   async function logout() {
@@ -75,8 +78,10 @@ export default function DashboardPage() {
       {state?.registration?.suspended && (
         <div className="container" style={{ paddingTop: 20 }}>
           <div className="blocked-panel">
-            <b>המנוי שלך מושהה.</b> בתקופת ההשהיה לא ניתן לבצע הזמנות והחלפות, ואינך מחויבת.
-            להפעלה מחדש — צרי איתנו קשר.
+            <b>המנוי שלך מוקפא.</b> שליח יגיע לאסוף את התכשיטים בימים הקרובים.
+            {latestEndFee ? ` מחויבת ב-₪${latestEndFee.amount} דמי משלוח.` : ''}
+            {' '}
+            <Link to="/account/end-pickup" className="link-gold">למסך האיסוף</Link>
           </div>
         </div>
       )}
@@ -128,12 +133,13 @@ export default function DashboardPage() {
                 onClick={async () => {
                   if (
                     !window.confirm(
-                      'להקפיא את המנוי? לא תחויבי ולא תוכלי להזמין עד ההפעלה מחדש. יש להחזיר קודם את התכשיטים שאצלך.',
+                      'להקפיא את המנוי? התכשיטים שאצלך ייאספו בימים הקרובים. אם כבר היה משלוח או החזרה בחודש המנוי — יתווספו ₪65 דמי משלוח.',
                     )
                   ) {
                     return;
                   }
-                  await run(() => api.suspendSubscription());
+                  const data = await run(() => api.suspendSubscription());
+                  if (data) navigate('/account/end-pickup');
                 }}
               >
                 הקפאת מנוי

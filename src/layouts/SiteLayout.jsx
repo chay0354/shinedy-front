@@ -8,6 +8,7 @@ import { hasActivePlan, isAdmin, isStaff } from '../lib/roles';
 import { IconBag, IconClose, IconFacebook, IconHeart, IconInstagram, IconMenu, IconSearch, IconUser } from '../components/icons';
 import PointsBar from '../components/PointsBar';
 import ScrollToTop from '../components/ScrollToTop';
+import CookieBanner from '../components/CookieBanner';
 
 const NAV = [
   { to: '/how', label: 'איך זה עובד' },
@@ -215,6 +216,7 @@ export default function SiteLayout() {
             <div className="footer-links">
               <Link to="/terms">תקנון והסכם מנוי</Link>
               <Link to="/privacy">מדיניות פרטיות</Link>
+              <Link to="/cookies">מדיניות עוגיות</Link>
             </div>
           </details>
           <details className="footer-group">
@@ -237,6 +239,7 @@ export default function SiteLayout() {
         </div>
         <div className="fine">© Shinedy 2026 · כל הזכויות שמורות</div>
       </footer>
+      <CookieBanner />
     </>
   );
 }

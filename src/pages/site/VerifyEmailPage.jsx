@@ -6,6 +6,7 @@ import { applySessionFromResponse } from '../../lib/auth';
 import { homePathForRole } from '../../lib/roles';
 import { leaveVerification, nextAfterAuth } from '../../lib/verify';
 import HeroArt from '../../components/HeroArt';
+import { heError } from '../../lib/heError';
 
 export default function VerifyEmailPage() {
   const { state, refresh } = useApp();
@@ -33,7 +34,7 @@ export default function VerifyEmailPage() {
       if (nextAfterAuth(data, navigate, { phone: data.registration?.phone || location.state?.phone })) return;
       navigate(homePathForRole(data.auth?.role), { replace: true });
     } catch (err) {
-      setError(err.message || 'האימות נכשל');
+      setError(heError(err.message, 'האימות נכשל'));
     } finally {
       setBusy(false);
     }
@@ -47,7 +48,7 @@ export default function VerifyEmailPage() {
       await api.resendVerification({ email });
       setInfo('שלחנו קוד חדש למייל');
     } catch (err) {
-      setError(err.message || 'לא ניתן לשלוח שוב');
+      setError(heError(err.message, 'לא ניתן לשלוח שוב'));
     } finally {
       setBusy(false);
     }

@@ -3,6 +3,7 @@ import { api } from '../../api';
 import { SERVICE_EMAIL, SERVICE_PHONE, SERVICE_PHONE_TEL } from '../../lib/contact';
 import { IconClock, IconMail, IconPhone } from '../../components/icons';
 import PageHead from '../../components/PageHead';
+import { heError } from '../../lib/heError';
 
 export default function ContactPage() {
   const [sent, setSent] = useState(false);
@@ -18,7 +19,7 @@ export default function ContactPage() {
       await api.contact(form);
       setSent(true);
     } catch (err) {
-      setError(err.message || 'השליחה נכשלה. נסי שוב או כתבי ישירות למייל.');
+      setError(heError(err.message, 'השליחה נכשלה. נסי שוב או כתבי ישירות למייל.'));
     } finally {
       setBusy(false);
     }

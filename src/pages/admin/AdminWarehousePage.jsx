@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { QRCodeSVG } from 'qrcode.react'
 import { planOf, heDate, useAdminDb } from '../../lib/useAdminDb.js'
+import { courierActionLabel, resolveCourierJob } from '../../lib/courierJob.js'
 import Returns from './AdminReturnsPanel.jsx'
 
 function orderPill(status) {
@@ -18,6 +19,8 @@ function Slip({ order, db, onClose }) {
     order: order.id,
     items: (order.items || []).map((it) => it.serial),
     returns: (order.returns || []).map((r) => r.serial),
+    job: resolveCourierJob(order),
+    deliverySignatureRequired: Boolean(order.deliverySignatureRequired),
   })
 
   // בזמן שהפתק פתוח — הדפסה מדפיסה רק אותו (ראו חוקי @media print)
@@ -38,9 +41,11 @@ function Slip({ order, db, onClose }) {
             <tr><td>לקוחה</td><td>{customer ? customer.name : '—'}</td></tr>
             <tr><td>טלפון</td><td dir="ltr">{customer ? customer.phone : ''}</td></tr>
             <tr><td>מסלול</td><td>{plan ? plan.latin : ''}</td></tr>
+            <tr><td>לשליח</td><td>{order.courierJobLabel || courierActionLabel(resolveCourierJob(order)).replace('הזמיני שליח — ', '')}</td></tr>
+            <tr><td>חתימת מסירה</td><td>{order.deliverySignatureLabel || (order.deliverySignatureRequired ? 'נדרשת' : 'לא נדרשת')}</td></tr>
           </tbody>
         </table>
-        <div className="slip-items-title">פריטים ללקט:</div>
+        <div className="slip-items-title">{order.needsDelivery === false ? 'אין פריטים למשלוח' : 'פריטים ללקט:'}</div>
         <table className="slip-table slip-items">
           <thead><tr><th>תכשיט</th><th>מספר פריט</th><th>נק׳</th></tr></thead>
           <tbody>
@@ -119,14 +124,20 @@ function Outgoing() {
             <div className="returns-note">מחזירה בנרתיק: {o.returns.map((r) => r.serial).join(', ')}</div>
           )}
         </td>
-        <td>{o.type}</td>
+        <td>
+          {o.type}
+          <br />
+          <span className="cell-sub">{o.courierJobLabel || 'משלוח'}</span>
+          <br />
+          <span className="cell-sub">{o.deliverySignatureLabel || (o.deliverySignatureRequired ? 'חתימת מסירה נדרשת' : 'ללא חתימת מסירה')}</span>
+        </td>
         <td>{o.date}</td>
         <td><span className={`pill ${orderPill(o.status)}`}>{o.status}</span></td>
         <td><button className="btn-mini" onClick={() => setSlipOrder(o)}>פתק + QR</button></td>
         <td>
           {(o.status === 'חדשה' || o.status === 'ליקוט' || o.status === 'בליקוט') && <button type="button" className="btn-mini" onClick={() => api.advanceFulfillment(o.id)}>התחילי ליקוט / קדמי</button>}
           {(o.status === 'בקרה' || o.status === 'נארזה') && <button type="button" className="btn-mini" onClick={() => api.advanceFulfillment(o.id)}>אישור אריזה</button>}
-          {o.status === 'אריזה' && <button type="button" className="btn-mini strong" onClick={() => api.orderCourier(o.id)}>הזמיני שליח ↗</button>}
+          {o.status === 'אריזה' && <button type="button" className="btn-mini strong" onClick={() => api.orderCourier(o.id)}>{courierActionLabel(resolveCourierJob(o))} ↗</button>}
           {o.status === 'נמסרה' && o.returns && o.returns.length > 0 && (
             <span className="cell-sub">קליטת המוחזרים — בלשונית "החזרות נכנסות"</span>
           )}
@@ -141,8 +152,8 @@ function Outgoing() {
   return (
     <>
       <p className="admin-sub">
-        הזרימה: הזמנה חדשה → ליקוט → הדפסת פתק + QR לנרתיק → אריזה → "הזמיני שליח".
-        מעקב המשלוחים עצמם נמצא בטאב "ניהול השכרות".
+        הזרימה: הזמנה → ליקוט → פתק + QR → אריזה → הזמנת שליח לפי סוג.
+        מסלול ראשון = ללא חתימת מסירה · שני המסלולים הגבוהים = חתימת מסירה נדרשת.
       </p>
 
       <div className="admin-section">
@@ -164,7 +175,7 @@ function Outgoing() {
         <div className="admin-section">
           <h2>רכישות למשלוח ({pursToShip.length})</h2>
           <p className="admin-sub" style={{ marginTop: -6 }}>
-            תכשיטים שנרכשו (רכישת אורחת או רכישה מהקטלוג) והרוכשת עדיין לא קיבלה אותם.
+            מכירה = משלוח בלבד. תכשיטים שנרכשו והרוכשת עדיין לא קיבלה אותם.
           </p>
           <div className="table-wrap">
             <table className="admin-table">

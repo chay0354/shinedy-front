@@ -22,6 +22,7 @@ import DashboardPage from './pages/account/DashboardPage';
 import CartPage from './pages/account/CartPage';
 import ExchangePage from './pages/account/ExchangePage';
 import ReturnPouchPage from './pages/account/ReturnPouchPage';
+import EndMembershipPage from './pages/account/EndMembershipPage';
 import HistoryPage from './pages/account/HistoryPage';
 import AdminDashboardPage from './pages/admin/AdminDashboardPage';
 import AdminWarehousePage from './pages/admin/AdminWarehousePage';
@@ -65,6 +66,7 @@ export default function App() {
           <Route path="verify-phone" element={<VerifyPhonePage />} />
           <Route path="terms" element={<LegalPage kind="terms" />} />
           <Route path="privacy" element={<LegalPage kind="privacy" />} />
+          <Route path="cookies" element={<LegalPage kind="cookies" />} />
           <Route path="faq" element={<FaqPage />} />
           <Route path="about" element={<AboutPage />} />
           <Route path="contact" element={<ContactPage />} />
@@ -89,6 +91,7 @@ export default function App() {
             <Route path="catalog" element={<Navigate to="/catalog" replace />} />
             <Route path="exchange" element={<Navigate to="/exchange" replace />} />
             <Route path="returns" element={<ReturnPouchPage />} />
+            <Route path="end-pickup" element={<EndMembershipPage />} />
             <Route path="history" element={<HistoryPage />} />
           </Route>
         </Route>
