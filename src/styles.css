@@ -97,6 +97,26 @@ button { font-family: inherit; cursor: pointer; }
 .btn-sm { padding: 8px 20px; font-size: 0.88rem; }
 .btn-wide { width: 100%; }
 .btn[disabled] { opacity: 0.4; cursor: not-allowed; }
+.btn.is-loading {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  opacity: 0.88;
+  cursor: wait;
+}
+.btn-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: btn-spin 0.7s linear infinite;
+  flex: 0 0 auto;
+}
+@keyframes btn-spin {
+  to { transform: rotate(360deg); }
+}
 
 /* ===== hero — תמונה כהה עם טקסט ===== */
 .hero-photo {

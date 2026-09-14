@@ -6,11 +6,13 @@ import { applySessionFromResponse, getToken } from '../../lib/auth';
 import { homePathForRole } from '../../lib/roles';
 import { IconEye, IconEyeOff } from '../../components/icons';
 import HeroArt from '../../components/HeroArt';
+import Button from '../../components/Button';
 import { heError } from '../../lib/heError';
 
 export default function LoginPage() {
   const [error, setError] = useState('');
   const [showPass, setShowPass] = useState(false);
+  const [busy, setBusy] = useState(false);
   const { state, run } = useApp();
   const navigate = useNavigate();
 
@@ -24,6 +26,7 @@ export default function LoginPage() {
     const email = f.elements['l-email'].value.trim();
     const password = f.elements['l-pass'].value;
     setError('');
+    setBusy(true);
     try {
       const data = await api.login({ email, password });
       await run(async () => data);
@@ -31,6 +34,8 @@ export default function LoginPage() {
       navigate(homePathForRole(data.auth?.role));
     } catch (e) {
       setError(heError(e.message, 'פרטי ההתחברות שגויים או שהשרת לא אישר את הכניסה'));
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -78,9 +83,9 @@ export default function LoginPage() {
               </div>
             </div>
             {error && <p className="form-err">{error}</p>}
-            <button type="submit" className="btn btn-wide">
+            <Button type="submit" className="btn btn-wide" loading={busy} loadingText="מתחבר…">
               התחברות
-            </button>
+            </Button>
           </form>
           <p className="form-note">
             אין לך חשבון?{' '}
