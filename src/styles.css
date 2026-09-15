@@ -70,6 +70,9 @@ button { font-family: inherit; cursor: pointer; }
   width: min(220px, 42vw); border: 1px solid var(--line); background: #fff;
   padding: 6px 10px; font: inherit; font-size: 0.88rem; color: var(--ink);
 }
+.page-search {
+  display: none;
+}
 .main-nav {
   display: flex; gap: 30px; justify-content: center; padding: 0 28px 14px;
   flex-wrap: wrap;
@@ -1311,6 +1314,19 @@ button.link-gold { background: none; border: none; padding: 0; cursor: pointer; 
   .header-icons .icon-link svg { width: 21px; height: 21px; }
   .header-search { flex: 1; min-width: 0; }
   .header-search input { width: 100%; max-width: none; }
+  .page-search {
+    display: block;
+    padding: 0 14px 12px;
+  }
+  .page-search input {
+    width: 100%;
+    border: 1px solid var(--line);
+    background: #fff;
+    padding: 11px 12px;
+    font: inherit;
+    font-size: 16px;
+    color: var(--ink);
+  }
   .main-nav {
     display: none;
     flex-direction: column;

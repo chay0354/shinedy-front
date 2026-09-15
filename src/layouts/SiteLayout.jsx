@@ -54,6 +54,19 @@ export default function SiteLayout() {
     setSearchOpen(false);
   }, [location.pathname]);
 
+  useEffect(() => {
+    const q = new URLSearchParams(location.search).get('q');
+    if (q) setSearchQ(q);
+  }, [location.search]);
+
+  function submitSearch(e) {
+    e.preventDefault();
+    const q = searchQ.trim();
+    setSearchOpen(false);
+    setNavOpen(false);
+    navigate(q ? `/catalog?q=${encodeURIComponent(q)}` : '/catalog');
+  }
+
   function accountPath() {
     if (!getToken() || !state?.auth) return '/login';
     if (isAdmin(state)) return '/admin';
@@ -90,25 +103,17 @@ export default function SiteLayout() {
           </Link>
           <div className="header-icons">
             {searchOpen ? (
-              <form
-                className="header-search"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  const q = searchQ.trim();
-                  setSearchOpen(false);
-                  navigate(q ? `/catalog?q=${encodeURIComponent(q)}` : '/catalog');
-                }}
-              >
+              <form className="header-search" onSubmit={submitSearch}>
                 <input
                   autoFocus
                   type="search"
-                  placeholder="חיפוש תכשיט..."
+                  placeholder="חיפוש לפי שם או מק״ט..."
                   value={searchQ}
                   onChange={(e) => setSearchQ(e.target.value)}
                   onBlur={() => {
                     if (!searchQ.trim()) setSearchOpen(false);
                   }}
-                  aria-label="חיפוש בקטלוג"
+                  aria-label="חיפוש לפי שם או מק״ט"
                 />
               </form>
             ) : (
@@ -140,6 +145,15 @@ export default function SiteLayout() {
             </Link>
           </div>
         </div>
+        <form className="page-search" onSubmit={submitSearch}>
+          <input
+            type="search"
+            placeholder="חיפוש לפי שם או מק״ט..."
+            value={searchQ}
+            onChange={(e) => setSearchQ(e.target.value)}
+            aria-label="חיפוש לפי שם או מק״ט"
+          />
+        </form>
         <nav className={`main-nav${navOpen ? ' is-open' : ''}`}>
           {NAV.filter((n) => !(loggedIn && n.to === '/plans')).map((n) => (
             <NavLink key={n.to} to={n.to} className={({ isActive }) => (isActive ? 'active' : '')}>
@@ -147,23 +161,6 @@ export default function SiteLayout() {
             </NavLink>
           ))}
           <div className="nav-extra">
-            <form
-              className="header-search nav-search"
-              onSubmit={(e) => {
-                e.preventDefault();
-                const q = searchQ.trim();
-                setNavOpen(false);
-                navigate(q ? `/catalog?q=${encodeURIComponent(q)}` : '/catalog');
-              }}
-            >
-              <input
-                type="search"
-                placeholder="חיפוש תכשיט..."
-                value={searchQ}
-                onChange={(e) => setSearchQ(e.target.value)}
-                aria-label="חיפוש בקטלוג"
-              />
-            </form>
             <NavLink to="/favorites">מועדפים{favCount > 0 ? ` (${favCount})` : ''}</NavLink>
             <NavLink to={accountPath()}>{loggedIn ? (userName ? `שלום, ${userName}` : 'אזור אישי') : 'התחברות'}</NavLink>
             {!loggedIn && <NavLink to="/signup">הרשמה</NavLink>}

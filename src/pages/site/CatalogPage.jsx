@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useApp } from '../../state/AppContext';
 import ProductCard from '../../components/ProductCard';
 import PageHead from '../../components/PageHead';
+import { skuFor } from '../../lib/dbFromState.js';
 
 const CATALOG_TABS = [
   { id: 'הכל', label: 'כל הקולקציות' },
@@ -32,6 +33,29 @@ const SORTS = [
 
 const NEW_IN_COUNT = 6;
 
+function compactCode(value) {
+  return String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[\s\-_.]/g, '');
+}
+
+function matchesSearch(product, query) {
+  const raw = String(query || '').trim().toLowerCase();
+  if (!raw) return true;
+  const sku = product.sku || skuFor(product);
+  const fields = [product.name, product.metal, product.stone, product.category, product.id, sku]
+    .map((v) => String(v || '').toLowerCase());
+  const words = raw.split(/\s+/).filter(Boolean);
+  if (words.every((word) => fields.some((field) => field.includes(word)))) return true;
+  const code = compactCode(query);
+  if (!code) return false;
+  return [product.id, sku].some((v) => {
+    const compact = compactCode(v);
+    return compact && (compact.includes(code) || code.includes(compact));
+  });
+}
+
 function matchesType(product, type) {
   if (type === 'הכל') return true;
   if (product.metal === type || product.category === type) return true;
@@ -54,11 +78,7 @@ export default function CatalogPage() {
     let list = products.filter((p) => {
       const byCat = cat === 'הכל' || (cat === 'new' ? newInIds.has(p.id) : p.category === cat);
       const byType = matchesType(p, type);
-      const bySearch =
-        !searchQ ||
-        [p.name, p.metal, p.stone, p.category].some((v) =>
-          String(v || '').includes(searchQ),
-        );
+      const bySearch = matchesSearch(p, searchQ);
       return byCat && byType && bySearch;
     });
     if (sort === 'type') {

@@ -99,7 +99,7 @@ function sampleExpenses(meta) {
   return rows;
 }
 
-function skuFor(p) {
+export function skuFor(p) {
   if (p.sku) return p.sku;
   const CAT_CODE = { טבעות: 'RNG', עגילים: 'EAR', שרשראות: 'NCK', צמידים: 'BRC' };
   const cat = CAT_CODE[p.category] || 'JWL';
