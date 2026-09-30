@@ -77,21 +77,18 @@ export function useAdminDb() {
         return false;
       },
       async saveProduct(p) {
-        const prefix = { טבעות: 'R', עגילים: 'E', שרשראות: 'N', צמידים: 'B' }[p.category] || 'J';
-        let id =
-          String(p.id || p.sku || '')
-            .trim()
-            .replace(/[^A-Za-z0-9]/g, '')
-            .toUpperCase() || `${prefix}${Date.now().toString(36).toUpperCase()}`;
+        const code = String(p.sku || p.id || '').trim().toUpperCase().replace(/\s+/g, '');
+        const id = p.id || code;
+        if (!id) return false;
         if (!p.id) {
-          const created = await run(() => live.createProduct({ ...p, id }));
+          const created = await run(() => live.createProduct({ ...p, id: code, sku: code }));
           if (!created) return false;
         } else {
           const current = (state.products || []).find((x) => x.id === id) || {};
           const fields = ['sku', 'name', 'category', 'metal', 'stone', 'points', 'price'];
           for (const field of fields) {
             if (p[field] == null) continue;
-            if (field === 'sku' && String(p.sku).trim() === String(current.sku || id)) continue;
+            if (field === 'sku' && code === String(current.sku || id).trim().toUpperCase().replace(/\s+/g, '')) continue;
             const data = await run(() => live.updateProduct(id, field, p[field]));
             if (!data) return false;
           }
@@ -99,8 +96,9 @@ export function useAdminDb() {
         local.saveProductPatch(id, { ...p, id, sku: undefined });
         return true;
       },
-      async addUnit(productId) {
-        await run(() => live.receiveUnit(productId));
+      async addUnit(productId, code) {
+        const data = await run(() => live.receiveUnit(productId, code));
+        return Boolean(data);
       },
       async removeUnit(productId) {
         const g = (state.inventory || []).find((x) => x.id === productId);

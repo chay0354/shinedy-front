@@ -148,10 +148,10 @@ export const api = {
     }),
   advanceOrder: (id) =>
     request(`/warehouse/orders/${id}/advance`, { method: 'POST', body: '{}' }),
-  receiveUnit: (modelId) =>
+  receiveUnit: (modelId, code) =>
     request('/warehouse/receive', {
       method: 'POST',
-      body: JSON.stringify({ modelId }),
+      body: JSON.stringify({ modelId, code }),
     }),
   returnQC: (unitId, result) =>
     request(`/warehouse/returns/${unitId}/qc-unit`, {

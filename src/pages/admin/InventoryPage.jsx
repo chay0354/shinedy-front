@@ -69,6 +69,8 @@ export default function Inventory() {
   const [category, setCategory] = useState('all')
   const [query, setQuery] = useState('')
   const [skuLabels, setSkuLabels] = useState(null)
+  const [unitFor, setUnitFor] = useState(null)
+  const [unitCode, setUnitCode] = useState('')
   const fileRef = useRef(null)
 
   const filtered = useMemo(() => {
@@ -125,9 +127,33 @@ export default function Inventory() {
       cost: Number(edit.cost),
     })
     if (!ok) return
-    setSaved(edit.id ? 'התכשיט עודכן ✓' : 'הדגם נוסף למלאי ✓')
+    const isNew = !edit.id
+    const code = String(edit.sku || '').trim().toUpperCase().replace(/\s+/g, '')
+    setSaved(isNew ? `הדגם נוסף. הברקוד הוא ${code}` : 'התכשיט עודכן ✓')
+    if (isNew) setSkuLabels(skuLabelsFor({ ...edit, sku: code, id: code }, [{ serial: code }]))
     setEdit(null)
     if (fileRef.current) fileRef.current.value = ''
+  }
+
+  function startAddUnit(pid) {
+    setUnitFor(pid)
+    setUnitCode('')
+    setClosedUnits((prev) => {
+      const next = new Set(prev)
+      next.delete(pid)
+      return next
+    })
+  }
+
+  async function submitUnit(p, e) {
+    e.preventDefault()
+    const code = unitCode.trim().toUpperCase().replace(/\s+/g, '')
+    if (!code) return
+    const ok = await api.addUnit(p.id, code)
+    if (!ok) return
+    setUnitFor(null)
+    setUnitCode('')
+    setSkuLabels(skuLabelsFor(p, [{ serial: code }]))
   }
 
   return (
@@ -137,7 +163,7 @@ export default function Inventory() {
         <button className="btn btn-sm" onClick={() => startEdit(EMPTY)}>+ דגם חדש</button>
       </div>
       <p className="admin-sub">
-        לכל דגם יש מספר דגם (למשל E08). כל יחידה פיזית של הדגם מקבלת מספר מוצר משלה (למשל E08-3), שמופיע מתחת לדגם.
+        כשמוסיפים דגם בוחרים לו קוד. הקוד הזה הוא מספר הדגם, וגם הברקוד שנוצר למדבקה. יחידה נוספת מקבלת קוד משלה, והוא הברקוד שלה.
       </p>
 
       {saved && <p className="msg-ok">{saved}</p>}
@@ -149,7 +175,15 @@ export default function Inventory() {
             <div className="field"><label>שם</label>
               <input required value={edit.name} onChange={(e) => setEdit({ ...edit, name: e.target.value })} /></div>
             <div className="field"><label>מספר דגם (מק״ט)</label>
-              <input dir="ltr" value={edit.sku || ''} onChange={(e) => setEdit({ ...edit, sku: e.target.value })} placeholder="נוצר אוטומטית אם נשאר ריק" /></div>
+              <input
+                dir="ltr"
+                required={!edit.id}
+                value={edit.sku || ''}
+                onChange={(e) => setEdit({ ...edit, sku: e.target.value })}
+                placeholder="למשל E08"
+              />
+              {!edit.id && <span className="cell-sub">הקוד שתבחרי הוא הברקוד. אותיות באנגלית, ספרות ומקף</span>}
+            </div>
             <div className="field"><label>קטגוריה</label>
               <select value={edit.category} onChange={(e) => setEdit({ ...edit, category: e.target.value })}>
                 {CATEGORIES.map((c) => <option key={c}>{c}</option>)}
@@ -276,7 +310,7 @@ export default function Inventory() {
                           <span className="qty">
                             <button type="button" className="qty-btn" title="הסרת יחידה זמינה" onClick={() => api.removeUnit(p.id)}>−</button>
                             <button type="button" className="link-btn" title="הצגה/הסתרה של מק״טי היחידות" onClick={() => toggleUnits(p.id)}>{total}</button>
-                            <button type="button" className="qty-btn" title="הוספת יחידה חדשה" onClick={() => api.addUnit(p.id)}>+</button>
+                            <button type="button" className="qty-btn" title="הוספת יחידה לפי קוד" onClick={() => startAddUnit(p.id)}>+</button>
                           </span>
                           <span className="inv-state">
                             <i className={avail > 2 ? 'st-ok' : 'st-warn'}>זמין {avail}</i>
@@ -298,9 +332,24 @@ export default function Inventory() {
                           </div>
                         </td>
                       </tr>
-                      {!closedUnits.has(p.id) && units.length > 0 && (
+                      {!closedUnits.has(p.id) && (units.length > 0 || unitFor === p.id) && (
                         <tr>
                           <td colSpan="7" className="units-cell">
+                            {unitFor === p.id && (
+                              <form className="unit-add" onSubmit={(e) => submitUnit(p, e)}>
+                                <input
+                                  dir="ltr"
+                                  required
+                                  autoFocus
+                                  value={unitCode}
+                                  onChange={(e) => setUnitCode(e.target.value)}
+                                  placeholder="קוד לברקוד"
+                                  aria-label="קוד לברקוד"
+                                />
+                                <button type="submit" className="btn-mini">יצירת ברקוד</button>
+                                <button type="button" className="btn-mini" onClick={() => setUnitFor(null)}>ביטול</button>
+                              </form>
+                            )}
                             {units.map((u) => (
                               <span key={u.serial} className={`unit-chip ${u.status === 'זמין' ? 'ok' : u.status === 'מושכר' || u.status === 'אצל לקוחה' ? 'out' : 'clean'}`}>
                                 <span dir="ltr">{u.serial}</span> · {u.status}
