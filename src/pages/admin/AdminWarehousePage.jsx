@@ -5,6 +5,37 @@ import { planOf, heDate, useAdminDb } from '../../lib/useAdminDb.js'
 import { courierActionLabel, resolveCourierJob } from '../../lib/courierJob.js'
 import AdminUserCell, { userPlanLabel } from '../../components/AdminUserCell.jsx'
 import Returns from './AdminReturnsPanel.jsx'
+import PrintLabels, { ShippingLabel, formatAddress } from '../../components/PrintLabels.jsx'
+
+function orderShipLabel(db, o) {
+  const u = db.users.find((x) => x.id === o.userId) || db.users.find((x) => x.name === o.customerName)
+  const job = resolveCourierJob(o)
+  return {
+    id: o.id,
+    recipient: (u && u.name) || o.customerName,
+    phone: (u && u.phone) || '',
+    address: formatAddress(o.address || (u && u.address)),
+    jobLabel: o.courierJobLabel || courierActionLabel(job).replace('הזמיני שליח — ', ''),
+    signatureLabel: o.deliverySignatureRequired ? 'חתימת מסירה נדרשת' : '',
+    planLabel: userPlanLabel(db, u),
+    itemsCount: (o.items || []).length,
+    qrValue: JSON.stringify({ order: o.id, items: (o.items || []).map((it) => it.serial), job }),
+  }
+}
+
+function purchaseShipLabel(db, pur) {
+  const buyer = db.users.find((x) => x.id === pur.userId) || pur.buyer || null
+  return {
+    id: pur.id,
+    recipient: pur.recipient || (buyer && buyer.name) || '',
+    phone: pur.phone || (buyer && buyer.phone) || '',
+    address: formatAddress(pur.address || (buyer && buyer.address)),
+    jobLabel: 'משלוח רכישה',
+    planLabel: userPlanLabel(db, buyer),
+    itemsCount: 1,
+    qrValue: JSON.stringify({ purchase: pur.id, items: [pur.serial].filter(Boolean) }),
+  }
+}
 
 function orderPill(status) {
   if (status === 'נמסרה' || status === 'הוחזרה') return 'ok'
@@ -99,6 +130,7 @@ function Outgoing() {
   const [slipOrder, setSlipOrder] = useState(null)
   const [showDone, setShowDone] = useState(false)
   const [busyId, setBusyId] = useState(null)
+  const [shipLabels, setShipLabels] = useState(null)
 
   const OPEN = ['חדשה', 'בליקוט', 'ליקוט', 'נארזה', 'בקרה', 'אריזה']
   const SENT = ['נשלחה', 'נשלח', 'נמסרה']
@@ -149,7 +181,14 @@ function Outgoing() {
         </td>
         <td>{o.date}</td>
         <td><span className={`pill ${orderPill(o.status)}`}>{o.status}</span></td>
-        <td><button type="button" className="btn-mini" onClick={() => setSlipOrder(o)}>פתק + QR</button></td>
+        <td>
+          <div className="btn-stack">
+            <button type="button" className="btn-mini" onClick={() => setSlipOrder(o)}>פתק + QR</button>
+            {o.needsDelivery !== false && (
+              <button type="button" className="btn-mini" onClick={() => setShipLabels([orderShipLabel(db, o)])}>מדבקת משלוח</button>
+            )}
+          </div>
+        </td>
         <td>
           {(o.status === 'חדשה' || o.status === 'ליקוט' || o.status === 'בליקוט') && (
             <button type="button" className="btn-mini" disabled={busy} onClick={() => act(o.id, () => api.advanceFulfillment(o.id))}>
@@ -185,7 +224,18 @@ function Outgoing() {
       </p>
 
       <div className="admin-section">
-        <h2>ממתינות לטיפול ({inProcess.length})</h2>
+        <div className="admin-head-row">
+          <h2>ממתינות לטיפול ({inProcess.length})</h2>
+          {inProcess.some((o) => o.needsDelivery !== false) && (
+            <button
+              type="button"
+              className="btn-mini"
+              onClick={() => setShipLabels(inProcess.filter((o) => o.needsDelivery !== false).map((o) => orderShipLabel(db, o)))}
+            >
+              הדפסת כל מדבקות המשלוח
+            </button>
+          )}
+        </div>
         <div className="table-wrap">
           <table className="admin-table">
             <thead>
@@ -227,7 +277,12 @@ function Outgoing() {
                       <td>{pur.name} <span className="cell-sub" dir="ltr">{pur.serial}</span></td>
                       <td>{[a.street, a.houseNo, a.apt && `דירה ${a.apt}`, a.city].filter(Boolean).join(', ') || '—'}</td>
                       <td>₪{Math.round(pur.paid).toLocaleString()}</td>
-                      <td><button className="btn-mini strong" onClick={() => api.markPurchaseShipped(pur.id)}>נשלחה ✓</button></td>
+                      <td>
+                        <div className="btn-stack">
+                          <button type="button" className="btn-mini" onClick={() => setShipLabels([purchaseShipLabel(db, pur)])}>מדבקת משלוח</button>
+                          <button className="btn-mini strong" onClick={() => api.markPurchaseShipped(pur.id)}>נשלחה ✓</button>
+                        </div>
+                      </td>
                     </tr>
                   )
                 })}
@@ -260,6 +315,16 @@ function Outgoing() {
       </div>
 
       {slipOrder && <Slip order={slipOrder} db={db} onClose={() => setSlipOrder(null)} />}
+      {shipLabels && (
+        <PrintLabels
+          title={shipLabels.length > 1 ? `מדבקות משלוח (${shipLabels.length})` : 'מדבקת משלוח'}
+          width={100}
+          height={150}
+          onClose={() => setShipLabels(null)}
+        >
+          {shipLabels.map((l) => <ShippingLabel key={l.id} {...l} />)}
+        </PrintLabels>
+      )}
     </>
   )
 }

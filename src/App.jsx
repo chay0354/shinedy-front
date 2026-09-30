@@ -28,6 +28,7 @@ import AdminDashboardPage from './pages/admin/AdminDashboardPage';
 import AdminWarehousePage from './pages/admin/AdminWarehousePage';
 import AdminRentalsPage from './pages/admin/AdminRentalsPage';
 import InventoryPage from './pages/admin/InventoryPage';
+import AdminFavoritesPage from './pages/admin/AdminFavoritesPage';
 import CustomersPage from './pages/admin/CustomersPage';
 import PlansAdminPage from './pages/admin/PlansAdminPage';
 import AdminReportsPage from './pages/admin/AdminReportsPage';
@@ -106,6 +107,7 @@ export default function App() {
           <Route path="warehouse" element={<AdminWarehousePage />} />
           <Route path="rentals" element={<AdminRentalsPage />} />
           <Route path="inventory" element={<InventoryPage />} />
+          <Route path="favorites" element={<AdminFavoritesPage />} />
           <Route path="customers" element={<CustomersPage />} />
           <Route path="customers/:id" element={<CustomerProfilePage />} />
           <Route path="subscriptions" element={<PlansAdminPage />} />

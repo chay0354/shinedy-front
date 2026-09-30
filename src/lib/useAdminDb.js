@@ -87,18 +87,16 @@ export function useAdminDb() {
           const created = await run(() => live.createProduct({ ...p, id }));
           if (!created) return false;
         } else {
-          const fields = ['name', 'category', 'metal', 'stone', 'points', 'price'];
+          const current = (state.products || []).find((x) => x.id === id) || {};
+          const fields = ['sku', 'name', 'category', 'metal', 'stone', 'points', 'price'];
           for (const field of fields) {
-            if (p[field] != null) {
-              try {
-                await run(() => live.updateProduct(id, field, p[field]));
-              } catch {
-                /* local patch still saved */
-              }
-            }
+            if (p[field] == null) continue;
+            if (field === 'sku' && String(p.sku).trim() === String(current.sku || id)) continue;
+            const data = await run(() => live.updateProduct(id, field, p[field]));
+            if (!data) return false;
           }
         }
-        local.saveProductPatch(id, { ...p, id });
+        local.saveProductPatch(id, { ...p, id, sku: undefined });
         return true;
       },
       async addUnit(productId) {

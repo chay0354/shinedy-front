@@ -2,6 +2,14 @@ import { Fragment, useMemo, useRef, useState } from 'react'
 import { CATEGORIES, PLAN_NAME } from '../../lib/site.js'
 import { salePriceFor, unitsAvailable, unitsCleaning, unitsOut, unitsTotal, useAdminDb } from '../../lib/useAdminDb.js'
 import Art from '../../components/Art.jsx'
+import PrintLabels, { SkuLabel } from '../../components/PrintLabels.jsx'
+
+function skuLabelsFor(p, units) {
+  const sku = p.sku || p.id
+  const details = [p.metal, p.stone].filter(Boolean).join(' · ')
+  if (!units.length) return [{ key: sku, name: p.name, sku, details }]
+  return units.map((u) => ({ key: u.serial, name: p.name, sku, serial: u.serial, details }))
+}
 
 const EMPTY = {
   id: '',
@@ -19,24 +27,71 @@ const EMPTY = {
   image: null,
 }
 
+const METALS = ['כסף 925', 'כסף', 'כסף מצופה זהב', 'זהב 14K', 'זהב 18K', 'זהב צהוב', 'זהב רוזה']
+const STONES = ['מויסנייט', 'יהלום מעבדה', 'ללא אבן']
+
+const MATERIALS = [
+  { id: 'all', label: 'הכול' },
+  { id: 'silver', label: 'כסף' },
+  { id: 'gold', label: 'זהב' },
+  { id: 'diamond', label: 'יהלום' },
+]
+
+function matchesMaterial(p, material) {
+  const metal = String(p.metal || '')
+  const stone = String(p.stone || '')
+  if (material === 'silver') return metal.includes('כסף')
+  if (material === 'gold') return metal.includes('זהב')
+  if (material === 'diamond') return stone.includes('יהלום') || Boolean(p.large)
+  return true
+}
+
+function matchesQuery(p, q) {
+  if (!q) return true
+  const code = q.replace(/[\s\-_.]/g, '')
+  const fields = [p.name, p.sku, p.id, ...(p.units || []).map((u) => u.serial)]
+  return fields.some((v) => {
+    const s = String(v || '').toLowerCase()
+    return s.includes(q) || (code && s.replace(/[\s\-_.]/g, '').includes(code))
+  })
+}
+
+function withCurrent(options, value) {
+  return value && !options.includes(value) ? [value, ...options] : options
+}
+
 export default function Inventory() {
   const { db, api } = useAdminDb()
   const [edit, setEdit] = useState(null)
   const [saved, setSaved] = useState('')
   const [closedUnits, setClosedUnits] = useState(() => new Set())
+  const [material, setMaterial] = useState('all')
+  const [category, setCategory] = useState('all')
+  const [query, setQuery] = useState('')
+  const [skuLabels, setSkuLabels] = useState(null)
   const fileRef = useRef(null)
 
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    return (db.products || []).filter((p) =>
+      matchesMaterial(p, material)
+      && (category === 'all' || p.category === category)
+      && matchesQuery(p, q),
+    )
+  }, [db.products, material, category, query])
+
   const byCategory = useMemo(() => {
-    const products = db.products || []
     const groups = CATEGORIES.map((cat) => ({
       category: cat,
-      items: products.filter((p) => p.category === cat),
+      items: filtered.filter((p) => p.category === cat),
     })).filter((g) => g.items.length > 0)
     const known = new Set(CATEGORIES)
-    const extra = products.filter((p) => !known.has(p.category))
+    const extra = filtered.filter((p) => !known.has(p.category))
     if (extra.length) groups.push({ category: 'אחר', items: extra })
     return groups
-  }, [db.products])
+  }, [filtered])
+
+  const totalModels = (db.products || []).length
 
   function toggleUnits(pid) {
     setClosedUnits((prev) => {
@@ -82,7 +137,7 @@ export default function Inventory() {
         <button className="btn btn-sm" onClick={() => startEdit(EMPTY)}>+ דגם חדש</button>
       </div>
       <p className="admin-sub">
-        לפי סוג ודגם: מק״ט של המוצר, כמה יחידות יש במלאי וכמה מהן זמינות. כל יחידה פיזית מקבלת מק״ט משלה מתחת לדגם.
+        לכל דגם יש מספר דגם (למשל E08). כל יחידה פיזית של הדגם מקבלת מספר מוצר משלה (למשל E08-3), שמופיע מתחת לדגם.
       </p>
 
       {saved && <p className="msg-ok">{saved}</p>}
@@ -93,7 +148,7 @@ export default function Inventory() {
           <form className="admin-form" onSubmit={saveEdit}>
             <div className="field"><label>שם</label>
               <input required value={edit.name} onChange={(e) => setEdit({ ...edit, name: e.target.value })} /></div>
-            <div className="field"><label>מק״ט דגם</label>
+            <div className="field"><label>מספר דגם (מק״ט)</label>
               <input dir="ltr" value={edit.sku || ''} onChange={(e) => setEdit({ ...edit, sku: e.target.value })} placeholder="נוצר אוטומטית אם נשאר ריק" /></div>
             <div className="field"><label>קטגוריה</label>
               <select value={edit.category} onChange={(e) => setEdit({ ...edit, category: e.target.value })}>
@@ -101,11 +156,11 @@ export default function Inventory() {
               </select></div>
             <div className="field"><label>מתכת</label>
               <select value={edit.metal} onChange={(e) => setEdit({ ...edit, metal: e.target.value })}>
-                <option>כסף 925</option><option>כסף מצופה זהב</option><option>זהב 14K</option><option>זהב 18K</option>
+                {withCurrent(METALS, edit.metal).map((m) => <option key={m}>{m}</option>)}
               </select></div>
             <div className="field"><label>אבן</label>
               <select value={edit.stone} onChange={(e) => setEdit({ ...edit, stone: e.target.value })}>
-                <option>מויסנייט</option><option>יהלום מעבדה</option><option>ללא אבן</option>
+                {withCurrent(STONES, edit.stone).map((s) => <option key={s}>{s}</option>)}
               </select></div>
             <div className="field"><label>נקודות</label>
               <input type="number" min="5" required value={edit.points} onChange={(e) => setEdit({ ...edit, points: e.target.value })} /></div>
@@ -135,6 +190,42 @@ export default function Inventory() {
         </div>
       )}
 
+      <div className="admin-section inv-filters" style={{ marginTop: 18 }}>
+        <div className="subtabs" role="group" aria-label="סינון לפי חומר">
+          {MATERIALS.map((m) => (
+            <button
+              key={m.id}
+              type="button"
+              className={`subtab${material === m.id ? ' on' : ''}`}
+              onClick={() => setMaterial(m.id)}
+            >
+              {m.label}
+            </button>
+          ))}
+        </div>
+        <div className="kpi-filters" style={{ marginBottom: 0 }}>
+          <div className="filter-group">
+            <label>סוג תכשיט</label>
+            <select className="select" value={category} onChange={(e) => setCategory(e.target.value)}>
+              <option value="all">כל הסוגים</option>
+              {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+            </select>
+          </div>
+          <div className="filter-group" style={{ flex: 1 }}>
+            <label>חיפוש</label>
+            <input
+              className="select admin-search"
+              style={{ width: '100%' }}
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="שם, מספר דגם או מספר מוצר (למשל E08 או E08-3)"
+            />
+          </div>
+          <span className="cell-sub" style={{ alignSelf: 'end' }}>{filtered.length} מתוך {totalModels} דגמים</span>
+        </div>
+      </div>
+
       {byCategory.map((group) => (
         <div className="admin-section" key={group.category} style={{ marginTop: 18 }}>
           <h2 className="inv-cat-title">{group.category}</h2>
@@ -143,7 +234,7 @@ export default function Inventory() {
               <thead>
                 <tr>
                   <th>דגם</th>
-                  <th>מק״ט</th>
+                  <th>מספר דגם</th>
                   <th>פרטים</th>
                   <th>מחיר מכירה</th>
                   <th>יחידות ומצב</th>
@@ -199,7 +290,12 @@ export default function Inventory() {
                           </button>
                         </td>
                         <td>
-                          <button type="button" className="btn-mini" onClick={() => startEdit(p)}>עריכה</button>
+                          <div className="btn-stack">
+                            <button type="button" className="btn-mini" onClick={() => startEdit(p)}>עריכה</button>
+                            <button type="button" className="btn-mini" onClick={() => setSkuLabels(skuLabelsFor(p, units))}>
+                              {units.length > 1 ? `מדבקות מק״ט (${units.length})` : 'מדבקת מק״ט'}
+                            </button>
+                          </div>
                         </td>
                       </tr>
                       {!closedUnits.has(p.id) && units.length > 0 && (
@@ -208,6 +304,7 @@ export default function Inventory() {
                             {units.map((u) => (
                               <span key={u.serial} className={`unit-chip ${u.status === 'זמין' ? 'ok' : u.status === 'מושכר' || u.status === 'אצל לקוחה' ? 'out' : 'clean'}`}>
                                 <span dir="ltr">{u.serial}</span> · {u.status}
+                                <button type="button" className="link-btn" title="הדפסת מדבקת מק״ט ליחידה" onClick={() => setSkuLabels(skuLabelsFor(p, [u]))}>מדבקה</button>
                                 {(u.status === 'בניקוי' || u.status === 'בתיקון') && (
                                   <button type="button" className="btn-mini" style={{ marginInlineStart: 8 }} onClick={() => api.finishCleaning(p.id, u.serial)}>
                                     {u.status === 'בתיקון' ? 'סיום תיקון ✓' : 'סיום ניקוי ✓'}
@@ -228,7 +325,18 @@ export default function Inventory() {
       ))}
 
       {byCategory.length === 0 && (
-        <p className="admin-sub">אין דגמים במלאי עדיין.</p>
+        <p className="admin-sub">{totalModels ? 'לא נמצאו דגמים לפי הסינון.' : 'אין דגמים במלאי עדיין.'}</p>
+      )}
+
+      {skuLabels && (
+        <PrintLabels
+          title={skuLabels.length > 1 ? `מדבקות מק״ט (${skuLabels.length})` : 'מדבקת מק״ט'}
+          width={50}
+          height={30}
+          onClose={() => setSkuLabels(null)}
+        >
+          {skuLabels.map(({ key, ...l }) => <SkuLabel key={key} {...l} />)}
+        </PrintLabels>
       )}
     </>
   )

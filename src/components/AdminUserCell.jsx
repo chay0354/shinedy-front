@@ -3,7 +3,7 @@ import { planLatin } from '../lib/plans.js'
 import { planOf } from '../lib/dbFromState.js'
 
 export function userPlanLabel(db, user) {
-  if (!user) return ''
+  if (!user || !user.plan) return ''
   const plan = planOf(db, user)
   return planLatin(plan) || user.plan || ''
 }

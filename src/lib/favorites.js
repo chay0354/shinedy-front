@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
+import { api } from '../api.js';
+import { getToken } from './auth.js';
 
 const KEY = 'shinedy-favorites';
 const listeners = new Set();
+let syncedToken = null;
 
 function readIds() {
   try {
@@ -18,11 +21,40 @@ function writeIds(ids) {
   listeners.forEach((fn) => fn(ids));
 }
 
+export function clearLocalFavorites() {
+  syncedToken = null;
+  localStorage.removeItem(KEY);
+  listeners.forEach((fn) => fn([]));
+}
+
+// Logged-in customers keep favorites on the server so staff can see demand per model.
+export async function syncWithServer() {
+  const token = getToken();
+  if (!token || syncedToken === token) return;
+  syncedToken = token;
+  try {
+    const local = readIds();
+    const data = local.length ? await api.mergeFavorites(local) : await api.getFavorites();
+    if (Array.isArray(data?.ids)) writeIds(data.ids);
+  } catch {
+    syncedToken = null;
+  }
+}
+
 export function toggleFavorite(id) {
   if (!id) return readIds();
   const cur = readIds();
-  const next = cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id];
+  const on = !cur.includes(id);
+  const next = on ? [...cur, id] : cur.filter((x) => x !== id);
   writeIds(next);
+  if (getToken()) {
+    api
+      .setFavorite(id, on)
+      .then((data) => {
+        if (Array.isArray(data?.ids)) writeIds(data.ids);
+      })
+      .catch(() => {});
+  }
   return next;
 }
 
@@ -36,6 +68,7 @@ export function useFavorites() {
       if (e.key === KEY) setIds(readIds());
     };
     window.addEventListener('storage', onStorage);
+    syncWithServer();
     return () => {
       listeners.delete(onChange);
       window.removeEventListener('storage', onStorage);

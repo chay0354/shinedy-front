@@ -168,4 +168,10 @@ export const api = {
     request(`/admin/customers/${encodeURIComponent(id)}/id-document`),
   contact: (payload) =>
     request('/contact', { method: 'POST', body: JSON.stringify(payload) }),
+  getFavorites: () => request('/favorites'),
+  setFavorite: (productId, on) =>
+    request('/favorites', { method: 'POST', body: JSON.stringify({ productId, on }) }),
+  mergeFavorites: (ids) =>
+    request('/favorites/merge', { method: 'POST', body: JSON.stringify({ ids }) }),
+  adminFavorites: () => request('/admin/favorites'),
 };

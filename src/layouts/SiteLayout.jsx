@@ -1,9 +1,9 @@
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useApp } from '../state/AppContext';
 import { getToken } from '../lib/auth';
 import { SERVICE_EMAIL, SERVICE_PHONE, SERVICE_PHONE_TEL, INSTAGRAM_URL, FACEBOOK_URL } from '../lib/contact';
-import { useFavorites } from '../lib/favorites';
+import { clearLocalFavorites, syncWithServer, useFavorites } from '../lib/favorites';
 import { hasActivePlan, isAdmin, isStaff } from '../lib/roles';
 import { IconBag, IconClose, IconFacebook, IconHeart, IconInstagram, IconMenu, IconSearch, IconUser } from '../components/icons';
 import PointsBar from '../components/PointsBar';
@@ -35,6 +35,14 @@ export default function SiteLayout() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQ, setSearchQ] = useState('');
   const [navOpen, setNavOpen] = useState(false);
+  const favUserRef = useRef(null);
+
+  useEffect(() => {
+    const userId = getToken() ? state?.auth?.userId || null : null;
+    if (userId && !isStaff(state)) syncWithServer();
+    if (!userId && favUserRef.current) clearLocalFavorites();
+    favUserRef.current = userId;
+  }, [state?.auth?.userId]);
 
   useEffect(() => {
     if (!getToken() || !state?.auth) return;
