@@ -310,19 +310,6 @@ export function buildDbFromState(state) {
     }
   }
 
-  for (const [id, patch] of Object.entries(meta.productPatches)) {
-    if (!products.some((p) => p.id === id)) {
-      products.push({
-        id,
-        units: [],
-        available: true,
-        cost: patch.cost || 0,
-        ...patch,
-        sku: patch.sku || skuFor(patch),
-      });
-    }
-  }
-
   const users = (state?.customers || []).map((c, i) =>
     mapUser(c, i, plans, meta.customerPatches[c.id || `seed-${i}`]),
   );

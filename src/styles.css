@@ -1074,7 +1074,7 @@ button.link-gold { background: none; border: none; padding: 0; cursor: pointer; 
   min-width: 17px; height: 17px; border-radius: 999px;
   display: flex; align-items: center; justify-content: center; padding: 0 4px;
 }
-.product-photo { width: 100%; height: 100%; object-fit: cover; display: block; }
+.product-photo { width: 100%; height: 100%; object-fit: contain; background: #fff; display: block; }
 .product-card .art .product-photo { transition: transform 0.35s ease; }
 .product-card:hover .art .product-photo { transform: scale(1.05); }
 .btn-mini {
