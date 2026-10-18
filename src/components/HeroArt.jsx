@@ -3,7 +3,7 @@ import { usePreferStillMedia } from '../lib/media';
 
 const DEFAULT_KICKER = 'NEW LOOK. SAME YOU.';
 
-function CyclingKicker({ lines }) {
+export function CyclingKicker({ lines, className = 'hb-kicker hb-kicker-lg' }) {
   const [index, setIndex] = useState(0);
   const [shown, setShown] = useState(true);
 
@@ -26,7 +26,7 @@ function CyclingKicker({ lines }) {
   }, [lines]);
 
   return (
-    <span className={shown ? 'hb-kicker hb-kicker-lg is-in' : 'hb-kicker hb-kicker-lg is-out'} dir="ltr">
+    <span className={`${className} ${shown ? 'is-in' : 'is-out'}`} dir="ltr">
       {lines[index]}
     </span>
   );

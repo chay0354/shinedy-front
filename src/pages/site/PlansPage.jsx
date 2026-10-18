@@ -12,10 +12,28 @@ import {
 } from '../../lib/plans';
 import PageHead from '../../components/PageHead';
 
+const PLAN_TIERS = {
+  silver: ['silver'],
+  combined: ['combined', 'silver'],
+  gold: ['gold', 'combined', 'silver'],
+};
+
+function pieceForPlan(products, planId) {
+  const allowed = PLAN_TIERS[planId] || [];
+  const shots = products.filter((product) => product.image && allowed.includes(product.minPlan));
+  const preferred = shots.filter((product) => product.minPlan === allowed[0]);
+  const pool = preferred.length ? preferred : shots;
+  const best = [...pool].sort((a, b) => (b.points || 0) - (a.points || 0))[0];
+  return best || products.find((product) => product.image) || null;
+}
+
 export default function PlansPage() {
   const { state, run, error } = useApp();
   const navigate = useNavigate();
   const plans = publicCatalogPlans(state?.plans);
+  const photoPlanIds = new Set(
+    [...plans].sort((a, b) => (b.price || 0) - (a.price || 0)).slice(0, 2).map((plan) => plan.id),
+  );
   const inAccount = window.location.pathname.startsWith('/account');
   const loggedIn = Boolean(getToken() && state?.auth);
   const current = loggedIn && state?.planId
@@ -200,6 +218,7 @@ export default function PlansPage() {
             {plans.map((plan) => {
               const isCurrent = Boolean(current && matchesPlanId(current.id, plan.id));
               const isUpgrade = current && plan.points > current.points;
+              const piece = photoPlanIds.has(plan.id) ? pieceForPlan(state?.products || [], plan.id) : null;
               return (
                 <div
                   key={plan.id}
@@ -209,6 +228,11 @@ export default function PlansPage() {
                     <div className="flag">המסלול שלך</div>
                   ) : (
                     plan.featured && <div className="flag">הכי פופולרי</div>
+                  )}
+                  {piece && (
+                    <div className="plan-shot">
+                      <img src={piece.image} alt={piece.name || ''} />
+                    </div>
                   )}
                   <div className="plan-name">{planShowcase(plan)}</div>
                   <div className="price">

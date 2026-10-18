@@ -7,7 +7,7 @@ import { hasActivePlan } from '../../lib/roles';
 import { planShowcase, publicCatalogPlans } from '../../lib/plans';
 import ProductCard from '../../components/ProductCard';
 import BrandMark from '../../components/BrandMark';
-import HeroArt from '../../components/HeroArt';
+import HeroArt, { CyclingKicker } from '../../components/HeroArt';
 import { IconDiamond, IconRefresh, IconShield, IconTruck } from '../../components/icons';
 import { STEPS } from './HowPage';
 
@@ -24,7 +24,14 @@ function pieceForPlan(products, planId) {
   const shots = products.filter((product) => product.image && allowed.includes(product.minPlan));
   const preferred = shots.filter((product) => product.minPlan === allowed[0]);
   const pool = preferred.length ? preferred : shots;
-  return [...pool].sort((a, b) => (b.points || 0) - (a.points || 0))[0] || null;
+  const best = [...pool].sort((a, b) => (b.points || 0) - (a.points || 0))[0];
+  return best || products.find((product) => product.image) || null;
+}
+
+function expensivePlanIds(plans, count = 2) {
+  return new Set(
+    [...plans].sort((a, b) => (b.price || 0) - (a.price || 0)).slice(0, count).map((plan) => plan.id),
+  );
 }
 
 const HERO_BENEFITS = [
@@ -39,6 +46,7 @@ export default function HomePage() {
   const products = state?.products || [];
   const featured = products.slice(0, 4);
   const plans = publicCatalogPlans(state?.plans);
+  const photoPlanIds = expensivePlanIds(plans);
   const ctaVideoRef = useRef(null);
   const stillMedia = usePreferStillMedia();
   const loggedIn = Boolean(getToken() && state?.auth);
@@ -59,31 +67,32 @@ export default function HomePage() {
   }, []);
 
   return (
-    <>
-      <div className="hero-band">
+    <div className="home">
+      <section className="hero-band">
         <HeroArt
           video="/hero/look.mp4"
           poster="/hero/look.jpg"
           label="דוגמנית עונדת עגילי זהב"
-          lines={HERO_LINES}
+          showKicker={false}
         />
         <div className="hb-text">
+          <CyclingKicker lines={HERO_LINES} className="hb-eyebrow" />
+          <span className="hb-rule" aria-hidden="true" />
           <h1>
             מגוון מתחדש של תכשיטים יוקרתיים,
             <br />
             במנוי חודשי, ללא התחייבות
           </h1>
-          {loggedIn ? (
-            <Link to={memberHref} className="btn hb-cta">
-              {subscribed ? 'לצפייה בקולקציה' : 'לבחירת מסלול'}
+          <div className="hb-actions">
+            <Link to={loggedIn ? memberHref : '/catalog'} className="btn btn-tan hb-cta">
+              {loggedIn && !subscribed ? 'לבחירת מסלול' : 'לצפייה בקולקציה'}
             </Link>
-          ) : (
-            <Link to="/catalog" className="btn hb-cta">
-              לצפייה בקולקציה
+            <Link to="/how" className="btn hb-cta hb-cta-ghost">
+              איך זה עובד
             </Link>
-          )}
+          </div>
         </div>
-      </div>
+      </section>
 
       <section className="home-trust" aria-label="יתרונות השירות">
         {HERO_BENEFITS.map((b) => (
@@ -167,7 +176,7 @@ export default function HomePage() {
             </div>
             <div className="plans-grid">
               {plans.map((plan) => {
-                const piece = pieceForPlan(products, plan.id);
+                const piece = photoPlanIds.has(plan.id) ? pieceForPlan(products, plan.id) : null;
                 return (
                 <div key={plan.id} className={`plan-card${plan.featured ? ' featured' : ''}`}>
                   {plan.featured && <div className="flag">הכי פופולרי</div>}
@@ -243,6 +252,6 @@ export default function HomePage() {
           </>
         )}
       </section>
-    </>
+    </div>
   );
 }
