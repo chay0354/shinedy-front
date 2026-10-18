@@ -25,13 +25,9 @@ function pieceForPlan(products, planId) {
   const preferred = shots.filter((product) => product.minPlan === allowed[0]);
   const pool = preferred.length ? preferred : shots;
   const best = [...pool].sort((a, b) => (b.points || 0) - (a.points || 0))[0];
-  return best || products.find((product) => product.image) || null;
-}
-
-function expensivePlanIds(plans, count = 2) {
-  return new Set(
-    [...plans].sort((a, b) => (b.price || 0) - (a.price || 0)).slice(0, count).map((plan) => plan.id),
-  );
+  if (best) return best;
+  const withImage = products.filter((product) => product.image);
+  return [...withImage].sort((a, b) => (a.points || 0) - (b.points || 0))[0] || null;
 }
 
 const HERO_BENEFITS = [
@@ -46,7 +42,6 @@ export default function HomePage() {
   const products = state?.products || [];
   const featured = products.slice(0, 4);
   const plans = publicCatalogPlans(state?.plans);
-  const photoPlanIds = expensivePlanIds(plans);
   const ctaVideoRef = useRef(null);
   const stillMedia = usePreferStillMedia();
   const loggedIn = Boolean(getToken() && state?.auth);
@@ -176,7 +171,7 @@ export default function HomePage() {
             </div>
             <div className="plans-grid">
               {plans.map((plan) => {
-                const piece = photoPlanIds.has(plan.id) ? pieceForPlan(products, plan.id) : null;
+                const piece = pieceForPlan(products, plan.id);
                 return (
                 <div key={plan.id} className={`plan-card${plan.featured ? ' featured' : ''}`}>
                   {plan.featured && <div className="flag">הכי פופולרי</div>}

@@ -24,16 +24,15 @@ function pieceForPlan(products, planId) {
   const preferred = shots.filter((product) => product.minPlan === allowed[0]);
   const pool = preferred.length ? preferred : shots;
   const best = [...pool].sort((a, b) => (b.points || 0) - (a.points || 0))[0];
-  return best || products.find((product) => product.image) || null;
+  if (best) return best;
+  const withImage = products.filter((product) => product.image);
+  return [...withImage].sort((a, b) => (a.points || 0) - (b.points || 0))[0] || null;
 }
 
 export default function PlansPage() {
   const { state, run, error } = useApp();
   const navigate = useNavigate();
   const plans = publicCatalogPlans(state?.plans);
-  const photoPlanIds = new Set(
-    [...plans].sort((a, b) => (b.price || 0) - (a.price || 0)).slice(0, 2).map((plan) => plan.id),
-  );
   const inAccount = window.location.pathname.startsWith('/account');
   const loggedIn = Boolean(getToken() && state?.auth);
   const current = loggedIn && state?.planId
@@ -218,7 +217,7 @@ export default function PlansPage() {
             {plans.map((plan) => {
               const isCurrent = Boolean(current && matchesPlanId(current.id, plan.id));
               const isUpgrade = current && plan.points > current.points;
-              const piece = photoPlanIds.has(plan.id) ? pieceForPlan(state?.products || [], plan.id) : null;
+              const piece = pieceForPlan(state?.products || [], plan.id);
               return (
                 <div
                   key={plan.id}

@@ -13,8 +13,8 @@
   --line: rgba(217, 180, 122, 0.28);
   --line-solid: #e0d6ca;
   --danger: #a4483f;
-  --font-body: 'Assistant', sans-serif;
-  --font-display: 'Karantina', 'Assistant', sans-serif;
+  --font-body: 'Rag Sans', 'Heebo', sans-serif;
+  --font-display: 'Rag Sans', 'Heebo', sans-serif;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
