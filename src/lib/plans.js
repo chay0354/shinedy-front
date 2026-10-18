@@ -12,9 +12,23 @@ const ALIAS_BACK = Object.fromEntries(
   Object.entries(PLAN_ALIASES).map(([siteId, liveId]) => [liveId, siteId]),
 );
 
+const SHOWCASE_NAMES = {
+  silver: 'Essential',
+  essentials: 'Essential',
+  combined: 'Classic',
+  signature: 'Classic',
+  gold: 'Premium',
+  prestige: 'Premium',
+};
+
 export function planLatin(plan) {
   if (!plan) return '';
   return plan.latin || SITE_PLAN_LABELS[plan.id] || SITE_PLAN_LABELS[ALIAS_BACK[plan.id]] || plan.name || '';
+}
+
+export function planShowcase(plan) {
+  if (!plan) return '';
+  return SHOWCASE_NAMES[plan.id] || SHOWCASE_NAMES[ALIAS_BACK[plan.id]] || planLatin(plan);
 }
 
 export function enrichPlan(plan, index = 0) {

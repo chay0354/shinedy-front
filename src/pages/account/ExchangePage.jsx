@@ -42,7 +42,7 @@ export default function ExchangePage() {
   if (units.length === 0) {
     return (
       <PageHead eyebrow="EXCHANGE" title="החלפת תכשיטים">
-        <p>עדיין אין אצלך תכשיטים להחזרה — פשוט בוחרים מהקטלוג.</p>
+        <p>עדיין אין אצלך תכשיטים להחזרה. פשוט בוחרים מהקטלוג.</p>
         <Link to="/catalog" className="btn">
           לקטלוג התכשיטים
         </Link>
@@ -54,7 +54,7 @@ export default function ExchangePage() {
     <>
       <PageHead eyebrow="EXCHANGE" title="החלפת תכשיטים">
         <p>
-          שלב 1: סמני אילו תכשיטים תרצי להחזיר — הנקודות שלהם משתחררות מיד.
+          שלב 1: סמני אילו תכשיטים תרצי להחזיר. הנקודות שלהם משתחררות מיד.
           שלב 2: בוחרים חדשים בקטלוג. את המוחזרים מכניסים לנרתיק שמגיע עם המשלוח.
         </p>
       </PageHead>
@@ -105,7 +105,7 @@ export default function ExchangePage() {
 
           <div style={{ display: 'flex', gap: 12, marginTop: 24, flexWrap: 'wrap' }}>
             <button type="button" className="btn btn-tan" onClick={() => navigate('/catalog')}>
-              החלפה — בחירת תכשיטים חדשים ←
+              החלפה, בחירת תכשיטים חדשים ←
             </button>
             <button
               type="button"
@@ -116,7 +116,7 @@ export default function ExchangePage() {
                 if (data) navigate('/account/returns');
               }}
             >
-              החזרה בלבד — איסוף
+              החזרה בלבד, איסוף
             </button>
             <Link to="/account/me" className="btn btn-outline">
               חזרה לאזור האישי

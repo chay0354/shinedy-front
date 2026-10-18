@@ -31,7 +31,7 @@ async function request(path, options = {}) {
   } catch {
     throw new Error(
       import.meta.env.DEV
-        ? 'לא ניתן להתחבר לשרת — ודאי שה-backend רץ (npm run dev בתיקיית backend)'
+        ? 'לא ניתן להתחבר לשרת. ודאי שה-backend רץ (npm run dev בתיקיית backend)'
         : 'לא ניתן להתחבר לשרת כרגע. נסי שוב בעוד רגע.',
     );
   }
@@ -40,7 +40,7 @@ async function request(path, options = {}) {
     if (res.status === 404 && !data.error) {
       throw new Error(
         import.meta.env.DEV
-          ? 'נתיב API לא נמצא — ודאי שה-backend רץ על פורט 4000'
+          ? 'נתיב API לא נמצא. ודאי שה-backend רץ על פורט 4000'
           : 'הפעולה לא זמינה כרגע. נסי שוב בעוד רגע.',
       );
     }
@@ -174,4 +174,9 @@ export const api = {
   mergeFavorites: (ids) =>
     request('/favorites/merge', { method: 'POST', body: JSON.stringify({ ids }) }),
   adminFavorites: () => request('/admin/favorites'),
+  adminOverview: () => request('/admin/overview'),
+  createCustomer: (payload) =>
+    request('/admin/customers', { method: 'POST', body: JSON.stringify(payload) }),
+  updateMembershipTerms: (terms) =>
+    request('/admin/membership-terms', { method: 'PATCH', body: JSON.stringify({ terms }) }),
 };

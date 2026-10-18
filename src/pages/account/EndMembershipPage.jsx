@@ -58,7 +58,7 @@ export default function EndMembershipPage() {
             <h2 className="account-h2 first" style={{ marginTop: 0 }}>איסוף</h2>
             <p className="signup-pay-note">
               {items.length
-                ? 'הזמנו שליח לאיסוף בלבד. הכניסי את התכשיטים לנרתיק — השליח יגיע בימים הקרובים.'
+                ? 'הזמנו שליח לאיסוף בלבד. הכניסי את התכשיטים לנרתיק, השליח יגיע בימים הקרובים.'
                 : 'אין צורך באיסוף.'}
             </p>
             {pouch && (

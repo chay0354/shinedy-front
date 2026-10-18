@@ -118,7 +118,7 @@ export default function CartPage() {
                 </div>
                 <div className={over ? 'over' : ''}>
                   {over
-                    ? `חריגה של ${-remaining} נק׳ מהמכסה — הסירי פריט או שדרגי מסלול`
+                    ? `חריגה של ${-remaining} נק׳ מהמכסה. הסירי פריט או שדרגי מסלול`
                     : `יישארו לך ${remaining} נק׳ פנויות`}
                 </div>
               </div>
@@ -128,7 +128,7 @@ export default function CartPage() {
               {blocked ? (
                 <div className="blocked-panel" style={{ marginTop: 24 }}>
                   <p>
-                    <b>לא ניתן לבצע כרגע החלפה חדשה</b> — ההחזרה מההחלפה הקודמת עדיין לא הושלמה.
+                    <b>לא ניתן לבצע כרגע החלפה חדשה</b>. ההחזרה מההחלפה הקודמת עדיין לא הושלמה.
                   </p>
                 </div>
               ) : (
@@ -166,7 +166,7 @@ export default function CartPage() {
               )}
               <p style={{ color: 'var(--muted)', fontSize: '0.88rem', fontWeight: 300, marginTop: 14 }}>
                 {isExchangeCheckout
-                  ? 'את המוחזרים מכניסים לנרתיק שמגיע עם המשלוח — השליח גם מביא וגם אוסף.'
+                  ? 'את המוחזרים מכניסים לנרתיק שמגיע עם המשלוח. השליח גם מביא וגם אוסף.'
                   : 'משלוח דו-חודשי כלול במנוי. בהחלפה השליח יביא חדשים ויאסוף מוחזרים.'}
               </p>
             </>

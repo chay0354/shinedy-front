@@ -3,7 +3,7 @@ import { Link, Navigate, useLocation, useNavigate, useSearchParams } from 'react
 import { api } from '../../api';
 import { useApp } from '../../state/AppContext';
 import { applySessionFromResponse } from '../../lib/auth';
-import { planRequiresSignupSignature, publicCatalogPlans, subscribePlanId } from '../../lib/plans';
+import { planRequiresSignupSignature, planShowcase, publicCatalogPlans, subscribePlanId } from '../../lib/plans';
 import { nextAfterAuth } from '../../lib/verify';
 import { isIsraeliMobile, toLocalIl } from '../../lib/phone';
 import { getToken } from '../../lib/auth';
@@ -148,7 +148,7 @@ export default function SignupPage() {
       return 'יש למלא אימייל תקין, למשל name@email.com';
     }
     if (form.pass.length < 8) return 'הסיסמה חייבת לפחות 8 תווים';
-    if (form.pass !== form.pass2) return 'הסיסמאות אינן תואמות — נסי שוב';
+    if (form.pass !== form.pass2) return 'הסיסמאות אינן תואמות. נסי שוב';
     if (!validIsraeliId(form.nationalId)) return 'מספר תעודת הזהות אינו תקין';
     if (!form.street.trim()) return 'יש למלא רחוב';
     if (!form.houseNo.trim()) return 'יש למלא מספר בית';
@@ -239,11 +239,13 @@ export default function SignupPage() {
       }
     }
     if (step === STEP.plan) {
-      const err = validatePlan();
+      const err = validatePlan() || validateTerms();
       if (err) {
         setError(err);
         return;
       }
+      setStep(STEP.sign);
+      return;
     }
     if (step === STEP.terms) {
       const err = validateTerms();
@@ -308,7 +310,7 @@ export default function SignupPage() {
     const termsErr = validateTerms();
     if (termsErr) {
       setError(termsErr);
-      setStep(STEP.terms);
+      setStep(STEP.plan);
       return;
     }
     const legalErr = validateLegal();
@@ -381,7 +383,7 @@ export default function SignupPage() {
       navigate('/catalog');
     } catch (e) {
       const raw = e.message || '';
-      const msg = heError(raw, 'לא ניתן להירשם — בדקי את הפרטים');
+      const msg = heError(raw, 'לא ניתן להירשם. בדקי את הפרטים');
       setError(msg);
       if (msg.includes('טלפון')) setStep(STEP.phone);
       else if (msg.includes('אימייל') || /invalid format/i.test(raw)) setStep(STEP.details);
@@ -405,13 +407,32 @@ export default function SignupPage() {
       <div className="container signup-wide">
         <div className="signup-card">
           <h1>יצירת חשבון</h1>
-          <p className="sub">כמה שלבים קצרים להצטרפות</p>
+          <p className="sub">
+            רכישת תכשיטי יוקרה באמצעות מנוי מצריכה מילוי פרטים, כולל צילום תעודת זהות וחתימה בהמשך.
+            מידע זה ישמש אך ורק לאימות ולניהול המנוי.
+          </p>
 
           <ol className="signup-steps" aria-label="שלבי הרשמה">
-            {stepLabels.map((label, i) => (
-              <li key={`${label}-${i}`} className={i === step ? 'on' : i < step ? 'done' : ''}>
-                <span>{i + 1}</span>
-                {label}
+            {stepLabels.map((label, i) => ({ label, i })).filter((item) => item.i !== STEP.terms).map((item, index) => (
+              <li key={item.label} className={item.i === step ? 'on' : item.i < step ? 'done' : ''}>
+                {item.i < step ? (
+                  <button
+                    type="button"
+                    className="step-jump"
+                    aria-label={`חזרה לשלב ${item.label}`}
+                    onClick={() => {
+                      setError('');
+                      setInfo('');
+                      setStep(item.i);
+                    }}
+                  >
+                    <span>{index + 1}</span>
+                    {item.label}
+                  </button>
+                ) : (
+                  <span>{index + 1}</span>
+                )}
+                {item.i >= step ? item.label : null}
               </li>
             ))}
           </ol>
@@ -581,7 +602,7 @@ export default function SignupPage() {
 
             {step === STEP.plan && (
               <>
-                <p className="signup-pay-note">בחרי את המסלול שהכי מתאים לך — אפשר לשנות אחר כך.</p>
+                <p className="signup-pay-note">בחרי את המסלול שהכי מתאים לך. אפשר לשנות אחר כך.</p>
                 <div className="signup-plan-grid">
                   {plans.map((plan) => (
                     <button
@@ -592,8 +613,9 @@ export default function SignupPage() {
                     >
                       {plan.featured && <div className="flag">הכי פופולרי</div>}
                       <div className="signup-plan-copy">
-                        <div className="plan-name">{plan.latin}</div>
+                        <div className="plan-name">{planShowcase(plan)}</div>
                         <div className="materials">{plan.materials}</div>
+                        <div className="materials">{plan.points} נקודות לבחירת תכשיטים</div>
                       </div>
                       <div className="price">
                         ₪{plan.price}
@@ -602,6 +624,36 @@ export default function SignupPage() {
                     </button>
                   ))}
                 </div>
+                <label className="check-row legal-agree">
+                  <input
+                    type="checkbox"
+                    checked={form.agreeLegal}
+                    onChange={(e) => setField('agreeLegal', e.target.checked)}
+                  />
+                  <span>
+                    קראתי, הבנתי ואני מסכימה ל
+                    <Link to="/terms" target="_blank" className="link-gold">
+                      תקנון ולהסכם המנוי
+                    </Link>
+                    {' '}ול
+                    <Link to="/privacy" target="_blank" className="link-gold">
+                      מדיניות הפרטיות
+                    </Link>
+                    {' '}ול
+                    <Link to="/cookies" target="_blank" className="link-gold">
+                      מדיניות העוגיות
+                    </Link>
+                    , על כל סעיפיהם ונספחיהם.
+                  </span>
+                </label>
+                <label className="check-row legal-agree">
+                  <input
+                    type="checkbox"
+                    checked={form.agreeMarketing}
+                    onChange={(e) => setField('agreeMarketing', e.target.checked)}
+                  />
+                  <span>אני מאשרת קבלת דיוור בטלפון ובמייל.</span>
+                </label>
               </>
             )}
 
@@ -657,7 +709,7 @@ export default function SignupPage() {
                 <p className="signup-confirm-lead">
                   {needsSignature
                     ? 'החתימה והעלאת תעודת הזהות מהווים אישור אלקטרוני מחייב, בהתאם לתקנון.'
-                    : 'במסלול זה אין צורך בחתימה. יש להעלות תעודת זהות, והאישור הוא סימון התקנון.'}
+                    : 'יש להעלות צילום או סריקה של תעודת הזהות.'}
                 </p>
 
                 <div className="field" style={{ marginTop: 18 }}>
@@ -688,8 +740,8 @@ export default function SignupPage() {
               <>
                 <p className="signup-pay-note">
                   {selectedPlan
-                    ? `חיוב חודשי: ₪${selectedPlan.price} למסלול ${selectedPlan.latin}. הסליקה תופעל בהמשך — כרגע כל פרטי כרטיס יתקבלו.`
-                    : 'הסליקה תופעל בהמשך — כרגע כל פרטי כרטיס יתקבלו.'}
+                    ? `חיוב חודשי: ₪${selectedPlan.price} למסלול ${planShowcase(selectedPlan)}. החיוב יבוצע בהמשך.`
+                    : 'החיוב יבוצע בהמשך.'}
                 </p>
                 <div className="field">
                   <label htmlFor="s-card-holder">שם בעל הכרטיס</label>

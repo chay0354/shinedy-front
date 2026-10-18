@@ -30,7 +30,7 @@ const BENEFITS = [
 
 export default function ProductPage() {
   const { id } = useParams();
-  const { state, run } = useApp();
+  const { state, run, setError } = useApp();
   const [thumb, setThumb] = useState(0);
   const [quotaOpen, setQuotaOpen] = useState(false);
   const [buyOpen, setBuyOpen] = useState(false);
@@ -67,15 +67,16 @@ export default function ProductPage() {
   }
 
   async function tryAdd() {
-    try {
-      await run(() => api.addToCart(p.id));
-    } catch {
+    if (p.points > remaining) {
+      setError(null);
       setQuotaOpen(true);
+      return;
     }
+    await run(() => api.addToCart(p.id));
   }
 
   return (
-    <section className="section">
+    <section className="section product-page">
       <div className="container">
         <Link to="/catalog" className="back-link">
           → חזרה לקטלוג
@@ -113,9 +114,26 @@ export default function ProductPage() {
                 <IconHeart size={20} filled={has(p.id)} />
               </button>
             </div>
-            <div className="points-line">
-              <span className="big">{p.points} נקודות</span>
-              <span className="rest"> · במסגרת המנוי שלך</span>
+            <div className="points-cta-row">
+              <div className="points-line">
+                <span className="big">{p.points} נקודות</span>
+                <span className="rest"> · במסגרת המנוי שלך</span>
+              </div>
+              {loggedIn && subscribed && inBox && (
+                <Link to="/box" className="btn btn-tan btn-sm">
+                  בקופסה שלך ✓
+                </Link>
+              )}
+              {loggedIn && subscribed && !inBox && orderable && (
+                <button type="button" className="btn btn-sm" onClick={tryAdd}>
+                  הוספה לקופסה
+                </button>
+              )}
+              {loggedIn && subscribed && !inBox && !orderable && (
+                <button type="button" className="btn btn-sm" disabled>
+                  אזל מהמלאי
+                </button>
+              )}
             </div>
             {p.desc ? (
               <p style={{ color: 'var(--muted)', fontWeight: 300, margin: '10px 0 4px' }}>{p.desc}</p>
@@ -150,7 +168,7 @@ export default function ProductPage() {
                 <span>
                   {orderable
                     ? PLAN_NAME[p.minPlan]
-                      ? `זמין — החל מ${PLAN_NAME[p.minPlan]}`
+                      ? `זמין, החל מ${PLAN_NAME[p.minPlan]}`
                       : 'זמין להזמנה'
                     : 'אזל מהמלאי'}
                 </span>
@@ -175,21 +193,6 @@ export default function ProductPage() {
                   בחרי מסלול להזמנה
                 </Link>
               )}
-              {loggedIn && subscribed && inBox && (
-                <Link to="/box" className="btn btn-tan">
-                  בקופסה שלך ✓ — לצפייה
-                </Link>
-              )}
-              {loggedIn && subscribed && !inBox && orderable && (
-                <button type="button" className="btn" onClick={tryAdd}>
-                  הוספה לקופסה
-                </button>
-              )}
-              {loggedIn && subscribed && !inBox && !orderable && (
-                <button type="button" className="btn" disabled>
-                  אזל מהמלאי
-                </button>
-              )}
               {orderable && p.price ? (
                 <button
                   type="button"
@@ -202,9 +205,6 @@ export default function ProductPage() {
                   רכישה ₪{Number(p.price).toLocaleString()}
                 </button>
               ) : null}
-              <Link to="/catalog" className="btn btn-outline">
-                להמשך בחירה בקטלוג
-              </Link>
               {buyMsg && <p className="msg-ok" style={{ margin: 0 }}>{buyMsg}</p>}
               <div style={{ color: 'var(--muted)', fontSize: '0.88rem', fontWeight: 300 }}>
                 {loggedIn
@@ -218,10 +218,9 @@ export default function ProductPage() {
         <QuotaDialog
           open={quotaOpen}
           onClose={() => setQuotaOpen(false)}
-          product={p}
           missing={Math.max(0, p.points - remaining)}
-          remaining={remaining}
           hideUpgrade={isTopPlan(state)}
+          upgradeTo="/account/plans"
         />
 
         <PurchaseDialog

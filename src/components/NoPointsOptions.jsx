@@ -12,14 +12,14 @@ export default function NoPointsOptions({ missing }) {
       title: 'שדרוג המנוי',
       desc: 'עוברים למסלול עם יותר נקודות',
     },
-    { to: '/exchange', title: 'החלפת תכשיט שאצלך', desc: 'סמני מה להחזיר — הנקודות משתחררות מיד' },
+    { to: '/exchange', title: 'החלפת תכשיט שאצלך', desc: 'סמני מה להחזיר. הנקודות משתחררות מיד' },
     { to: '/catalog', title: 'תכשיט אחר מהקטלוג', desc: 'בחרי משהו יפה שמתאים לנקודות שנשארו' },
   ].filter(Boolean);
 
   return (
     <div className="opts-panel">
       <div className="opts-head">
-        אין מספיק נקודות פנויות{missing > 0 ? ` — חסרות ${missing} נק׳` : ''}. מה עושים?
+        אין מספיק נקודות פנויות{missing > 0 ? ` · חסרות ${missing} נק׳` : ''}. מה עושים?
       </div>
       <div className="opts-grid">
         {options.map((o, i) => (

@@ -39,6 +39,14 @@ export const IconSparkle = (p) => (
   <Svg {...p}><path d="M12 3c.6 3.9 2.1 5.4 6 6-3.9.6-5.4 2.1-6 6-.6-3.9-2.1-5.4-6-6 3.9-.6 5.4-2.1 6-6Z" /><path d="M19 14.5c.3 1.9 1 2.7 3 3-2 .3-2.7 1-3 3-.3-2-1-2.7-3-3 2-.3 2.7-1.1 3-3Z" /></Svg>
 )
 
+export const IconUserPlus = (p) => (
+  <Svg {...p}>
+    <circle cx="9" cy="8" r="3" />
+    <path d="M3.5 19.2c.6-3 2.8-4.5 5.5-4.5s4.9 1.5 5.5 4.5" />
+    <path d="M17.2 8v5M14.7 10.5h5" />
+  </Svg>
+)
+
 export const IconUser = (p) => (
   <Svg {...p}><circle cx="12" cy="8" r="3.5" /><path d="M5 20.5c.8-3.8 3.6-5.5 7-5.5s6.2 1.7 7 5.5" /></Svg>
 )

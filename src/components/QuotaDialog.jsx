@@ -1,16 +1,14 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-// חלון קופץ שנפתח כשהלקוחה מנסה להוסיף תכשיט שחורג ממכסת הנקודות.
-// שלוש דרכים להתקדם — לפי הסדר שנקבע: שדרוג מנוי · תכשיט אחר · החזרת תכשיט שאצלה.
-const OPTIONS = [
-  { to: '/plans', title: 'שדרוג המנוי', upgrade: true },
-  { to: '/catalog', title: 'בחירת תכשיט אחר' },
-  { to: '/exchange', title: 'החזרת תכשיט שאצלך' },
-]
-
 // hideUpgrade: הלקוחה כבר במסלול הגבוה ביותר — אין מה להציע לה שדרוג
-export default function QuotaDialog({ open, onClose, product, missing, remaining, hideUpgrade }) {
+export default function QuotaDialog({
+  open,
+  onClose,
+  missing,
+  hideUpgrade,
+  upgradeTo = '/account/plans',
+}) {
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -32,16 +30,18 @@ export default function QuotaDialog({ open, onClose, product, missing, remaining
       <div className="modal-card" role="dialog" aria-modal="true" aria-labelledby="quota-title"
         onClick={(e) => e.stopPropagation()}>
         <button className="modal-x" onClick={onClose} aria-label="סגירה">×</button>
-        <h2 id="quota-title">עברת את מכסת הנקודות</h2>
-        {missing > 0 && <p className="modal-sub">חסרות {missing} נק׳</p>}
-        <div className="modal-opts">
-          {OPTIONS.filter((o) => !(o.upgrade && hideUpgrade)).map((o) => (
-            <button type="button" key={o.to} className="opt-row" onClick={() => go(o.to)}>
-              {o.title}
+        <h2 id="quota-title">אין מספיק נקודות במינוי שברשותך</h2>
+        {missing > 0 && <p className="modal-sub">חסרות {missing} נק׳ לפריט הזה</p>}
+        <div className={`modal-opts quota-opts${hideUpgrade ? ' quota-opts-single' : ''}`}>
+          {!hideUpgrade && (
+            <button type="button" className="btn btn-tan" onClick={() => go(upgradeTo)}>
+              לשדרוג המנוי
             </button>
-          ))}
+          )}
+          <button type="button" className="btn btn-outline" onClick={() => go('/exchange')}>
+            להחזרת פריט
+          </button>
         </div>
-        <button type="button" className="modal-cancel" onClick={onClose}>ביטול</button>
       </div>
     </div>
   )

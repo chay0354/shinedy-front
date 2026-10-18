@@ -6,6 +6,19 @@ import { PERIODS, computeKpis, fmtMoney, fmtNum, fmtPct, periodRange } from '../
 const money = (n) => fmtMoney(n) || '—'
 const pct = (n) => fmtPct(n) || '—'
 
+const REPORT_JUMPS = [
+  { id: 'rep-plans', label: 'מסלולים' },
+  { id: 'rep-pnl', label: 'רווח והפסד' },
+  { id: 'rep-metrics', label: 'מדדי רווחיות' },
+  { id: 'rep-by-plan', label: 'רווחיות לפי מסלול' },
+  { id: 'rep-by-customer', label: 'רווחיות לפי לקוחה' },
+  { id: 'rep-inventory', label: 'מלאי' },
+  { id: 'rep-cash', label: 'תזרים' },
+  { id: 'rep-items', label: 'ביצועים לפי תכשיט' },
+  { id: 'rep-messages', label: 'הודעות' },
+  { id: 'rep-audit', label: 'יומן פעולות' },
+]
+
 function Row({ label, value, strong, neg }) {
   return (
     <tr className={strong ? 'total' : ''}>
@@ -40,8 +53,14 @@ export default function Reports() {
         כל הנתונים מחושבים חיים מהמערכת
       </p>
 
+      <nav className="report-jump no-print" aria-label="ניווט בדוח">
+        {REPORT_JUMPS.map((item) => (
+          <a key={item.id} href={`#${item.id}`}>{item.label}</a>
+        ))}
+      </nav>
+
       {/* ===== 1. מסלולים ===== */}
-      <div className="admin-section">
+      <div className="admin-section" id="rep-plans">
         <h2>1. מסלולים</h2>
         <div className="table-wrap">
           <table className="admin-table">
@@ -73,7 +92,7 @@ export default function Reports() {
 
       {/* ===== 2. רווח והפסד ===== */}
       <div className="admin-section">
-        <h2>2. רווח והפסד — רווח גולמי ורווח תפעולי</h2>
+        <h2 id="rep-pnl">2. רווח והפסד — רווח גולמי ורווח תפעולי</h2>
         <div className="table-wrap">
           <table className="admin-table">
             <tbody>
@@ -105,7 +124,7 @@ export default function Reports() {
 
       {/* ===== 3. מדדי רווחיות ===== */}
       <div className="admin-section">
-        <h2>3. מדדי רווחיות</h2>
+        <h2 id="rep-metrics">3. מדדי רווחיות</h2>
         <div className="table-wrap">
           <table className="admin-table">
             <tbody>
@@ -128,7 +147,7 @@ export default function Reports() {
 
       {/* ===== 4. רווחיות לפי מסלול ===== */}
       <div className="admin-section">
-        <h2>4. רווחיות לפי מסלול</h2>
+        <h2 id="rep-by-plan">4. רווחיות לפי מסלול</h2>
         <div className="table-wrap">
           <table className="admin-table">
             <thead>
@@ -166,7 +185,7 @@ export default function Reports() {
 
       {/* ===== 5. רווחיות לפי לקוחה ===== */}
       <div className="admin-section">
-        <h2>5. רווחיות לפי לקוחה</h2>
+        <h2 id="rep-by-customer">5. רווחיות לפי לקוחה</h2>
         <p className="cell-sub" style={{ marginBottom: 8 }}>
           ממוינות מהנמוכה לגבוהה — מי ששוחקת את הרווח מופיעה ראשונה. "הכנסה" כוללת דמי החלפות נוספות ששולמו.
         </p>
@@ -212,7 +231,7 @@ export default function Reports() {
 
       {/* ===== 6. מלאי ===== */}
       <div className="admin-section">
-        <h2>6. מלאי וביצועי תכשיטים</h2>
+        <h2 id="rep-inventory">6. מלאי וביצועי תכשיטים</h2>
         <div className="table-wrap">
           <table className="admin-table">
             <tbody>
@@ -256,7 +275,7 @@ export default function Reports() {
 
       {/* ===== 7. תפעול ומזומן ===== */}
       <div className="admin-section">
-        <h2>7. תפעול ותזרים</h2>
+        <h2 id="rep-cash">7. תפעול ותזרים</h2>
         <div className="table-wrap">
           <table className="admin-table">
             <tbody>
@@ -284,7 +303,7 @@ export default function Reports() {
 
       {/* ===== 8. ביצועים לפי תכשיט (מספר פריט) ===== */}
       <div className="admin-section">
-        <h2>8. ביצועים לפי תכשיט (מספר פריט)</h2>
+        <h2 id="rep-items">8. ביצועים לפי תכשיט (מספר פריט)</h2>
         <p className="cell-sub">
           הכנסה מוקצית לפי יחס נקודות · מוצגים 60 המובילים לפי הכנסה ·
           Payback ו-ROI מוצגים רק לפריטים עם 3+ חודשי פעילות
@@ -314,7 +333,7 @@ export default function Reports() {
 
       {/* ===== 9. יומנים (לא נכללים בהדפסה) ===== */}
       <div className="admin-section no-print">
-        <h2>9. הודעות שנשלחו ללקוחות</h2>
+        <h2 id="rep-messages">9. הודעות שנשלחו ללקוחות</h2>
         <div className="table-wrap">
           <table className="admin-table">
             <thead><tr><th>תאריך</th><th>לקוחה</th><th>ערוץ</th><th>סטטוס</th><th>תוכן</th></tr></thead>
@@ -338,7 +357,7 @@ export default function Reports() {
       </div>
 
       <div className="admin-section no-print">
-        <h2>10. יומן פעולות (Audit Log)</h2>
+        <h2 id="rep-audit">10. יומן פעולות</h2>
         <p className="cell-sub" style={{ marginTop: -6 }}>
           כל שינוי במערכת נרשם כאן אוטומטית: הזמנות, מחסן ומשלוחים, סריקות החזרה, רכישות,
           שינויי מחירים ומסלולים, מלאי, הוצאות ותעריפים, ולקוחות. נשמרות 300 הפעולות האחרונות.

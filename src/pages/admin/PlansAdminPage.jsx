@@ -1,14 +1,26 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { api as liveApi } from '../../api.js'
 import { matchesPlanId, publicCatalogPlans, subscribePlanId } from '../../lib/plans.js'
 import { useAdminDb } from '../../lib/useAdminDb.js'
+import { useApp } from '../../state/AppContext'
 
 export default function Subscriptions() {
   const { db, api } = useAdminDb()
+  const { run } = useApp()
   const [msg, setMsg] = useState('')
   const [err, setErr] = useState('')
   const [busyId, setBusyId] = useState('')
   const [drafts, setDrafts] = useState({})
+  const [termsText, setTermsText] = useState('')
+  const termsSeeded = useRef(false)
   const plans = publicCatalogPlans(db.plans)
+  const savedTerms = (db.membershipTerms || []).filter(Boolean)
+
+  useEffect(() => {
+    if (termsSeeded.current || !savedTerms.length) return
+    termsSeeded.current = true
+    setTermsText(savedTerms.join('\n'))
+  }, [savedTerms])
 
   function draftOf(plan) {
     return drafts[plan.id] || { price: plan.price, points: plan.points }
@@ -110,12 +122,31 @@ export default function Subscriptions() {
 
       <div className="admin-section" style={{ marginTop: 28 }}>
         <h2>תנאי המנוי (קבועים לכל המסלולים)</h2>
-        <ul className="admin-terms">
-          <li>החלפות ללא הגבלה</li>
-          <li>משלוח דו-חודשי כלול · משלוח החלפה נוסף ₪65</li>
-          <li>ביטול אחרי ניצול המשלוח — החזרה ₪65</li>
-          <li>אין תקרת תכשיטים — הבחירה לפי נקודות בלבד</li>
-        </ul>
+        <p className="admin-sub">שורה אחת לכל תנאי. השמירה מתעדכנת גם בעמוד המסלולים ללקוחות.</p>
+        <textarea
+          className="terms-editor"
+          rows={6}
+          value={termsText}
+          onChange={(e) => setTermsText(e.target.value)}
+        />
+        <button
+          type="button"
+          className="btn btn-sm"
+          style={{ marginTop: 12 }}
+          onClick={async () => {
+            setErr('')
+            setMsg('')
+            const terms = termsText.split('\n').map((x) => x.trim()).filter(Boolean)
+            const data = await run(() => liveApi.updateMembershipTerms(terms))
+            if (!data) {
+              setErr('שמירת התנאים נכשלה')
+              return
+            }
+            setMsg('תנאי המנוי עודכנו')
+          }}
+        >
+          שמירת תנאי המנוי
+        </button>
       </div>
     </>
   )

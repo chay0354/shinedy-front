@@ -201,7 +201,7 @@ export default function PurchaseDialog({ open, onClose, item, price, credit, use
                 </label>
               )}
               <p className="cell-sub" style={{ marginTop: 6 }}>
-                נשמרות רק 4 הספרות האחרונות והתוקף — לא מספר הכרטיס המלא.
+                נשמרות רק 4 הספרות האחרונות והתוקף, לא מספר הכרטיס המלא.
               </p>
             </>
           )}
@@ -214,7 +214,7 @@ export default function PurchaseDialog({ open, onClose, item, price, credit, use
               <>
                 <label className="check-row">
                   <input type="checkbox" checked={useCredit} onChange={(e) => setUseCredit(e.target.checked)} />
-                  <span>להוריד את הקרדיטים מהסכום — יתרה זמינה ₪{Math.floor(credit).toLocaleString()}</span>
+                  <span>להוריד את הקרדיטים מהסכום · יתרה זמינה ₪{Math.floor(credit).toLocaleString()}</span>
                 </label>
                 {useCredit && (
                   <div className="field" style={{ maxWidth: 220, marginTop: 10 }}>

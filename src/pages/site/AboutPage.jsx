@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { IconDiamond, IconInfinity, IconUser } from '../../components/icons';
 import PageHead from '../../components/PageHead';
 import HeroArt from '../../components/HeroArt';
@@ -15,12 +16,12 @@ export default function AboutPage() {
           <div>
             <div className="prose">
               <p>
-                <strong>Shinedy נולדה מתוך אהבה לעולם התכשיטים</strong> — ומתוך רעיון פשוט: למה לקנות תכשיט אחד,
+                <strong>Shinedy נולדה מתוך אהבה לעולם התכשיטים</strong>, ומתוך רעיון פשוט: למה לקנות תכשיט אחד,
                 כשאפשר לענוד תכשיטים חדשים כל הזמן?
               </p>
               <p>
-                אנחנו מאמינות שכל אישה ראויה לגוון, לרענן ולהתאים את התכשיטים שלה לכל רגע — בלי להתחייב לרכישה
-                יקרה. המנוי שלנו מאפשר לך ליהנות מתכשיטים איכותיים — זהב, כסף, יהלומי מעבדה ומואסניט — עם שירות
+                אנחנו מאמינות שכל אישה ראויה לגוון, לרענן ולהתאים את התכשיטים שלה לכל רגע, בלי להתחייב לרכישה
+                יקרה. המנוי שלנו מאפשר לך ליהנות מתכשיטים איכותיים: זהב, כסף, יהלומי מעבדה ומואסניט, עם שירות
                 אישי ומשלוח עד הבית.
               </p>
               <p>
@@ -31,6 +32,7 @@ export default function AboutPage() {
                 <strong>NEW LOOK. SAME YOU.</strong>
               </p>
             </div>
+            <Link to="/catalog" className="btn about-cta">לקטלוג</Link>
             <div className="about-icons">
               <div className="it">
                 <IconDiamond size={30} />

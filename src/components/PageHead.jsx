@@ -1,8 +1,8 @@
 import BrandMark from './BrandMark';
 
-export default function PageHead({ eyebrow, title, children, mark = true }) {
+export default function PageHead({ eyebrow, title, children, mark = true, className = '' }) {
   return (
-    <div className="page-head">
+    <div className={`page-head${className ? ` ${className}` : ''}`}>
       <div className="container">
         {eyebrow ? (
           <div className="section-eyebrow" dir="ltr">

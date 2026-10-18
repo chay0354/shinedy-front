@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useLocation } from 'react-router-dom'
+import { computeOrderStats } from '../../lib/adminOverview.js'
 import { QRCodeSVG } from 'qrcode.react'
 import { planOf, heDate, useAdminDb } from '../../lib/useAdminDb.js'
 import { courierActionLabel, resolveCourierJob } from '../../lib/courierJob.js'
@@ -124,6 +125,38 @@ function Slip({ order, db, onClose }) {
   )
 }
 
+function OrderStatsPanel({ orders }) {
+  const s = useMemo(() => computeOrderStats(orders), [orders])
+  return (
+    <aside className="warehouse-stats" aria-label="סיכום הזמנות">
+      <div className="warehouse-stats-head">
+        <div className="wh-stat-block">
+          <span className="wh-stat-lab">סה״כ הזמנות</span>
+          <b className="wh-stat-num">{s.total}</b>
+        </div>
+        <div className="wh-stat-block">
+          <span className="wh-stat-lab">הזמנות פתוחות</span>
+          <b className={`wh-stat-num${s.open > 0 ? ' tone-urgent' : ''}`}>{s.open}</b>
+        </div>
+      </div>
+      <ul className="warehouse-stats-list">
+        <li>
+          <span>טרם נשלחו · ממתינות לטיפול</span>
+          <b className={s.pending > 0 ? 'tone-urgent' : ''}>{s.pending}</b>
+        </li>
+        <li>
+          <span>נשלחו וטרם נמסרו</span>
+          <b className={s.inTransit > 0 ? 'tone-warn' : ''}>{s.inTransit}</b>
+        </li>
+        <li>
+          <span>נמסרו</span>
+          <b className="tone-ok">{s.delivered}</b>
+        </li>
+      </ul>
+    </aside>
+  )
+}
+
 // ===== הזמנות יוצאות: ליקוט → אריזה → שליח =====
 function Outgoing() {
   const { db, api } = useAdminDb()
@@ -217,7 +250,8 @@ function Outgoing() {
   })
 
   return (
-    <>
+    <div className="warehouse-layout">
+      <div className="warehouse-main">
       <p className="admin-sub">
         הזרימה: הזמנה → ליקוט → פתק + QR → אריזה → הזמנת שליח לפי סוג.
         מסלול ראשון = ללא חתימת מסירה · שני המסלולים הגבוהים = חתימת מסירה נדרשת.
@@ -242,7 +276,7 @@ function Outgoing() {
               <tr><th>מס׳ הזמנה</th><th>לקוחה</th><th>מסלול</th><th>טלפון</th><th>פריטים ללקט (מס׳ פריט)</th><th>סוג</th><th>תאריך</th><th>סטטוס</th><th>פתק</th><th>פעולה</th></tr>
             </thead>
             <tbody>
-              {inProcess.length === 0 && <tr><td colSpan="10" style={{ color: 'var(--muted)' }}>אין הזמנות שממתינות לטיפול — הכול טופל ✓</td></tr>}
+              {inProcess.length === 0 && <tr><td colSpan="10" style={{ color: 'var(--muted)' }}>אין הזמנות שממתינות לטיפול. הכול טופל ✓</td></tr>}
               {rowsOf(inProcess)}
             </tbody>
           </table>
@@ -325,7 +359,9 @@ function Outgoing() {
           {shipLabels.map((l) => <ShippingLabel key={l.id} {...l} />)}
         </PrintLabels>
       )}
-    </>
+      </div>
+      <OrderStatsPanel orders={db.orders} />
+    </div>
   )
 }
 
@@ -344,7 +380,7 @@ export default function Warehouse() {
 
   return (
     <>
-      <h1>מחסן</h1>
+      <h1>ניהול הזמנות</h1>
       {courierAlerts.length > 0 && (
         <div className="warehouse-alert" role="alert">
           <h3>בירור אצל חברת המשלוחים</h3>

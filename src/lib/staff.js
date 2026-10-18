@@ -1,15 +1,35 @@
 export const STAFF_ROLES = ['מנהלת', 'מחסן', 'שירות לקוחות'];
 
-export const ADMIN_TABS = [
-  { path: '/admin', label: 'דשבורד' },
-  { path: '/admin/warehouse', label: 'מחסן' },
-  { path: '/admin/rentals', label: 'ניהול השכרות' },
+/** ניווט ראשי — לפי תדירות שימוש; מסלולים/כספים/דוחות תחת «ניהול עסק» */
+export const ADMIN_NAV = [
+  { path: '/admin', label: 'מבט כולל', end: true },
+  { path: '/admin/warehouse', label: 'ניהול הזמנות' },
   { path: '/admin/inventory', label: 'ניהול מלאי' },
-  { path: '/admin/favorites', label: 'מועדפים' },
+  { path: '/admin/rentals', label: 'ניהול השכירות' },
   { path: '/admin/customers', label: 'ניהול לקוחות' },
-  { path: '/admin/subscriptions', label: 'מסלולים' },
-  { path: '/admin/expenses', label: 'כספים' },
-  { path: '/admin/reports', label: 'דוחות' },
+  {
+    label: 'ניהול עסק',
+    children: [
+      { path: '/admin/subscriptions', label: 'מסלולי מנוי' },
+      { path: '/admin/expenses', label: 'כספים' },
+      { path: '/admin/reports', label: 'דוחות' },
+    ],
+  },
+];
+
+function flattenNav(nav) {
+  const tabs = [];
+  for (const item of nav) {
+    if (item.path) tabs.push({ path: item.path, label: item.label, end: item.end });
+    if (item.children) tabs.push(...item.children.map((c) => ({ path: c.path, label: c.label })));
+  }
+  return tabs;
+}
+
+/** רשימה שטוחה לבחירת דף בית לצוות / נתיבים נסתרים (מועדפים וכו') */
+export const ADMIN_TABS = [
+  ...flattenNav(ADMIN_NAV),
+  { path: '/admin/favorites', label: 'מועדפים' },
 ];
 
 export const ROLE_PRESETS = {

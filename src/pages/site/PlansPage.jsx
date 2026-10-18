@@ -6,6 +6,7 @@ import { useApp } from '../../state/AppContext';
 import { SHARED_TERMS } from '../../lib/site';
 import {
   matchesPlanId,
+  planShowcase,
   publicCatalogPlans,
   subscribePlanId,
 } from '../../lib/plans';
@@ -78,7 +79,7 @@ export default function PlansPage() {
     setErr('');
     const data = await run(() => api.changePlan(subscribePlanId(confirm.id, state?.plans)));
     if (!data) return;
-    setDone(`המסלול שלך עודכן ל-${confirm.latin} ✓`);
+    setDone(`המסלול שלך עודכן ל-${planShowcase(confirm)} ✓`);
     setConfirm(null);
   }
 
@@ -95,12 +96,10 @@ export default function PlansPage() {
       <PageHead eyebrow="MEMBERSHIP" title="מסלולי מנוי">
         <p>
           {checkout
-            ? `מסלול ${checkout.latin} · ממשיכים לפרטי הכרטיס`
+            ? `מסלול ${planShowcase(checkout)} · ממשיכים לפרטי הכרטיס`
             : current
-              ? 'אפשר לשנות מסלול או לבטל — בלי הרשמה מחדש'
-              : loggedIn
-                ? 'בחרי מסלול — ואז ממלאים את פרטי הכרטיס כמו בפתיחת חשבון'
-                : 'בחרי מסלול — כל בחירה מתחילה את אותה הרשמה'}
+              ? 'אפשר לשנות מסלול או לבטל, בלי הרשמה מחדש'
+              : 'בחרי את המסלול שהכי מתאים לך. אפשר לשדרג או לבטל בכל עת'}
         </p>
       </PageHead>
 
@@ -110,7 +109,7 @@ export default function PlansPage() {
             <div className="signup-card" style={{ maxWidth: 520, margin: '0 auto 32px' }}>
               <h2 style={{ marginTop: 0 }}>פרטי תשלום</h2>
               <p className="signup-pay-note">
-                חיוב חודשי: ₪{checkout.price} למסלול {checkout.latin}. הסליקה תופעל בהמשך — כרגע כל פרטי כרטיס יתקבלו.
+                חיוב חודשי: ₪{checkout.price} למסלול {planShowcase(checkout)}. החיוב יבוצע בהמשך.
               </p>
               <div className="field">
                 <label htmlFor="p-card-holder">שם בעל הכרטיס</label>
@@ -170,7 +169,7 @@ export default function PlansPage() {
           {!checkout && current && (
             <div className="sub-manage">
               <div className="sub-now">
-                המנוי הפעיל: {current.latin}
+                המנוי הפעיל: {planShowcase(current)}
                 <span>₪{current.price} לחודש · {current.points} נקודות · {current.materials}</span>
               </div>
               <div className="sub-manage-actions">
@@ -211,7 +210,7 @@ export default function PlansPage() {
                   ) : (
                     plan.featured && <div className="flag">הכי פופולרי</div>
                   )}
-                  <div className="plan-name">{plan.latin}</div>
+                  <div className="plan-name">{planShowcase(plan)}</div>
                   <div className="price">
                     ₪{plan.price}
                     <small> לחודש</small>
@@ -225,7 +224,7 @@ export default function PlansPage() {
                   <div className="plan-actions">
                     {!loggedIn && (
                       <Link to="/signup" state={{ plan: plan.id }} className={`btn${plan.featured ? ' btn-tan' : ''}`}>
-                        אני בוחרת
+                        בואי נתחיל
                       </Link>
                     )}
                     {loggedIn && isCurrent && (
@@ -257,7 +256,7 @@ export default function PlansPage() {
                         className={`btn${plan.featured ? ' btn-tan' : ''}`}
                         onClick={() => pickPlan(plan.id)}
                       >
-                        אני בוחרת
+                        בואי נתחיל
                       </button>
                     )}
                   </div>
@@ -273,7 +272,7 @@ export default function PlansPage() {
           <div className="plans-terms">
             <strong>טוב לדעת:</strong>
             <ul style={{ margin: '10px 0 0 0', paddingInlineStart: 22 }}>
-              {SHARED_TERMS.map((t) => (
+              {(state?.membershipTerms?.length ? state.membershipTerms : SHARED_TERMS).map((t) => (
                 <li key={t} style={{ marginBottom: 6 }}>
                   {t}
                 </li>
@@ -291,9 +290,9 @@ export default function PlansPage() {
             <button type="button" className="modal-x" onClick={() => setConfirm(null)} aria-label="סגירה">
               ×
             </button>
-            <h2>{confirm.points > current.points ? 'שינוי מסלול — שדרוג' : 'שינוי מסלול'}</h2>
+            <h2>{confirm.points > current.points ? 'שינוי מסלול, שדרוג' : 'שינוי מסלול'}</h2>
             <p className="modal-sub">
-              מ-{current.latin} ל-{confirm.latin}
+              מ-{planShowcase(current)} ל-{planShowcase(confirm)}
             </p>
             <div className="plan-diff">
               <div>
@@ -333,9 +332,9 @@ export default function PlansPage() {
               ×
             </button>
             <h2>ביטול מנוי</h2>
-            <p className="modal-sub">מסלול {current.latin} · ₪{current.price} לחודש</p>
+            <p className="modal-sub">מסלול {planShowcase(current)} · ₪{current.price} לחודש</p>
             <p className="modal-legal">
-              התכשיטים שאצלך ייאספו בימים הקרובים. אם כבר היה משלוח או החזרה בחודש המנוי — תחויבי ב-₪65 דמי משלוח.
+              התכשיטים שאצלך ייאספו בימים הקרובים. אם כבר היה משלוח או החזרה בחודש המנוי, תחויבי ב-₪65 דמי משלוח.
             </p>
             <button type="button" className="btn btn-wide btn-danger-ghost" onClick={cancelSub}>
               כן, לבטל את המנוי

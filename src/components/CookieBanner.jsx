@@ -20,7 +20,7 @@ export default function CookieBanner() {
     <div className="cookie-bar" role="dialog" aria-label="הסכמת עוגיות">
       <p>
         האתר משתמש בעוגיות הכרחיות להפעלה, להתחברות ולשמירת הקופסה.
-        עוגיות נוספות — רק אם תאשרי.{' '}
+        עוגיות נוספות, רק אם תאשרי.{' '}
         <Link to="/cookies" className="link-gold">
           מדיניות עוגיות
         </Link>

@@ -53,6 +53,7 @@ function normalizeMeta(parsed) {
     rates,
     expSeq: parsed.expSeq || 0,
     cashOpening: parsed.cashOpening ?? null,
+    accountingUrl: parsed.accountingUrl || '',
     debugMode: typeof parsed.debugMode === 'boolean' ? parsed.debugMode : false,
     staff,
     staffSeq: parsed.staffSeq || staff.length,
@@ -407,12 +408,14 @@ export function buildDbFromState(state) {
     rates: meta.rates,
     expSeq: meta.expSeq,
     cashOpening: meta.cashOpening,
+    accountingUrl: meta.accountingUrl || '',
     debugMode: meta.debugMode,
     staff: meta.staff,
     returnMarks: {},
     box: {},
     notifications: [],
     audit: meta.audit,
+    membershipTerms: state?.membershipTerms || [],
   };
 }
 
@@ -434,6 +437,34 @@ export function adminApiFromState(state, setMeta, actor) {
           ...exp,
         });
         audit(meta, `נרשמה הוצאה ${exp.category} ₪${exp.amount}`, actor);
+      });
+    },
+    setAccounting(url) {
+      return persist((meta) => {
+        meta.accountingUrl = String(url || '').trim();
+        audit(meta, 'עודכן קישור להנהלת החשבונות', actor);
+      });
+    },
+    importExpenses(rows) {
+      return persist((meta) => {
+        let n = 0;
+        for (const row of rows || []) {
+          const amount = Number(row.amount);
+          if (!Number.isFinite(amount) || amount < 0) continue;
+          meta.expSeq += 1;
+          meta.expenses.push({
+            id: `EXP-${String(meta.expSeq).padStart(4, '0')}`,
+            date: row.date || nowIso().slice(0, 10),
+            category: row.category,
+            amount,
+            note: row.note || '',
+            recurring: Boolean(row.recurring),
+            source: 'accounting',
+          });
+          n += 1;
+        }
+        audit(meta, `יובאו ${n} הוצאות מהנהלת החשבונות`, actor);
+        return n;
       });
     },
     setRates(patch) {

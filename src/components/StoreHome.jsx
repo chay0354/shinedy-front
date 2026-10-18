@@ -86,7 +86,7 @@ export default function StoreHome({ guest = false, hideHero = false }) {
                 החנות
                 <span>
                   {guest
-                    ? 'תכשיטים במנוי — לובשים, מחליפים, נהנים'
+                    ? 'תכשיטים במנוי. לובשים, מחליפים, נהנים'
                     : 'תכשיטים שנבחרו בשבילך'}
                 </span>
               </h1>

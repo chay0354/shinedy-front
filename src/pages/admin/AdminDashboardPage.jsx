@@ -1,7 +1,9 @@
-﻿import { useMemo, useState } from 'react';
+﻿import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { api as liveApi } from '../../api.js';
 import { useApp } from '../../state/AppContext';
 import { buildDbFromState } from '../../lib/dbFromState';
+import { computeAdminOverview } from '../../lib/adminOverview.js';
 import { PERIODS, computeKpis, fmtMoney, fmtNum, fmtPct, periodRange, trend } from '../../lib/kpi.js';
 import { Drawer, KpiCard, Section } from '../../components/Kpi.jsx';
 
@@ -37,12 +39,34 @@ function MovementChart({ data }) {
   );
 }
 
-function ActionTile({ to, n, label }) {
+function OverviewCell({ title, to, children, foot = true }) {
+  const inner = (
+    <>
+      <div className="dash-ov-title">{title}</div>
+      <div className="dash-ov-body">{children}</div>
+      {foot && to ? <span className="dash-ov-arrow" aria-hidden>←</span> : null}
+    </>
+  );
+  if (to) {
+    return (
+      <Link to={to} className="dash-ov-cell">
+        {inner}
+      </Link>
+    );
+  }
+  return <div className="dash-ov-cell dash-ov-cell-static">{inner}</div>;
+}
+
+function MetricBig({ n, tone }) {
+  return <span className={`dash-ov-big tone-${tone || 'ink'}`}>{n}</span>;
+}
+
+function MetricRow({ label, n, tone }) {
   return (
-    <Link to={to} className={`action-tile ${n > 0 ? 'urgent' : 'clear'}`}>
-      <span className="at-n">{n}</span>
-      <span className="at-lab">{label}</span>
-    </Link>
+    <div className="dash-ov-row">
+      <span className="dash-ov-row-lab">{label}</span>
+      <span className={`dash-ov-row-n tone-${tone || 'ink'}`}>{n}</span>
+    </div>
   );
 }
 
@@ -52,6 +76,22 @@ export default function AdminDashboardPage() {
   const [period, setPeriod] = useState('this-month');
   const [custom, setCustom] = useState({ from: '', to: '' });
   const [drill, setDrill] = useState(null);
+  const [extras, setExtras] = useState({ favoriteSaves: 0, abandonedCarts: 0, contactPending: 0, liveVisitors: 0 });
+
+  useEffect(() => {
+    let alive = true;
+    liveApi
+      .adminOverview()
+      .then((data) => {
+        if (alive) setExtras(data);
+      })
+      .catch(() => {
+        if (alive) setExtras({ favoriteSaves: 0, abandonedCarts: 0, contactPending: 0, liveVisitors: 0 });
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   const range = useMemo(() => periodRange(period, custom), [period, custom]);
   const k = useMemo(() => computeKpis(db, range, {}), [db, range]);
@@ -67,29 +107,41 @@ export default function AdminDashboardPage() {
   const pp = prev.profitability;
   const periodLabel = `${range.start.toLocaleDateString('he-IL')} – ${range.end.toLocaleDateString('he-IL')}`;
 
-  const pendingOrders = db.orders.filter((o) => ['חדשה', 'בליקוט', 'ליקוט', 'נארזה', 'בקרה', 'אריזה'].includes(o.status)).length;
-  const overdueReturns = db.returns.filter((r) => r.status !== 'הושלמה' && Date.now() > new Date(r.deadline).getTime()).length;
-  const courierAlerts = db.returns.filter((r) => r.needsCourierInquiry && r.status !== 'הושלמה').length;
-  const cleaningUnits = db.products.reduce((sum, prod) => sum + prod.units.filter((u) => u.status === 'בניקוי').length, 0);
-  const pursToShip = db.purchases.filter((x) => x.needsShipping && !x.shippedAt).length;
-  const blockedCustomers = db.users.filter((u) => u.exchangeBlocked).length;
+  const ov = useMemo(() => computeAdminOverview(db), [db]);
+  const liveVisitors = extras.liveVisitors || 0;
 
   return (
     <div className="kpi-dash">
-      <div className="admin-head-row">
-        <h1>דשבורד</h1>
+      <div className="dash-page-head">
+        <h1 className="dash-page-title">מבט כולל</h1>
+        <div className={`dash-live-pill${liveVisitors > 0 ? ' is-live' : ''}`}>
+          <b>{liveVisitors}</b>
+          <span>מבקרות באתר בזמן אמת</span>
+        </div>
       </div>
 
-      <div className="admin-section" style={{ marginTop: 18 }}>
-        <h2>ממתין לטיפול עכשיו</h2>
-        <div className="action-strip">
-          <ActionTile to="/admin/warehouse" n={pendingOrders} label="הזמנות ממתינות לטיפול" />
-          <ActionTile to="/admin/returns" n={overdueReturns} label="החזרות באיחור" />
-          <ActionTile to="/admin/warehouse" n={courierAlerts} label="בירור אצל חברת המשלוחים" />
-          <ActionTile to="/admin/inventory" n={cleaningUnits} label="פריטים בניקוי" />
-          <ActionTile to="/admin/warehouse" n={pursToShip} label="רכישות ממתינות למשלוח" />
-          <ActionTile to="/admin/customers" n={blockedCustomers} label="לקוחות חסומות להחלפה" />
-        </div>
+      <div className="dash-overview-band">
+        <OverviewCell title="הזמנות ממתינות לטיפול" to="/admin/warehouse">
+          <MetricBig n={ov.pendingOrders} tone={ov.pendingOrders > 0 ? 'urgent' : 'ink'} />
+        </OverviewCell>
+        <OverviewCell title="פריטים בניקוי" to="/admin/inventory">
+          <MetricBig n={ov.cleaningUnits} tone={ov.cleaningUnits > 0 ? 'warn' : 'ink'} />
+        </OverviewCell>
+        <OverviewCell title="סטטוס משלוח הזמנות" to="/admin/rentals">
+          <MetricRow label="הזמנות שנשלחו וטרם נמסרו" n={ov.ordersInTransit} tone={ov.ordersInTransit > 0 ? 'warn' : 'ink'} />
+          <MetricRow label="הזמנות שנמסרו" n={ov.ordersDelivered} />
+        </OverviewCell>
+        <OverviewCell title="החזרות" to="/admin/warehouse">
+          <MetricRow label="החזרות פתוחות" n={ov.openReturns} tone={ov.openReturns > 0 ? 'urgent' : 'ink'} />
+          <MetricRow label="החזרות באיחור" n={ov.overdueReturns} tone={ov.overdueReturns > 0 ? 'urgent' : 'ink'} />
+        </OverviewCell>
+        <OverviewCell title="התנהגות לקוח" to="/admin/favorites" foot={false}>
+          <MetricRow label="נטישת סל קניות" n={extras.abandonedCarts} />
+          <MetricRow label="שמירות במועדפים" n={extras.favoriteSaves} />
+        </OverviewCell>
+        <OverviewCell title="מילוי טופס יצירת קשר" to="/contact">
+          <MetricBig n={extras.contactPending} />
+        </OverviewCell>
       </div>
 
       <Section title="נתונים מסכמים" note={periodLabel}>
@@ -284,7 +336,7 @@ export default function AdminDashboardPage() {
               ))}
             </tbody>
           </table>
-          <p className="cell-sub" style={{ marginTop: 10 }}>לטיפול בהחזרות — טאב "מחסן".</p>
+          <p className="cell-sub" style={{ marginTop: 10 }}>לטיפול בהחזרות · לשונית «החזרות נכנסות» בניהול הזמנות.</p>
         </Drawer>
       )}
     </div>

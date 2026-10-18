@@ -5,13 +5,22 @@ import AdminUserCell from '../../components/AdminUserCell.jsx'
 
 const FILTERS = [
   { id: 'attention', label: 'דורשות טיפול' },
-  { id: 'overdue', label: 'מעל 5 ימים' },
+  { id: 'overdue', label: 'החזרות באיחור' },
   { id: 'customer', label: 'אצל הלקוחה' },
   { id: 'courier', label: 'בירור שליחויות' },
   { id: 'partial', label: 'חלקיות' },
   { id: 'done', label: 'הושלמו' },
   { id: 'all', label: 'הכול' },
 ]
+
+function inDateRange(iso, from, to) {
+  if (!from && !to) return true
+  const t = new Date(iso).getTime()
+  if (Number.isNaN(t)) return true
+  if (from && t < new Date(`${from}T00:00:00`).getTime()) return false
+  if (to && t > new Date(`${to}T23:59:59`).getTime()) return false
+  return true
+}
 
 function statusPill(s) {
   if (s === 'הושלמה') return 'ok'
@@ -23,6 +32,8 @@ export default function Returns({ embedded }) {
   const { db, api } = useAdminDb()
   // ברירת המחדל: מה שדורש טיפול — לא ההיסטוריה
   const [filter, setFilter] = useState('attention')
+  const [from, setFrom] = useState('')
+  const [to, setTo] = useState('')
   const [scan, setScan] = useState('')
   const [scanMsg, setScanMsg] = useState(null)
 
@@ -37,6 +48,7 @@ export default function Returns({ embedded }) {
   }
 
   const rows = db.returns.filter((r) => {
+    if (!inDateRange(r.createdAt, from, to)) return false
     const overdue = Date.now() > new Date(r.deadline).getTime() && r.status !== 'הושלמה'
     switch (filter) {
       // "דורשות טיפול" = כל החזרה שטרם הושלמה (כולל ממתינות — גם הן עבודה פתוחה)
@@ -57,6 +69,19 @@ export default function Returns({ embedded }) {
 
   return (
     <>
+      <div className="scan-station">
+        <h2>עמדת סריקה</h2>
+        <p>סרקי את מספר הפריט, או הקלידי אותו.</p>
+        <form onSubmit={doScan} className="scan-row">
+          <input
+            className="scan-input" dir="ltr" placeholder="למשל B-VIBE-1"
+            value={scan} onChange={(e) => setScan(e.target.value)} autoFocus
+          />
+          <button className="btn btn-sm">קליטה</button>
+        </form>
+        {scanMsg && <p className={scanMsg.ok ? 'msg-ok' : 'form-err'} style={{ marginTop: 10 }}>{scanMsg.msg}</p>}
+      </div>
+
       {!embedded && <h1>החזרות ומעקב</h1>}
       <p className="admin-sub">
         קליטת החזרה נעשית <b>אך ורק בסריקת מספר הפריט במחסן</b> — סטטוס חברת המשלוחים לעולם
@@ -66,31 +91,35 @@ export default function Returns({ embedded }) {
 
       <div className="account-grid">
         <div className="stat-card"><div className="label">החזרות פתוחות</div><div className="value">{openCount}</div></div>
-        <div className="stat-card"><div className="label">חרגו ממועד היעד</div><div className="value">{overdueCount}</div><div className="hint">יעד: 5 ימים מאישור השליח</div></div>
+        <div className="stat-card"><div className="label">החזרות באיחור</div><div className="value">{overdueCount}</div><div className="hint">יעד: 5 ימים מאישור השליח</div></div>
         <div className="stat-card"><div className="label">התקבלו חלקית</div><div className="value">{partialCount}</div></div>
         <div className="stat-card"><div className="label">הושלמו</div><div className="value">{doneCount}</div></div>
       </div>
 
-      <div className="admin-section">
-        <h2>עמדת סריקה — קליטת פריט חוזר</h2>
-        <form onSubmit={doScan} className="scan-row">
-          <input
-            className="scan-input" dir="ltr" placeholder="B-VIBE-1 :סרקי / הקלידי מספר פריט"
-            value={scan} onChange={(e) => setScan(e.target.value)} autoFocus
-          />
-          <button className="btn btn-sm">קליטה ✓</button>
-        </form>
-        {scanMsg && <p className={scanMsg.ok ? 'msg-ok' : 'form-err'} style={{ marginTop: 10 }}>{scanMsg.msg}</p>}
-      </div>
-
+      <div className="returns-layout">
+        <aside className="returns-filter-rail" aria-label="סינון החזרות">
+          <h2>סינון</h2>
+          <p className="cell-sub" style={{ margin: 0 }}>לפי תאריך פתיחת ההחזרה</p>
+          <label className="returns-date">
+            <span>מתאריך</span>
+            <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} />
+          </label>
+          <label className="returns-date">
+            <span>עד תאריך</span>
+            <input type="date" value={to} onChange={(e) => setTo(e.target.value)} />
+          </label>
+          {(from || to) && (
+            <button type="button" className="btn-mini" onClick={() => { setFrom(''); setTo('') }}>נקה תאריכים</button>
+          )}
+          <div className="returns-filter-list">
+            {FILTERS.map((f) => (
+              <button key={f.id} type="button" className={`chip${filter === f.id ? ' on' : ''}`} onClick={() => setFilter(f.id)}>{f.label}</button>
+            ))}
+          </div>
+        </aside>
       <div className="admin-section">
         <div className="admin-head-row">
           <h2>החזרות</h2>
-          <div className="filters" style={{ margin: 0 }}>
-            {FILTERS.map((f) => (
-              <button key={f.id} className={`chip${filter === f.id ? ' on' : ''}`} onClick={() => setFilter(f.id)}>{f.label}</button>
-            ))}
-          </div>
         </div>
         <div className="table-wrap">
           <table className="admin-table">
@@ -159,6 +188,7 @@ export default function Returns({ embedded }) {
             </tbody>
           </table>
         </div>
+      </div>
       </div>
 
       <p className="cell-sub" style={{ marginTop: 18 }}>

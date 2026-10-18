@@ -125,33 +125,6 @@ export default function DashboardPage() {
               <span className="plan-meta">עדיין לא בחרת מסלול מנוי</span>
             )}
           </div>
-          <div className="account-links">
-            {subscribed && !state?.registration?.suspended && (
-              <button
-                type="button"
-                className="btn-mini"
-                onClick={async () => {
-                  if (
-                    !window.confirm(
-                      'להקפיא את המנוי? התכשיטים שאצלך ייאספו בימים הקרובים. אם כבר היה משלוח או החזרה בחודש המנוי — יתווספו ₪65 דמי משלוח.',
-                    )
-                  ) {
-                    return;
-                  }
-                  const data = await run(() => api.suspendSubscription());
-                  if (data) navigate('/account/end-pickup');
-                }}
-              >
-                הקפאת מנוי
-              </button>
-            )}
-            <Link to="/account/plans" className="btn-mini">
-              {subscribed ? 'שינוי / ביטול מנוי' : 'בחירת מסלול'}
-            </Link>
-            <button type="button" className="btn-mini" onClick={logout}>
-              התנתקות
-            </button>
-          </div>
         </div>
       </div>
 
@@ -164,11 +137,13 @@ export default function DashboardPage() {
           )}
           {subscribed && !state?.registration?.suspended && (
             <>
-              <Link to="/exchange" className="btn btn-tan">
+              {!isTopPlan(state) && (
+                <Link to="/account/plans" className="btn btn-tan">
+                  לשדרוג המנוי
+                </Link>
+              )}
+              <Link to="/exchange" className="btn btn-outline">
                 בצעי החלפה
-              </Link>
-              <Link to="/box" className="btn btn-outline">
-                לקופסה שלי
               </Link>
             </>
           )}
@@ -186,7 +161,7 @@ export default function DashboardPage() {
         </div>
         {subscribed && (
           <p className="account-tip">
-            מחליפות פשוט: מסמנות מה מחזירות, בוחרות חדשים בקטלוג — ונרתיק ההחזרה מגיע עם המשלוח.
+            מחליפות פשוט: מסמנות מה מחזירות, בוחרות חדשים בקטלוג, ונרתיק ההחזרה מגיע עם המשלוח.
           </p>
         )}
         <div className="account-grid">
@@ -200,7 +175,7 @@ export default function DashboardPage() {
           <div className="stat-card">
             <div className="label">תכשיטים אצלך</div>
             <div className="value">{units.length}</div>
-            <div className="hint">ללא הגבלת פריטים — רק נקודות</div>
+            <div className="hint">ללא הגבלת פריטים, רק נקודות</div>
           </div>
           <div className="stat-card credit-card">
             <div className="label">קרדיטים לרכישה</div>
@@ -267,7 +242,7 @@ export default function DashboardPage() {
         <h2 className="account-h2">התכשיטים שאצלך</h2>
         {units.length === 0 ? (
           <p className="account-empty">
-            עדיין אין תכשיטים אצלך —{' '}
+            עדיין אין תכשיטים אצלך.{' '}
             <Link to="/catalog" className="link-gold">
               בואי לבחור מהקטלוג
             </Link>
@@ -275,7 +250,7 @@ export default function DashboardPage() {
         ) : (
           <>
             <p className="account-tip">
-              רוצה לפנות נקודות? סמני תכשיט להחלפה — הנקודות שלו משתחררות מיד, ותחזירי אותו בנרתיק עם
+              רוצה לפנות נקודות? סמני תכשיט להחלפה. הנקודות שלו משתחררות מיד, ותחזירי אותו בנרתיק עם
               המשלוח הבא.
             </p>
             <div className="items-list">
@@ -293,7 +268,7 @@ export default function DashboardPage() {
                       </div>
                       {isMarked && (
                         <div className="marked-note">
-                          מסומן להחלפה ✓ — {u.product.points} נק׳ שוחררו לבחירה
+                          מסומן להחלפה ✓ · {u.product.points} נק׳ שוחררו לבחירה
                         </div>
                       )}
                     </div>
@@ -325,7 +300,7 @@ export default function DashboardPage() {
               </p>
             )}
             <p className="account-tip">
-              אפשר לרכוש כל תכשיט שאצלך — הקרדיטים שצברת ({`₪${Math.round(credits)}`}) משמשים כשקלים
+              אפשר לרכוש כל תכשיט שאצלך. הקרדיטים שצברת ({`₪${Math.round(credits)}`}) משמשים כשקלים
               ומופחתים מהמחיר.
             </p>
           </>
@@ -349,7 +324,7 @@ export default function DashboardPage() {
                 </div>
                 <div className="status muted">
                   {heDate(r.date)}
-                  {r.returnedAt ? ` — ${heDate(r.returnedAt)}` : ''}
+                  {r.returnedAt ? ` · ${heDate(r.returnedAt)}` : ''}
                 </div>
               </div>
             ))}
@@ -393,6 +368,36 @@ export default function DashboardPage() {
           </div>
         )}
 
+        <div className="account-manage">
+          <Link to="/account/details" className="btn-mini">
+            עדכון פרטים
+          </Link>
+          {subscribed && !state?.registration?.suspended && (
+            <button
+              type="button"
+              className="btn-mini"
+              onClick={async () => {
+                if (
+                  !window.confirm(
+                    'להקפיא את המנוי? התכשיטים שאצלך ייאספו בימים הקרובים. אם כבר היה משלוח או החזרה בחודש המנוי, יתווספו ₪65 דמי משלוח.',
+                  )
+                ) {
+                  return;
+                }
+                const data = await run(() => api.suspendSubscription());
+                if (data) navigate('/account/end-pickup');
+              }}
+            >
+              הקפאת מנוי
+            </button>
+          )}
+          <Link to="/account/plans" className="btn-mini">
+            {subscribed ? 'שינוי / ביטול מנוי' : 'בחירת מסלול'}
+          </Link>
+          <button type="button" className="btn-mini" onClick={logout}>
+            התנתקות
+          </button>
+        </div>
       </section>
 
       <PurchaseDialog

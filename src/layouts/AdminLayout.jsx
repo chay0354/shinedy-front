@@ -1,16 +1,11 @@
-import { Link, NavLink, Outlet, useLocation, useNavigate, Navigate } from 'react-router-dom';
-import { api } from '../api';
+import { useEffect, useState } from 'react';
+import { Link, Outlet, useLocation, useNavigate, Navigate } from 'react-router-dom';import { api } from '../api';
 import { useApp } from '../state/AppContext';
 import { clearSession } from '../lib/auth';
 import { RequireRole } from '../components/RequireRole';
-import { ADMIN_TABS, currentStaff, staffCanAccess, staffHome } from '../lib/staff';
+import AdminNav, { navItemsForStaff } from '../components/AdminNav';
+import { currentStaff, staffCanAccess, staffHome } from '../lib/staff';
 import { loadAdminMeta } from '../lib/dbFromState';
-
-const TABS = ADMIN_TABS.map((t) => ({
-  to: t.path,
-  label: t.label,
-  end: t.path === '/admin',
-}));
 
 export default function AdminLayout() {
   const { state, run, refresh } = useApp();
@@ -19,7 +14,12 @@ export default function AdminLayout() {
   const meta = loadAdminMeta();
   const me = currentStaff(state, meta.staff);
   const isManager = me?.role === 'מנהלת';
-  const visibleTabs = TABS.filter((t) => !me || isManager || staffCanAccess(me, t.to));
+  const visibleTabs = navItemsForStaff(me, isManager, staffCanAccess);
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [location.pathname]);
 
   if (me && !isManager && !staffCanAccess(me, location.pathname)) {
     return <Navigate to={staffHome(me)} replace />;
@@ -42,6 +42,15 @@ export default function AdminLayout() {
       <div className="admin-app">
         <div className="admin-bar">
           <div className="admin-bar-inner">
+            <button
+              type="button"
+              className="admin-menu-btn"
+              aria-label={menuOpen ? 'סגירת תפריט' : 'פתיחת תפריט'}
+              aria-expanded={menuOpen}
+              onClick={() => setMenuOpen((v) => !v)}
+            >
+              {menuOpen ? '✕' : '☰'}
+            </button>
             <img src="/brand/name-white.png" alt="SHINEDY" />
             <span className="admin-title">ניהול</span>
             <span style={{ flex: 1 }} />
@@ -59,13 +68,7 @@ export default function AdminLayout() {
             </button>
           </div>
         </div>
-        <nav className="admin-tabs">
-          {visibleTabs.map((t) => (
-            <NavLink key={t.to} to={t.to} end={t.end} className={({ isActive }) => (isActive ? 'on' : '')}>
-              {t.label}
-            </NavLink>
-          ))}
-        </nav>
+        <AdminNav items={visibleTabs} mobileOpen={menuOpen} onClose={() => setMenuOpen(false)} />
         <div className="admin-content">
           <Outlet />
         </div>

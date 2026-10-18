@@ -5,6 +5,45 @@ import { computeKpis, fmtMoney, periodRange } from '../../lib/kpi.js'
 
 const money = (n) => fmtMoney(n) || '₪0'
 
+function MobileTip({ children }) {
+  const [open, setOpen] = useState(false)
+  return (
+    <div className={`mobile-tip${open ? ' is-open' : ''}`}>
+      <button
+        type="button"
+        className="info-tip-btn"
+        aria-label="הסבר"
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+      >
+        i
+      </button>
+      <div className="mobile-tip-text">{children}</div>
+    </div>
+  )
+}
+
+function parseExpenseCsv(text) {
+  const lines = text.replace(/^\uFEFF/, '').split(/\r?\n/).map((l) => l.trim()).filter(Boolean)
+  if (!lines.length) return []
+  const split = (line) => line.split(/[;,]/).map((c) => c.trim().replace(/^"|"$/g, ''))
+  const first = split(lines[0]).map((c) => c.toLowerCase())
+  const hasHeader = first.some((c) => /date|תאריך|amount|סכום|category|קטגוריה/.test(c))
+  const body = hasHeader ? lines.slice(1) : lines
+  return body.map((line) => {
+    const [date, category, amount, note, recurring] = split(line)
+    const known = EXPENSE_CATEGORIES.includes(category) ? category : 'אחר'
+    const extra = known === 'אחר' && category && !EXPENSE_CATEGORIES.includes(category) ? category : ''
+    return {
+      date,
+      category: known,
+      amount,
+      note: [extra, note].filter(Boolean).join(' · '),
+      recurring: /^(1|true|yes|כן|חודשי)$/i.test(recurring || ''),
+    }
+  })
+}
+
 export default function Expenses() {
   const { db, api } = useAdminDb()
   const [msg, setMsg] = useState('')
@@ -57,12 +96,78 @@ export default function Expenses() {
   return (
     <>
       <h1>כספים</h1>
-      <p className="admin-sub">
-        כאן נרשמות ההוצאות בפועל והתעריפים המשתנים. מכאן נגזרים במדויק: עלות גיוס לקוחה (CAC),
-        המרווח הגולמי, המרווח התפעולי והתזרים בדשבורד.
-      </p>
+      <MobileTip>
+        <p className="admin-sub">
+          כאן נרשמות ההוצאות בפועל והתעריפים המשתנים. מכאן נגזרים במדויק: עלות גיוס לקוחה (CAC),
+          המרווח הגולמי, המרווח התפעולי והתזרים בדשבורד.
+        </p>
+      </MobileTip>
 
       {msg && <p className="msg-ok">{msg}</p>}
+
+      <section className={`cash-forecast${k.cash.netCash < 0 ? ' neg' : ''}`} aria-label="סיכום חודשי">
+        <div>
+          <div className="cash-forecast-kicker">תזרים חודשי צפוי</div>
+          <b>{k.cash.netCash >= 0 ? '+' : ''}{money(k.cash.netCash)}</b>
+          <p>החודש הנוכחי. גבייה משוערת פחות הוצאות ועלויות משתנות.</p>
+        </div>
+        <div className="cash-forecast-split">
+          <span>נכנס <b>{money(k.cash.cashIn)}</b></span>
+          <span>יוצא <b>{money(k.cash.cashOut)}</b></span>
+          <span>קבועות לחודש <b>{money(monthlyRecurring)}</b></span>
+        </div>
+      </section>
+
+      <div className="admin-section">
+        <h2>הנהלת חשבונות</h2>
+        <p className="admin-sub">
+          שומרים כאן קישור למערכת שבה מעלים קבלות, ומייבאים ממנה קובץ הוצאות כדי לא להקליד פעמיים.
+          חיבור אוטומטי מלא תלוי במערכת החשבונות עצמה. עד אז הייבוא מעדכן את העמוד ואת הדשבורד מיד.
+        </p>
+        <form
+          className="admin-form"
+          onSubmit={(ev) => {
+            ev.preventDefault()
+            api.setAccounting(ev.target.elements.url.value)
+            setMsg('הקישור להנהלת החשבונות נשמר')
+          }}
+        >
+          <div className="field" style={{ gridColumn: '1 / -1' }}>
+            <label>כתובת מערכת הנהלת החשבונות</label>
+            <input name="url" type="url" dir="ltr" defaultValue={db.accountingUrl || ''} placeholder="https://" />
+          </div>
+          <div className="form-actions">
+            <button className="btn btn-sm">שמירת קישור</button>
+            {db.accountingUrl ? (
+              <a className="btn btn-outline btn-sm" href={db.accountingUrl} target="_blank" rel="noreferrer">פתיחת המערכת</a>
+            ) : null}
+          </div>
+        </form>
+        <form
+          className="admin-form"
+          style={{ marginTop: 14 }}
+          onSubmit={(ev) => {
+            ev.preventDefault()
+            const file = ev.target.elements.file.files?.[0]
+            if (!file) return
+            const reader = new FileReader()
+            reader.onload = () => {
+              const rows = parseExpenseCsv(String(reader.result || ''))
+              const n = api.importExpenses(rows)
+              setMsg(n ? `יובאו ${n} הוצאות. הדשבורד עודכן.` : 'לא נמצאו שורות תקינות בקובץ')
+              ev.target.reset()
+            }
+            reader.readAsText(file)
+          }}
+        >
+          <div className="field" style={{ gridColumn: '1 / -1' }}>
+            <label>ייבוא הוצאות מקובץ</label>
+            <input name="file" type="file" accept=".csv,text/csv" required />
+            <span className="cell-sub">עמודות: תאריך, קטגוריה, סכום, הערה, חודשי (כן/לא). קטגוריה לא מוכרת נשמרת כ״אחר״.</span>
+          </div>
+          <div className="form-actions"><button className="btn btn-outline btn-sm">ייבוא</button></div>
+        </form>
+      </div>
 
       {db.expenses.length === 0 && (
         <div className="empty-state">
@@ -109,15 +214,17 @@ export default function Expenses() {
       </div>
 
       <div className="admin-section">
-        <h2>תעריפי עלות משתנה — לפי אירוע, לא לפי מנוי</h2>
-        <p className="admin-sub" style={{ marginTop: -4 }}>
-          כל תעריף מוכפל במה שקרה בפועל: משלוח, אריזה וביטוח נספרים <b>לכל הזמנה</b> (הזמנה ראשונה או
-          החלפה), ניקוי נספר <b>לכל פריט שחזר ונסרק במחסן</b>, וסליקה וקרדיטים הם <b>אחוז מההכנסה</b>.
-          <b> חשוב:</b> משלוח אחד כלול לכל לקוחה בחודשיים; על כל החלפה נוספת מעבר לו הלקוחה
-          משלמת ₪{db.rates.extraExchangeFee} — והסכום הזה נרשם אוטומטית <b>כהכנסה שמתקזזת מול עלות
-          המשלוח</b> (רואים אותו בכרטיס ההכנסות בדשבורד תחת "דמי החלפה"). כלומר לקוחה שמחליפה הרבה
-          לא מפסידה לנו את המשלוחים — נשארות רק העלויות הקטנות של אריזה, ביטוח וניקוי.
-        </p>
+        <div className="admin-head-row">
+          <h2>תעריפי עלות משתנה, לפי אירוע</h2>
+        </div>
+        <MobileTip>
+          <p className="admin-sub" style={{ marginTop: 0 }}>
+            כל תעריף מוכפל במה שקרה בפועל: משלוח, אריזה וביטוח נספרים <b>לכל הזמנה</b> (הזמנה ראשונה או
+            החלפה), ניקוי נספר <b>לכל פריט שחזר ונסרק במחסן</b>, וסליקה וקרדיטים הם <b>אחוז מההכנסה</b>.
+            משלוח אחד כלול לכל לקוחה בחודשיים. על כל החלפה נוספת מעבר לו הלקוחה
+            משלמת ₪{db.rates.extraExchangeFee}, והסכום נרשם כהכנסה מול עלות המשלוח.
+          </p>
+        </MobileTip>
         <form className="admin-form" onSubmit={saveRates}>
           <div className="field"><label>משלוח הלוך-חזור להזמנה (₪)</label>
             <input name="ship" type="number" min="0" step="1" defaultValue={db.rates.shippingPerOrder} /></div>
@@ -141,10 +248,12 @@ export default function Expenses() {
 
       <div className="admin-section">
         <h2>כך חושבו העלויות המשתנות החודש</h2>
-        <p className="admin-sub" style={{ marginTop: -4 }}>
-          החישוב מתבצע על נתוני החודש הנוכחי ({cd.orders} הזמנות · {cd.returnedItems} פריטים שחזרו ·
-          הכנסה {money(cd.revenue)}). <b>אלה בדיוק אותם מספרים</b> שמופיעים בדוח הרווח וההפסד בטאב "דוחות".
-        </p>
+        <MobileTip>
+          <p className="admin-sub" style={{ marginTop: 0 }}>
+            החישוב מתבצע על נתוני החודש הנוכחי ({cd.orders} הזמנות · {cd.returnedItems} פריטים שחזרו ·
+            הכנסה {money(cd.revenue)}). אלה בדיוק אותם מספרים שמופיעים בדוח הרווח וההפסד.
+          </p>
+        </MobileTip>
         <div className="table-wrap">
           <table className="admin-table calc-table">
             <thead><tr><th>רכיב</th><th>מוכפל ב־</th><th>כמות בחודש</th><th>תעריף</th><th>עלות</th></tr></thead>

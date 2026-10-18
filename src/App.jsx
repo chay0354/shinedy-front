@@ -14,7 +14,6 @@ import SignupPage from './pages/site/SignupPage';
 import VerifyEmailPage from './pages/site/VerifyEmailPage';
 import VerifyPhonePage from './pages/site/VerifyPhonePage';
 import LegalPage from './pages/site/LegalPage';
-import FaqPage from './pages/site/FaqPage';
 import AboutPage from './pages/site/AboutPage';
 import ContactPage from './pages/site/ContactPage';
 import FavoritesPage from './pages/site/FavoritesPage';
@@ -24,6 +23,7 @@ import ExchangePage from './pages/account/ExchangePage';
 import ReturnPouchPage from './pages/account/ReturnPouchPage';
 import EndMembershipPage from './pages/account/EndMembershipPage';
 import HistoryPage from './pages/account/HistoryPage';
+import AccountDetailsPage from './pages/account/AccountDetailsPage';
 import AdminDashboardPage from './pages/admin/AdminDashboardPage';
 import AdminWarehousePage from './pages/admin/AdminWarehousePage';
 import AdminRentalsPage from './pages/admin/AdminRentalsPage';
@@ -73,11 +73,11 @@ export default function App() {
           <Route path="terms" element={<LegalPage kind="terms" />} />
           <Route path="privacy" element={<LegalPage kind="privacy" />} />
           <Route path="cookies" element={<LegalPage kind="cookies" />} />
-          <Route path="faq" element={<FaqPage />} />
+          <Route path="faq" element={<Navigate to="/how#faq" replace />} />
           <Route path="about" element={<AboutPage />} />
           <Route path="contact" element={<ContactPage />} />
           <Route path="favorites" element={<FavoritesPage />} />
-          <Route path="info" element={<Navigate to="/faq" replace />} />
+          <Route path="info" element={<Navigate to="/how#faq" replace />} />
           <Route path="box" element={<CartPage />} />
           <Route path="exchange" element={<ExchangePage />} />
           <Route
@@ -91,6 +91,7 @@ export default function App() {
             <Route index element={<Navigate to="me" replace />} />
             <Route path="plans" element={<PlansPage />} />
             <Route path="me" element={<DashboardPage />} />
+            <Route path="details" element={<AccountDetailsPage />} />
             <Route path="dashboard" element={<Navigate to="/account/me" replace />} />
             <Route path="cart" element={<Navigate to="/box" replace />} />
             <Route path="shop" element={<Navigate to="/catalog" replace />} />

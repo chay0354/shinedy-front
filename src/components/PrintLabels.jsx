@@ -53,7 +53,7 @@ export function ShippingLabel({ id, recipient, phone, address, jobLabel, signatu
         <span className="ship-caption">אל</span>
         <div className="ship-name">{recipient || '—'}</div>
         <div className="ship-phone" dir="ltr">{phone || ''}</div>
-        <div className="ship-address">{address || 'כתובת חסרה — יש להשלים בפרופיל הלקוחה'}</div>
+        <div className="ship-address">{address || 'כתובת חסרה. יש להשלים בפרופיל הלקוחה'}</div>
       </div>
       <div className="ship-meta">
         {jobLabel && <span className="ship-job">{jobLabel}</span>}

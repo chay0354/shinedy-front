@@ -1,12 +1,31 @@
+import { useEffect, useRef } from 'react';
+import { usePreferStillMedia } from '../../lib/media';
 import { Link } from 'react-router-dom';
 import { useApp } from '../../state/AppContext';
 import { getToken } from '../../lib/auth';
 import { hasActivePlan } from '../../lib/roles';
-import { publicCatalogPlans } from '../../lib/plans';
+import { planShowcase, publicCatalogPlans } from '../../lib/plans';
 import ProductCard from '../../components/ProductCard';
 import BrandMark from '../../components/BrandMark';
 import HeroArt from '../../components/HeroArt';
 import { IconDiamond, IconRefresh, IconShield, IconTruck } from '../../components/icons';
+import { STEPS } from './HowPage';
+
+const HERO_LINES = ['UNLIMIT YOUR LOOK', 'NEW LOOK, UNLIMITED'];
+
+const PLAN_TIERS = {
+  silver: ['silver'],
+  combined: ['combined', 'silver'],
+  gold: ['gold', 'combined', 'silver'],
+};
+
+function pieceForPlan(products, planId) {
+  const allowed = PLAN_TIERS[planId] || [];
+  const shots = products.filter((product) => product.image && allowed.includes(product.minPlan));
+  const preferred = shots.filter((product) => product.minPlan === allowed[0]);
+  const pool = preferred.length ? preferred : shots;
+  return [...pool].sort((a, b) => (b.points || 0) - (a.points || 0))[0] || null;
+}
 
 const HERO_BENEFITS = [
   { icon: IconDiamond, t: 'תכשיטי יוקרה' },
@@ -20,34 +39,51 @@ export default function HomePage() {
   const products = state?.products || [];
   const featured = products.slice(0, 4);
   const plans = publicCatalogPlans(state?.plans);
+  const ctaVideoRef = useRef(null);
+  const stillMedia = usePreferStillMedia();
   const loggedIn = Boolean(getToken() && state?.auth);
   const subscribed = hasActivePlan(state);
   const memberHref = subscribed ? '/catalog' : '/account/plans';
-  const HeroTag = loggedIn ? 'div' : Link;
-  const heroProps = loggedIn
-    ? { className: 'hero-band' }
-    : { to: '/signup', className: 'hero-band', 'aria-label': 'תכשיטים יוקרתיים במנוי חודשי — הצטרפי עכשיו' };
+
+  useEffect(() => {
+    const node = ctaVideoRef.current;
+    if (!node) return undefined;
+    const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const sync = () => {
+      if (motion.matches) node.pause();
+      else node.play().catch(() => {});
+    };
+    sync();
+    motion.addEventListener('change', sync);
+    return () => motion.removeEventListener('change', sync);
+  }, []);
 
   return (
     <>
-      <HeroTag {...heroProps}>
-        <HeroArt />
+      <div className="hero-band">
+        <HeroArt
+          video="/hero/look.mp4"
+          poster="/hero/look.jpg"
+          label="דוגמנית עונדת עגילי זהב"
+          lines={HERO_LINES}
+        />
         <div className="hb-text">
           <h1>
-            תכשיטים יוקרתיים.
+            מגוון מתחדש של תכשיטים יוקרתיים,
             <br />
-            לכל רגע. כל הזמן.
+            במנוי חודשי, ללא התחייבות
           </h1>
-          <p>מגוון מתחדש של תכשיטים יוקרתיים במנוי חודשי ללא התחייבות.</p>
           {loggedIn ? (
             <Link to={memberHref} className="btn hb-cta">
-              {subscribed ? 'לקטלוג התכשיטים' : 'לבחירת מסלול'}
+              {subscribed ? 'לצפייה בקולקציה' : 'לבחירת מסלול'}
             </Link>
           ) : (
-            <span className="btn hb-cta">אני רוצה להתחיל</span>
+            <Link to="/catalog" className="btn hb-cta">
+              לצפייה בקולקציה
+            </Link>
           )}
         </div>
-      </HeroTag>
+      </div>
 
       <section className="home-trust" aria-label="יתרונות השירות">
         {HERO_BENEFITS.map((b) => (
@@ -89,20 +125,58 @@ export default function HomePage() {
         </div>
       </section>
 
+      <section className="section alt">
+        <div className="container">
+          <div className="section-head">
+            <div className="section-eyebrow" dir="ltr">HOW IT WORKS</div>
+            <h2>איך זה עובד?</h2>
+            <BrandMark />
+            <p>פשוט. גמיש. מותאם לך.</p>
+          </div>
+          <div className="how-steps">
+            {STEPS.map((s, i) => (
+              <div className="how-step" key={s.t}>
+                <div className="circle">
+                  <s.icon size={38} />
+                  <span className="n">{i + 1}</span>
+                </div>
+                <h3>{s.t}</h3>
+                <p>{s.d}</p>
+              </div>
+            ))}
+          </div>
+          <div className="section-action">
+            <Link
+              to={loggedIn ? memberHref : '/plans'}
+              className="btn btn-tan"
+            >
+              {subscribed ? 'לקטלוג התכשיטים' : 'לבחירת מסלול'}
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {!loggedIn && (
-        <section className="section alt">
+        <section className="section">
           <div className="container">
             <div className="section-head">
               <div className="section-eyebrow" dir="ltr">MEMBERSHIP</div>
               <h2>מסלולי המנוי</h2>
               <BrandMark />
-              <p>בחרי את המסלול שהכי מתאים לך — אפשר לשדרג או לבטל בכל עת.</p>
+              <p>בחרי את המסלול שהכי מתאים לך. אפשר לשדרג או לבטל בכל עת.</p>
             </div>
             <div className="plans-grid">
-              {plans.map((plan) => (
+              {plans.map((plan) => {
+                const piece = pieceForPlan(products, plan.id);
+                return (
                 <div key={plan.id} className={`plan-card${plan.featured ? ' featured' : ''}`}>
                   {plan.featured && <div className="flag">הכי פופולרי</div>}
-                  <div className="plan-name">{plan.latin}</div>
+                  {piece && (
+                    <div className="plan-shot">
+                      <img src={piece.image} alt={piece.name || ''} />
+                    </div>
+                  )}
+                  <div className="plan-name">{planShowcase(plan)}</div>
                   <div className="price">
                     ₪{plan.price}
                     <small> לחודש</small>
@@ -118,10 +192,11 @@ export default function HomePage() {
                     state={{ plan: plan.id }}
                     className={`btn${plan.featured ? ' btn-tan' : ''}`}
                   >
-                    אני בוחרת
+                    בואי נתחיל
                   </Link>
                 </div>
-              ))}
+                );
+              })}
             </div>
             <div className="plans-note-line">
               ללא התחייבות<span className="dot">•</span>ניתן לבטל בכל עת
@@ -130,14 +205,28 @@ export default function HomePage() {
         </section>
       )}
 
-      <section className="cta-band">
+      <section className={`cta-band${stillMedia ? ' has-still' : ' has-video'}`}>
+        {!stillMedia && (
+        <video
+          ref={ctaVideoRef}
+          className="cta-video"
+          autoPlay
+          muted
+          loop
+          playsInline
+          poster="/hero/look.jpg"
+          aria-hidden="true"
+        >
+          <source src="/hero/look.mp4" type="video/mp4" />
+        </video>
+        )}
         <div className="section-eyebrow" dir="ltr">NEW LOOK. SAME YOU.</div>
         {loggedIn ? (
           <>
             <h2>{subscribed ? 'מוכנה לבחור תכשיטים?' : 'נשאר רק לבחור מסלול'}</h2>
             <p>
               {subscribed
-                ? 'הקטלוג מחכה — אפשר להוסיף לקופסה ולהמשיך מהאזור האישי.'
+                ? 'הקטלוג מחכה. אפשר להוסיף לקופסה ולהמשיך מהאזור האישי.'
                 : 'החשבון כבר פתוח. בחרי מסלול כדי להתחיל לבחור תכשיטים.'}
             </p>
             <Link to={memberHref} className="btn">
@@ -146,8 +235,8 @@ export default function HomePage() {
           </>
         ) : (
           <>
-            <h2>מוכנה להתחיל לנצנץ?</h2>
-            <p>ההרשמה לוקחת כמה דקות — והתכשיטים הראשונים כבר בדרך אלייך.</p>
+            <h2>בואי להתחדש</h2>
+            <p>ההרשמה לוקחת כמה דקות, והתכשיטים הראשונים כבר בדרך אלייך.</p>
             <Link to="/signup" className="btn">
               הצטרפי עכשיו
             </Link>

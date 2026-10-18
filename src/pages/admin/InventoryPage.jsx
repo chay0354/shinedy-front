@@ -1,7 +1,9 @@
-import { Fragment, useMemo, useRef, useState } from 'react'
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
+import { api as liveApi } from '../../api.js'
 import { CATEGORIES, PLAN_NAME } from '../../lib/site.js'
-import { salePriceFor, unitsAvailable, unitsCleaning, unitsOut, unitsTotal, useAdminDb } from '../../lib/useAdminDb.js'
+import { salePriceFor, unitsTotal, useAdminDb } from '../../lib/useAdminDb.js'
 import Art from '../../components/Art.jsx'
+import AdminUserCell from '../../components/AdminUserCell.jsx'
 import PrintLabels, { SkuLabel } from '../../components/PrintLabels.jsx'
 
 function skuLabelsFor(p, units) {
@@ -46,6 +48,39 @@ function matchesMaterial(p, material) {
   return true
 }
 
+function unitCounts(units) {
+  const c = { avail: 0, rented: 0, cleaning: 0, ordering: 0 }
+  for (const u of units) {
+    if (u.status === 'זמין') c.avail += 1
+    else if (u.status === 'מושכר' || u.status === 'אצל לקוחה') c.rented += 1
+    else if (u.status === 'בניקוי' || u.status === 'בתיקון') c.cleaning += 1
+    else if (u.status === 'בדרך ללקוחה' || u.status === 'בדרך חזרה') c.ordering += 1
+  }
+  return c
+}
+
+function unitStatusLabel(status) {
+  if (status === 'זמין') return 'זמין במלאי'
+  if (status === 'מושכר' || status === 'אצל לקוחה') return 'מושכר אצל לקוחה'
+  if (status === 'בניקוי') return 'בניקוי'
+  if (status === 'בתיקון') return 'בתיקון'
+  if (status === 'בדרך ללקוחה' || status === 'בדרך חזרה') return 'בתהליך הזמנה'
+  return status
+}
+
+function unitChipClass(status) {
+  if (status === 'זמין') return 'ok'
+  if (status === 'מושכר' || status === 'אצל לקוחה') return 'out'
+  if (status === 'בדרך ללקוחה' || status === 'בדרך חזרה') return 'order'
+  return 'clean'
+}
+
+function favDate(iso) {
+  if (!iso) return ''
+  const d = new Date(iso)
+  return Number.isNaN(d.getTime()) ? '' : d.toLocaleDateString('he-IL')
+}
+
 function matchesQuery(p, q) {
   if (!q) return true
   const code = q.replace(/[\s\-_.]/g, '')
@@ -68,19 +103,48 @@ export default function Inventory() {
   const [material, setMaterial] = useState('all')
   const [category, setCategory] = useState('all')
   const [query, setQuery] = useState('')
+  const [favOnly, setFavOnly] = useState(false)
+  const [favRows, setFavRows] = useState([])
+  const [favOpen, setFavOpen] = useState(() => new Set())
   const [skuLabels, setSkuLabels] = useState(null)
   const [unitFor, setUnitFor] = useState(null)
   const [unitCode, setUnitCode] = useState('')
   const fileRef = useRef(null)
+
+  useEffect(() => {
+    let alive = true
+    liveApi
+      .adminFavorites()
+      .then((data) => { if (alive) setFavRows(data.favorites || []) })
+      .catch(() => { if (alive) setFavRows([]) })
+    return () => { alive = false }
+  }, [])
+
+  const fansByProduct = useMemo(() => {
+    const users = new Map((db.users || []).map((u) => [u.id, u]))
+    const groups = new Map()
+    for (const r of favRows) {
+      if (!groups.has(r.productId)) groups.set(r.productId, [])
+      groups.get(r.productId).push({
+        ...r,
+        user: users.get(r.userId) || { id: r.userId, name: r.name || r.email, phone: r.phone, plan: r.planId },
+      })
+    }
+    for (const fans of groups.values()) {
+      fans.sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)))
+    }
+    return groups
+  }, [favRows, db.users])
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
     return (db.products || []).filter((p) =>
       matchesMaterial(p, material)
       && (category === 'all' || p.category === category)
+      && (!favOnly || (fansByProduct.get(p.id) || []).length > 0)
       && matchesQuery(p, q),
     )
-  }, [db.products, material, category, query])
+  }, [db.products, material, category, query, favOnly, fansByProduct])
 
   const byCategory = useMemo(() => {
     const groups = CATEGORIES.map((cat) => ({
@@ -133,6 +197,15 @@ export default function Inventory() {
     if (isNew) setSkuLabels(skuLabelsFor({ ...edit, sku: code, id: code }, [{ serial: code }]))
     setEdit(null)
     if (fileRef.current) fileRef.current.value = ''
+  }
+
+  function toggleFans(pid) {
+    setFavOpen((prev) => {
+      const next = new Set(prev)
+      if (next.has(pid)) next.delete(pid)
+      else next.add(pid)
+      return next
+    })
   }
 
   function startAddUnit(pid) {
@@ -236,6 +309,13 @@ export default function Inventory() {
               {m.label}
             </button>
           ))}
+          <button
+            type="button"
+            className={`subtab${favOnly ? ' on' : ''}`}
+            onClick={() => setFavOnly((v) => !v)}
+          >
+            מועדפים
+          </button>
         </div>
         <div className="kpi-filters" style={{ marginBottom: 0 }}>
           <div className="filter-group">
@@ -272,6 +352,7 @@ export default function Inventory() {
                   <th>פרטים</th>
                   <th>מחיר מכירה</th>
                   <th>יחידות ומצב</th>
+                  <th>מועדפים</th>
                   <th>פעיל</th>
                   <th></th>
                 </tr>
@@ -279,10 +360,10 @@ export default function Inventory() {
               <tbody>
                 {group.items.map((p) => {
                   const total = unitsTotal(p) || (p.available ? 1 : 0)
-                  const avail = unitsAvailable(p)
-                  const out = unitsOut(p)
-                  const cleaning = unitsCleaning(p)
                   const units = p.units || []
+                  const counts = unitCounts(units)
+                  const fans = fansByProduct.get(p.id) || []
+                  const fansOpen = favOpen.has(p.id)
                   return (
                     <Fragment key={p.id}>
                       <tr>
@@ -313,10 +394,20 @@ export default function Inventory() {
                             <button type="button" className="qty-btn" title="הוספת יחידה לפי קוד" onClick={() => startAddUnit(p.id)}>+</button>
                           </span>
                           <span className="inv-state">
-                            <i className={avail > 2 ? 'st-ok' : 'st-warn'}>זמין {avail}</i>
-                            {' · '}מושכר {out}
-                            {cleaning > 0 && <> · ניקוי {cleaning}</>}
+                            <i className={counts.avail > 0 ? 'st-ok' : 'st-warn'}>זמין במלאי {counts.avail}</i>
+                            {counts.rented > 0 && <> · מושכר אצל לקוחה {counts.rented}</>}
+                            {counts.cleaning > 0 && <> · בניקוי {counts.cleaning}</>}
+                            {counts.ordering > 0 && <> · בתהליך הזמנה {counts.ordering}</>}
                           </span>
+                        </td>
+                        <td>
+                          {fans.length > 0 ? (
+                            <button type="button" className="btn-mini" onClick={() => toggleFans(p.id)}>
+                              {fansOpen ? 'הסתרה' : `${fans.length} לקוחות`}
+                            </button>
+                          ) : (
+                            <span className="cell-sub">—</span>
+                          )}
                         </td>
                         <td>
                           <button type="button" className="btn-mini" onClick={() => api.toggleAvailable(p.id)}>
@@ -332,9 +423,27 @@ export default function Inventory() {
                           </div>
                         </td>
                       </tr>
+                      {fansOpen && fans.length > 0 && (
+                        <tr>
+                          <td colSpan="8" className="units-cell">
+                            <div className="cell-sub" style={{ marginBottom: 8 }}>לקוחות ששמרו את הדגם במועדפים</div>
+                            <table className="admin-table">
+                              <tbody>
+                                {fans.map((f) => (
+                                  <tr key={f.userId}>
+                                    <td><AdminUserCell db={db} user={f.user} name={f.name || f.email} /></td>
+                                    <td dir="ltr">{f.email}</td>
+                                    <td>{favDate(f.createdAt)}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </td>
+                        </tr>
+                      )}
                       {!closedUnits.has(p.id) && (units.length > 0 || unitFor === p.id) && (
                         <tr>
-                          <td colSpan="7" className="units-cell">
+                          <td colSpan="8" className="units-cell">
                             {unitFor === p.id && (
                               <form className="unit-add" onSubmit={(e) => submitUnit(p, e)}>
                                 <input
@@ -351,8 +460,8 @@ export default function Inventory() {
                               </form>
                             )}
                             {units.map((u) => (
-                              <span key={u.serial} className={`unit-chip ${u.status === 'זמין' ? 'ok' : u.status === 'מושכר' || u.status === 'אצל לקוחה' ? 'out' : 'clean'}`}>
-                                <span dir="ltr">{u.serial}</span> · {u.status}
+                              <span key={u.serial} className={`unit-chip ${unitChipClass(u.status)}`}>
+                                <span dir="ltr">{u.serial}</span> · {unitStatusLabel(u.status)}
                                 <button type="button" className="link-btn" title="הדפסת מדבקת מק״ט ליחידה" onClick={() => setSkuLabels(skuLabelsFor(p, [u]))}>מדבקה</button>
                                 {(u.status === 'בניקוי' || u.status === 'בתיקון') && (
                                   <button type="button" className="btn-mini" style={{ marginInlineStart: 8 }} onClick={() => api.finishCleaning(p.id, u.serial)}>

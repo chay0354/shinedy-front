@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { api } from '../../api';
-import { SERVICE_EMAIL, SERVICE_PHONE, SERVICE_PHONE_TEL } from '../../lib/contact';
+import { SERVICE_EMAIL, SERVICE_HOURS, SERVICE_PHONE, SERVICE_PHONE_TEL } from '../../lib/contact';
 import { IconClock, IconMail, IconPhone } from '../../components/icons';
 import PageHead from '../../components/PageHead';
 import { heError } from '../../lib/heError';
@@ -111,7 +111,7 @@ export default function ContactPage() {
               </div>
               <div className="contact-row">
                 <IconClock size={22} />
-                <span>ימים א׳–ה׳ · 10:00–18:00</span>
+                <span>{SERVICE_HOURS}</span>
               </div>
             </div>
           </div>
