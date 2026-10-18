@@ -5,7 +5,7 @@ const DEV_API = 'http://127.0.0.1:4000/api';
 
 function apiBase() {
   // Always hit backend directly in dev — avoids flaky Vite proxy / stale .env
-  if (import.meta.env.DEV) return DEV_API;
+  if (import.meta.env.DEV) return import.meta.env.VITE_DEV_API_URL?.trim() || DEV_API;
   const configured = import.meta.env.VITE_API_URL?.trim();
   if (configured) return configured.replace(/\/+$/, '');
   return DEV_API;

@@ -14,7 +14,7 @@
   --line-solid: #e0d6ca;
   --danger: #a4483f;
   --font-body: 'Assistant', sans-serif;
-  --font-display: 'Bellefair', 'Times New Roman', serif;
+  --font-display: 'Karantina', 'Assistant', sans-serif;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -624,7 +624,7 @@ button.link-gold { background: none; border: none; padding: 0; cursor: pointer; 
 }
 .hb-kicker-lg {
   top: 36px; right: 28px; left: 28px; text-align: right;
-  font-family: 'Bellefair', Georgia, serif; font-weight: 400;
+  font-family: var(--font-display); font-weight: 400;
   font-size: clamp(20px, 2.6vw, 34px); letter-spacing: 0.16em;
   line-height: 1.2;
 }
@@ -632,7 +632,7 @@ button.link-gold { background: none; border: none; padding: 0; cursor: pointer; 
 .home h2,
 .home h3,
 .home .plan-name {
-  font-family: 'Bellefair', 'Times New Roman', serif;
+  font-family: var(--font-display);
   font-weight: 400;
   letter-spacing: 0;
 }
@@ -670,7 +670,7 @@ button.link-gold { background: none; border: none; padding: 0; cursor: pointer; 
   color: #f6f1ea; animation: hero-rise 1.1s cubic-bezier(.2, .7, .2, 1) both;
 }
 .hb-eyebrow {
-  display: inline-block; font-family: 'Bellefair', Georgia, serif;
+  display: inline-block; font-family: var(--font-display);
   font-size: 14px; letter-spacing: 0.42em; color: var(--gold-soft);
   text-transform: uppercase;
 }
@@ -700,7 +700,7 @@ button.link-gold { background: none; border: none; padding: 0; cursor: pointer; 
 }
 .hb-text { text-align: center; padding: 42px 24px 40px; max-width: 760px; margin: 0 auto; }
 .hb-text h1 {
-  font-family: 'Bellefair', 'Times New Roman', serif; font-weight: 400; color: var(--ink);
+  font-family: var(--font-display); font-weight: 400; color: var(--ink);
   font-size: clamp(30px, 4.6vw, 48px); line-height: 1.28; letter-spacing: 0; margin: 0 0 26px;
 }
 .hb-text p {
