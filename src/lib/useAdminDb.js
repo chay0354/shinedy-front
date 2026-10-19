@@ -149,19 +149,25 @@ export function useAdminDb() {
         await refresh();
       },
       suspendSubscription(id) {
-        local.updateCustomer(id, { suspendedAt: new Date().toISOString() });
+        return run(() => live.adminSubscriptionAction(id, 'suspend'));
       },
       resumeSubscription(id) {
-        local.updateCustomer(id, { suspendedAt: null });
+        return run(() => live.adminSubscriptionAction(id, 'resume'));
       },
       cancelSubscription(id) {
-        local.updateCustomer(id, { canceledAt: new Date().toISOString() });
+        return run(() => live.adminSubscriptionAction(id, 'cancel'));
       },
       openIdDocument(id) {
         return live.getCustomerIdDocument(id);
       },
-      reactivateSubscription(id) {
-        local.updateCustomer(id, { canceledAt: null, suspendedAt: null });
+      reactivateSubscription(id, planId) {
+        return run(() => live.adminSubscriptionAction(id, 'reactivate', planId));
+      },
+      collectCharges(id) {
+        return run(() => live.adminSubscriptionAction(id, 'collect'));
+      },
+      updateCustomer(id, patch) {
+        return run(() => live.adminUpdateCustomer(id, patch));
       },
     }),
     [local, run, refresh, state],

@@ -62,6 +62,12 @@ export default function CartPage() {
     : heldCount > 0
       ? 'משלוח נוסף: השליח יביא את התכשיטים בלבד.'
       : 'הזמנה ראשונה: השליח יביא את התכשיטים בלבד.';
+  const firstBox =
+    !isExchangeCheckout &&
+    heldCount === 0 &&
+    !(state.myOrders || []).some((o) => ['הזמנה ראשונה', 'הזמנה', 'החלפה'].includes(o.type));
+  const shipFee = firstBox ? 0 : Number(state.nextShipFee) || 0;
+  const needsCard = shipFee > 0 && state.paymentUsable === false;
 
   if (placed) {
     return (
@@ -146,17 +152,32 @@ export default function CartPage() {
                 {isExchangeCheckout && (
                   <p className="cell-sub">מוחזרים באיסוף: {markedReturns.length} תכשיטים</p>
                 )}
+                {shipFee > 0 ? (
+                  <p className="ship-fee-note">
+                    <b>משלוח זה בתשלום ₪{shipFee}.</b> המשלוח הכלול של החודשיים האחרונים כבר נוצל
+                    {state.nextFreeShipmentAt ? `, והבא כלול מ-${new Date(state.nextFreeShipmentAt).toLocaleDateString('he-IL')}` : ''}.
+                  </p>
+                ) : (
+                  <p className="cell-sub">המשלוח הזה כלול במנוי.</p>
+                )}
+                {needsCard && (
+                  <p className="form-err">
+                    כדי לשלם את דמי המשלוח צריך כרטיס אשראי בתוקף.{' '}
+                    <Link to="/account/details" className="link-gold">לעדכון אמצעי תשלום</Link>
+                  </p>
+                )}
                 <div style={{ display: 'flex', gap: 12, marginTop: 16, flexWrap: 'wrap' }}>
                 <button
                   type="button"
                   className="btn"
-                  disabled={over}
+                  disabled={over || needsCard}
                   onClick={async () => {
                     const data = await run(() => api.confirmOrder({ notes: notes.trim() }));
                     if (data) setPlaced(true);
                   }}
                 >
                   {isExchangeCheckout ? 'אישור החלפה' : 'אישור הזמנה'}
+                  {shipFee > 0 ? ` · ₪${shipFee}` : ''}
                 </button>
                 <button type="button" className="btn btn-outline" onClick={() => navigate('/catalog')}>
                   להוסיף עוד

@@ -16,6 +16,7 @@ import { enrichPlan } from '../../lib/plans';
 import { hasActivePlan } from '../../lib/roles';
 import Art from '../../components/Art';
 import PurchaseDialog from '../../components/PurchaseDialog';
+import { submitPurchase } from '../../lib/checkout';
 
 const STEPS = ['התקבלה', 'נארזה', 'נשלחה', 'נמסרה'];
 
@@ -75,6 +76,15 @@ export default function DashboardPage() {
 
   return (
     <>
+      {subscribed && (state?.billingIssue || state?.paymentUsable === false) && (
+        <div className="container" style={{ paddingTop: 20 }}>
+          <div className="blocked-panel">
+            <b>{state?.billingIssue ? 'החיוב בכרטיס נכשל.' : 'אין כרטיס שמור לחיובים.'}</b>{' '}
+            כדי שהמנוי יתחדש ושהמשלוחים הנוספים ייגבו, יש לשמור כרטיס אשראי.{' '}
+            <Link to="/account/details" className="link-gold">לשמירת כרטיס</Link>
+          </div>
+        </div>
+      )}
       {state?.registration?.suspended && (
         <div className="container" style={{ paddingTop: 20 }}>
           <div className="blocked-panel">
@@ -187,7 +197,15 @@ export default function DashboardPage() {
           <div className="stat-card">
             <div className="label">החלפות</div>
             <div className="value value-sm">ללא הגבלה</div>
-            <div className="hint">משלוח דו-חודשי כלול · נוסף ₪65</div>
+            <div className="hint">
+              {Number(state?.nextShipFee) > 0
+                ? `המשלוח הבא ₪${state.nextShipFee}${
+                    state.nextFreeShipmentAt
+                      ? ` · כלול שוב מ-${new Date(state.nextFreeShipmentAt).toLocaleDateString('he-IL')}`
+                      : ''
+                  }`
+                : 'המשלוח הבא כלול · משלוח נוסף בחודשיים ₪65'}
+            </div>
           </div>
         </div>
 
@@ -368,6 +386,29 @@ export default function DashboardPage() {
           </div>
         )}
 
+        {(state?.charges || []).length > 0 && (
+          <>
+            <h2 className="account-h2" style={{ marginTop: 32 }}>חיובים</h2>
+            <div className="items-list">
+              {state.charges.slice(0, 12).map((c) => (
+                <div className="item-row" key={c.id}>
+                  <div className="grow">
+                    <div className="item-name">
+                      {c.description || (c.kind === 'subscription' ? 'דמי מנוי' : c.kind === 'purchase' ? 'רכישה' : 'דמי משלוח')}
+                      {' '}
+                      <span className={`pill${c.status === 'שולם' ? ' ok' : ''}`}>
+                        {c.status === 'לגבייה' ? 'ממתין לחיוב' : c.status === 'להחזר' ? 'בהחזר' : c.status}
+                      </span>
+                    </div>
+                    <div className="item-sub">{heDate(c.at)}</div>
+                  </div>
+                  <div className="status">₪{Number(c.amount || 0).toLocaleString()}</div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
         <div className="account-manage">
           <Link to="/account/details" className="btn-mini">
             עדכון פרטים
@@ -379,7 +420,11 @@ export default function DashboardPage() {
               onClick={async () => {
                 if (
                   !window.confirm(
-                    'להקפיא את המנוי? התכשיטים שאצלך ייאספו בימים הקרובים. אם כבר היה משלוח או החזרה בחודש המנוי, יתווספו ₪65 דמי משלוח.',
+                    `להקפיא את המנוי? התכשיטים שאצלך ייאספו בימים הקרובים. ${
+                      Number(state?.nextShipFee) > 0
+                        ? `המשלוח הכלול של החודשיים האחרונים כבר נוצל, ולכן על האיסוף יחויבו ₪${state.nextShipFee} דמי משלוח.`
+                        : 'האיסוף כלול במנוי.'
+                    }`,
                   )
                 ) {
                   return;
@@ -408,13 +453,12 @@ export default function DashboardPage() {
         credit={credits}
         user={user}
         onConfirm={async (opts) => {
-          const data = await run(() =>
-            api.purchase({
-              productId: buying.pid || buying.product.id,
-              serial: buying.serial,
-              ...opts,
-            }),
+          const data = await submitPurchase(
+            { productId: buying.pid || buying.product.id, serial: buying.serial },
+            opts,
+            run,
           );
+          if (!data) return;
           setBuyMsg(data?.purchase?.msg || data?.flash || '');
           setBuying(null);
         }}

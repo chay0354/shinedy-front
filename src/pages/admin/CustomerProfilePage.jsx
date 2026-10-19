@@ -56,13 +56,12 @@ export default function CustomerProfile() {
     }
   })).filter((r) => r.product)
 
-  function saveDetails(e) {
+  async function saveDetails(e) {
     e.preventDefault()
     const f = e.target
-    api.updateCustomer(u.id, {
+    const data = await api.updateCustomer(u.id, {
       name: f.elements['name'].value,
       phone: f.elements['phone'].value,
-      email: f.elements['email'].value,
       address: {
         street: f.elements['street'].value,
         houseNo: f.elements['houseNo'].value,
@@ -70,12 +69,19 @@ export default function CustomerProfile() {
         city: f.elements['city'].value,
         zip: f.elements['zip'].value,
         notes: f.elements['notes'].value,
-        shippingCharges: addr.shippingCharges || u.shippingCharges || [],
-        canceledAt: addr.canceledAt || u.canceledAt || null,
       },
     })
-    setMsg('הפרטים נשמרו ✓')
+    setMsg(data ? 'הפרטים נשמרו ✓' : '')
   }
+
+  async function subscriptionAction(fn, done) {
+    const data = await fn()
+    setMsg(data ? done : '')
+  }
+
+  const charges = [...(u.charges || [])].sort((a, b) => String(b.at).localeCompare(String(a.at)))
+  const openCharges = charges.filter((c) => c.status === 'לגבייה' || c.status === 'נכשל')
+  const owed = openCharges.reduce((s, c) => s + (Number(c.amount) || 0), 0)
 
   return (
     <>
@@ -151,21 +157,42 @@ export default function CustomerProfile() {
         </div>
       </div>
 
-      {((u.shippingCharges && u.shippingCharges.length) || (addr.shippingCharges && addr.shippingCharges.length)) > 0 && (
+      {charges.length > 0 && (
         <div className="admin-section">
-          <h2>חיוב דמי משלוח</h2>
+          <h2>חיובים · פתוח לגבייה ₪{owed.toLocaleString()}</h2>
+          <p className="cell-sub">
+            {u.card?.onFile
+              ? `כרטיס שמור •••• ${u.card.last4}${u.card.expiry ? ` · ${u.card.expiry}` : ''}. המנוי נגבה אוטומטית כל 30 יום.`
+              : 'אין כרטיס שמור לחיובים. הלקוחה צריכה לשמור כרטיס באזור האישי.'}
+            {' '}חיוב שבוטל אחרי שנגבה מסומן ״להחזר״. אם לא בוטל אוטומטית באותו יום, יש לבצע זיכוי בפורטל של Hyp.
+          </p>
+          {openCharges.length > 0 && u.card?.onFile && (
+            <button
+              type="button"
+              className="btn-mini strong"
+              style={{ marginBottom: 12 }}
+              onClick={() => subscriptionAction(() => api.collectCharges(u.id), 'בוצע ניסיון גבייה ✓')}
+            >
+              גבייה עכשיו ₪{owed.toLocaleString()}
+            </button>
+          )}
           <div className="table-wrap">
             <table className="admin-table">
               <thead>
-                <tr><th>תאריך</th><th>סכום</th><th>סיבה</th><th>הזמנה</th></tr>
+                <tr><th>תאריך</th><th>סוג</th><th>סכום</th><th>פירוט</th><th>הזמנה</th><th>סטטוס</th></tr>
               </thead>
               <tbody>
-                {(u.shippingCharges || addr.shippingCharges || []).map((c) => (
+                {charges.map((c) => (
                   <tr key={c.id || c.at}>
                     <td>{heDate(c.at)}</td>
-                    <td>₪{Number(c.amount || 0)}</td>
-                    <td>{c.reason || 'דמי משלוח'}</td>
-                    <td dir="ltr">{c.relatedOrderId || '—'}</td>
+                    <td>{c.kind === 'subscription' ? 'מנוי' : c.kind === 'purchase' ? 'רכישה' : 'משלוח'}</td>
+                    <td>₪{Number(c.amount || 0).toLocaleString()}</td>
+                    <td>{c.description || '—'}</td>
+                    <td dir="ltr">{c.orderId || '—'}</td>
+                    <td>
+                      {c.status}
+                      {c.lastError ? <div className="cell-sub">{c.lastError}</div> : null}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -346,7 +373,7 @@ export default function CustomerProfile() {
           <form className="admin-form" onSubmit={saveDetails}>
             <div className="field"><label>שם מלא</label><input name="name" defaultValue={u.name} required /></div>
             <div className="field"><label>טלפון</label><input name="phone" defaultValue={u.phone} dir="ltr" /></div>
-            <div className="field"><label>אימייל</label><input name="email" type="email" defaultValue={u.email} dir="ltr" /></div>
+            <div className="field"><label>אימייל (כתובת הכניסה, לא ניתנת לשינוי כאן)</label><input name="email" type="email" defaultValue={u.email} dir="ltr" readOnly /></div>
             <div className="field"><label>רחוב</label><input name="street" defaultValue={addr.street} /></div>
             <div className="field"><label>מספר בית</label><input name="houseNo" defaultValue={addr.houseNo} /></div>
             <div className="field"><label>דירה</label><input name="apt" defaultValue={addr.apt} /></div>
@@ -387,14 +414,14 @@ export default function CustomerProfile() {
           </div>
           <div style={{ marginTop: 18, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
             {!u.canceledAt && !u.suspendedAt && (
-              <button className="btn-mini" onClick={() => { if (confirm(`להשהות את המנוי של ${u.name}? היא לא תחויב ולא תוכל להזמין עד ההפעלה מחדש.`)) api.suspendSubscription(u.id) }}>השהיית מנוי</button>
+              <button className="btn-mini" onClick={() => { if (confirm(`להקפיא את המנוי של ${u.name}? התכשיטים שאצלה ייאספו, והיא לא תחויב ולא תוכל להזמין עד ההפעלה מחדש.`)) subscriptionAction(() => api.suspendSubscription(u.id), 'המנוי הוקפא ✓') }}>הקפאת מנוי</button>
             )}
             {u.suspendedAt && (
-              <button className="btn-mini strong" onClick={() => api.resumeSubscription(u.id)}>הפעלת מנוי מחדש</button>
+              <button className="btn-mini strong" onClick={() => subscriptionAction(() => api.resumeSubscription(u.id), 'המנוי הופעל מחדש ✓')}>הפעלת מנוי מחדש</button>
             )}
             {!u.canceledAt
-              ? <button className="btn-mini" onClick={() => { if (confirm(`לבטל את המנוי של ${u.name}?`)) api.cancelSubscription(u.id) }}>ביטול מנוי</button>
-              : <button className="btn-mini" onClick={() => api.reactivateSubscription(u.id)}>חידוש מנוי</button>}
+              ? <button className="btn-mini" onClick={() => { if (confirm(`לבטל את המנוי של ${u.name}? התכשיטים שאצלה ייאספו.`)) subscriptionAction(() => api.cancelSubscription(u.id), 'המנוי בוטל ✓') }}>ביטול מנוי</button>
+              : <button className="btn-mini" onClick={() => subscriptionAction(() => api.reactivateSubscription(u.id, u.lastPlanId || u.plan), 'המנוי חודש ✓')}>חידוש מנוי</button>}
           </div>
         </div>
       )}

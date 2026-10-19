@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { api } from '../../api';
 import { getToken } from '../../lib/auth';
+import { goToCheckout } from '../../lib/checkout';
 import { useApp } from '../../state/AppContext';
 import { SHARED_TERMS } from '../../lib/site';
 import {
@@ -40,8 +41,8 @@ export default function PlansPage() {
     : null;
   const [confirm, setConfirm] = useState(null);
   const [checkout, setCheckout] = useState(null);
-  const [card, setCard] = useState({ holder: '', number: '', expiry: '', cvv: '' });
   const [busyPay, setBusyPay] = useState(false);
+  const savedCard = state?.payment?.onFile ? state.payment : null;
   const [cancelOpen, setCancelOpen] = useState(false);
   const [done, setDone] = useState('');
   const [err, setErr] = useState('');
@@ -59,31 +60,17 @@ export default function PlansPage() {
     if (!plan) return;
     setErr('');
     setCheckout(plan);
-    setCard({
-      holder: state?.registration?.name || state?.registration?.fullName || '',
-      number: '',
-      expiry: '',
-      cvv: '',
-    });
   }
 
-  async function confirmCheckout() {
+  async function confirmCheckout(useSaved) {
     if (!checkout) return;
-    if (!card.holder.trim() || !card.number.trim() || !card.expiry.trim() || !card.cvv.trim()) {
-      setErr('יש למלא את פרטי הכרטיס');
-      return;
-    }
     setErr('');
     setBusyPay(true);
     try {
-      const last4 = card.number.replace(/\D/g, '').slice(-4);
-      const data = await run(() =>
-        api.subscribe(subscribePlanId(checkout.id, state?.plans), {
-          holder: card.holder.trim(),
-          last4,
-          expiry: card.expiry.trim(),
-        }),
-      );
+      const planId = subscribePlanId(checkout.id, state?.plans);
+      const data = useSaved
+        ? await run(() => api.subscribe(planId))
+        : await goToCheckout({ kind: 'subscription', planId }, run);
       if (!data) return;
       setCheckout(null);
       navigate(inAccount ? '/account/me' : '/catalog');
@@ -113,7 +100,7 @@ export default function PlansPage() {
       <PageHead eyebrow="MEMBERSHIP" title="מסלולי מנוי">
         <p>
           {checkout
-            ? `מסלול ${planShowcase(checkout)} · ממשיכים לפרטי הכרטיס`
+            ? `מסלול ${planShowcase(checkout)} · ממשיכים לתשלום`
             : current
               ? 'אפשר לשנות מסלול או לבטל, בלי הרשמה מחדש'
               : 'בחרי את המסלול שהכי מתאים לך. אפשר לשדרג או לבטל בכל עת'}
@@ -124,60 +111,33 @@ export default function PlansPage() {
         <div className="container">
           {checkout && (
             <div className="signup-card" style={{ maxWidth: 520, margin: '0 auto 32px' }}>
-              <h2 style={{ marginTop: 0 }}>פרטי תשלום</h2>
+              <h2 style={{ marginTop: 0 }}>תשלום</h2>
               <p className="signup-pay-note">
-                חיוב חודשי: ₪{checkout.price} למסלול {planShowcase(checkout)}. החיוב יבוצע בהמשך.
+                מסלול {planShowcase(checkout)} · ₪{checkout.price} לחודש. החודש הראשון נגבה עכשיו, והחיוב
+                מתחדש אוטומטית כל 30 יום עד לביטול.
               </p>
-              <div className="field">
-                <label htmlFor="p-card-holder">שם בעל הכרטיס</label>
-                <input
-                  id="p-card-holder"
-                  placeholder="כפי שמופיע על הכרטיס"
-                  value={card.holder}
-                  onChange={(e) => setCard((c) => ({ ...c, holder: e.target.value }))}
-                />
-              </div>
-              <div className="field">
-                <label htmlFor="p-card-number">מספר כרטיס</label>
-                <input
-                  id="p-card-number"
-                  dir="ltr"
-                  inputMode="numeric"
-                  placeholder="0000 0000 0000 0000"
-                  value={card.number}
-                  onChange={(e) => setCard((c) => ({ ...c, number: e.target.value }))}
-                />
-              </div>
-              <div className="pay-row">
-                <div className="field">
-                  <label htmlFor="p-card-exp">תוקף</label>
-                  <input
-                    id="p-card-exp"
-                    dir="ltr"
-                    placeholder="MM/YY"
-                    value={card.expiry}
-                    onChange={(e) => setCard((c) => ({ ...c, expiry: e.target.value }))}
-                  />
-                </div>
-                <div className="field">
-                  <label htmlFor="p-card-cvv">CVV</label>
-                  <input
-                    id="p-card-cvv"
-                    dir="ltr"
-                    inputMode="numeric"
-                    placeholder="123"
-                    value={card.cvv}
-                    onChange={(e) => setCard((c) => ({ ...c, cvv: e.target.value }))}
-                  />
-                </div>
-              </div>
+              <p className="cell-sub">
+                {savedCard
+                  ? `אפשר לשלם בכרטיס השמור •••• ${savedCard.last4}, או בכרטיס אחר בדף התשלום המאובטח.`
+                  : 'פרטי הכרטיס מוזנים בדף התשלום המאובטח של Hyp. אנחנו לא שומרים את מספר הכרטיס.'}
+              </p>
               {(err || error) && <p className="form-err">{err || error}</p>}
               <div className="signup-nav">
                 <button type="button" className="btn btn-outline" disabled={busyPay} onClick={() => setCheckout(null)}>
                   חזרה למסלולים
                 </button>
-                <button type="button" className="btn btn-wide" disabled={busyPay} onClick={confirmCheckout}>
-                  {busyPay ? 'מאשר…' : 'אישור והפעלת מנוי'}
+                {savedCard && (
+                  <button type="button" className="btn btn-wide" disabled={busyPay} onClick={() => confirmCheckout(true)}>
+                    {busyPay ? 'מחייב…' : `תשלום ₪${checkout.price} בכרטיס השמור`}
+                  </button>
+                )}
+                <button
+                  type="button"
+                  className={savedCard ? 'btn btn-outline' : 'btn btn-wide'}
+                  disabled={busyPay}
+                  onClick={() => confirmCheckout(false)}
+                >
+                  {busyPay ? 'מעביר לתשלום…' : savedCard ? 'כרטיס אחר' : `למעבר לתשלום ₪${checkout.price}`}
                 </button>
               </div>
             </div>
@@ -357,7 +317,10 @@ export default function PlansPage() {
             <h2>ביטול מנוי</h2>
             <p className="modal-sub">מסלול {planShowcase(current)} · ₪{current.price} לחודש</p>
             <p className="modal-legal">
-              התכשיטים שאצלך ייאספו בימים הקרובים. אם כבר היה משלוח או החזרה בחודש המנוי, תחויבי ב-₪65 דמי משלוח.
+              התכשיטים שאצלך ייאספו בימים הקרובים.{' '}
+              {Number(state?.nextShipFee) > 0
+                ? `המשלוח הכלול של החודשיים האחרונים כבר נוצל, ולכן על האיסוף יחויבו ₪${state.nextShipFee} דמי משלוח.`
+                : 'האיסוף כלול במנוי.'}
             </p>
             <button type="button" className="btn btn-wide btn-danger-ghost" onClick={cancelSub}>
               כן, לבטל את המנוי

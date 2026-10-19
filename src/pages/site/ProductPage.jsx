@@ -11,6 +11,7 @@ import Art from '../../components/Art';
 import ProductCard from '../../components/ProductCard';
 import QuotaDialog from '../../components/QuotaDialog';
 import PurchaseDialog from '../../components/PurchaseDialog';
+import { submitPurchase } from '../../lib/checkout';
 import {
   IconDiamond,
   IconHeart,
@@ -231,13 +232,8 @@ export default function ProductPage() {
           credit={state?.credits || 0}
           user={user}
           onConfirm={async (opts) => {
-            const data = await run(() =>
-              api.purchase({
-                productId: p.id,
-                serial: null,
-                ...opts,
-              }),
-            );
+            const data = await submitPurchase({ productId: p.id, serial: null }, opts, run);
+            if (!data) return;
             setBuyMsg(data?.purchase?.msg || data?.flash || '');
             setBuyOpen(false);
           }}

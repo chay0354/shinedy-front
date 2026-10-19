@@ -17,6 +17,7 @@ import LegalPage from './pages/site/LegalPage';
 import AboutPage from './pages/site/AboutPage';
 import ContactPage from './pages/site/ContactPage';
 import FavoritesPage from './pages/site/FavoritesPage';
+import PaymentReturnPage from './pages/site/PaymentReturnPage';
 import DashboardPage from './pages/account/DashboardPage';
 import CartPage from './pages/account/CartPage';
 import ExchangePage from './pages/account/ExchangePage';
@@ -77,6 +78,7 @@ export default function App() {
           <Route path="about" element={<AboutPage />} />
           <Route path="contact" element={<ContactPage />} />
           <Route path="favorites" element={<FavoritesPage />} />
+          <Route path="payment/return" element={<PaymentReturnPage />} />
           <Route path="info" element={<Navigate to="/how#faq" replace />} />
           <Route path="box" element={<CartPage />} />
           <Route path="exchange" element={<ExchangePage />} />

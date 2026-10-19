@@ -231,8 +231,9 @@ function mapReturns(state, meta) {
 
 function mapUser(c, i, plans, patch) {
   const id = c.id || `seed-${i}`;
+  const planKey = c.planId || c.lastPlanId;
   const plan =
-    plans.find((pl) => pl.id === c.planId || pl.name === c.plan || pl.latin === c.plan)?.id || plans[0]?.id;
+    plans.find((pl) => pl.id === planKey || pl.name === c.plan || pl.latin === c.plan)?.id || plans[0]?.id;
   const canceledAt = c.canceledAt || (c.status === 'עזבה' ? nowIso() : null);
   const base = {
     id,
@@ -252,6 +253,9 @@ function mapUser(c, i, plans, patch) {
       : Array.isArray(c.address?.shippingCharges)
         ? c.address.shippingCharges
         : [],
+    charges: Array.isArray(c.charges) ? c.charges : Array.isArray(c.address?.charges) ? c.address.charges : [],
+    lastPlanId: c.lastPlanId || null,
+    card: c.card || null,
     address: {
       street: '',
       houseNo: '',
@@ -312,7 +316,7 @@ export function buildDbFromState(state) {
   }
 
   const users = (state?.customers || []).map((c, i) =>
-    mapUser(c, i, plans, meta.customerPatches[c.id || `seed-${i}`]),
+    mapUser(c, i, plans, c.id ? null : meta.customerPatches[`seed-${i}`]),
   );
 
   if (state?.auth?.userId && state?.registration?.name) {
@@ -333,7 +337,7 @@ export function buildDbFromState(state) {
           },
           0,
           plans,
-          meta.customerPatches[state.auth.userId],
+          null,
         ),
       );
     }

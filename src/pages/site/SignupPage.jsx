@@ -79,7 +79,7 @@ function signatureHasInk(dataUrl) {
 }
 
 export default function SignupPage() {
-  const { state, refresh } = useApp();
+  const { state, refresh, setError: setAppError } = useApp();
   const navigate = useNavigate();
   const location = useLocation();
   const [error, setError] = useState('');
@@ -115,10 +115,6 @@ export default function SignupPage() {
     signature: '',
     idFileName: '',
     idDocument: '',
-    cardHolder: '',
-    cardNumber: '',
-    cardExpiry: '',
-    cardCvv: '',
   });
 
   useEffect(() => {
@@ -173,13 +169,6 @@ export default function SignupPage() {
     if (!form.idDocument) return 'יש להעלות צילום או סריקה של תעודת הזהות';
     if (planRequiresSignupSignature(form.plan) && !signatureHasInk(form.signature)) {
       return 'יש לחתום בשדה החתימה';
-    }
-    return '';
-  }
-
-  function validatePayment() {
-    if (!form.cardHolder.trim() || !form.cardNumber.trim() || !form.cardExpiry.trim() || !form.cardCvv.trim()) {
-      return 'יש למלא את פרטי הכרטיס';
     }
     return '';
   }
@@ -261,13 +250,6 @@ export default function SignupPage() {
         return;
       }
     }
-    if (step === STEP.pay) {
-      const err = validatePayment();
-      if (err) {
-        setError(err);
-        return;
-      }
-    }
     setStep((s) => Math.min(STEPS.length - 1, s + 1));
   }
 
@@ -319,12 +301,6 @@ export default function SignupPage() {
       setStep(STEP.sign);
       return;
     }
-    const payErr = validatePayment();
-    if (payErr) {
-      setError(payErr);
-      setStep(STEP.pay);
-      return;
-    }
     let proof = phoneProof;
     if (!proof) {
       if (phoneCode.length !== 6) {
@@ -344,7 +320,7 @@ export default function SignupPage() {
     }
     setError('');
     setBusy(true);
-    const last4 = form.cardNumber.replace(/\D/g, '').slice(-4);
+    let registered = false;
     try {
       const data = await api.register({
         fullName: form.name.trim(),
@@ -366,22 +342,33 @@ export default function SignupPage() {
         signatureData: planRequiresSignupSignature(form.plan) ? form.signature : '',
         idDocumentUrl: form.idDocument,
         planId: subscribePlanId(form.plan, livePlans),
-        payment: {
-          holder: form.cardHolder.trim(),
-          last4,
-          expiry: form.cardExpiry.trim(),
-        },
         phoneProof: proof,
       });
+      registered = true;
       setField('idDocument', '');
       setField('signature', '');
       applySessionFromResponse(data);
-      await refresh();
       if (nextAfterAuth(data, navigate, { email: form.email.trim(), phone: toLocalIl(form.phone) })) {
+        await refresh();
         return;
       }
+      const checkout = await api.startCheckout({
+        kind: 'subscription',
+        planId: subscribePlanId(form.plan, livePlans),
+      });
+      if (checkout.url) {
+        window.location.assign(checkout.url);
+        return;
+      }
+      await refresh();
       navigate('/catalog');
     } catch (e) {
+      if (registered) {
+        setAppError(heError(e.message, 'החשבון נוצר, אבל לא הצלחנו לפתוח את דף התשלום. נסי שוב מכאן'));
+        await refresh();
+        navigate('/account/plans');
+        return;
+      }
       const raw = e.message || '';
       const msg = heError(raw, 'לא ניתן להירשם. בדקי את הפרטים');
       setError(msg);
@@ -740,52 +727,13 @@ export default function SignupPage() {
               <>
                 <p className="signup-pay-note">
                   {selectedPlan
-                    ? `חיוב חודשי: ₪${selectedPlan.price} למסלול ${planShowcase(selectedPlan)}. החיוב יבוצע בהמשך.`
-                    : 'החיוב יבוצע בהמשך.'}
+                    ? `מסלול ${planShowcase(selectedPlan)} · ₪${selectedPlan.price} לחודש. החודש הראשון נגבה בסיום ההרשמה, והחיוב מתחדש אוטומטית כל 30 יום עד לביטול.`
+                    : 'החודש הראשון נגבה בסיום ההרשמה.'}
                 </p>
-                <div className="field">
-                  <label htmlFor="s-card-holder">שם בעל הכרטיס</label>
-                  <input
-                    id="s-card-holder"
-                    placeholder="כפי שמופיע על הכרטיס"
-                    value={form.cardHolder}
-                    onChange={(e) => setField('cardHolder', e.target.value)}
-                  />
-                </div>
-                <div className="field">
-                  <label htmlFor="s-card-number">מספר כרטיס</label>
-                  <input
-                    id="s-card-number"
-                    dir="ltr"
-                    inputMode="numeric"
-                    placeholder="0000 0000 0000 0000"
-                    value={form.cardNumber}
-                    onChange={(e) => setField('cardNumber', e.target.value)}
-                  />
-                </div>
-                <div className="pay-row">
-                  <div className="field">
-                    <label htmlFor="s-card-exp">תוקף</label>
-                    <input
-                      id="s-card-exp"
-                      dir="ltr"
-                      placeholder="MM/YY"
-                      value={form.cardExpiry}
-                      onChange={(e) => setField('cardExpiry', e.target.value)}
-                    />
-                  </div>
-                  <div className="field">
-                    <label htmlFor="s-card-cvv">CVV</label>
-                    <input
-                      id="s-card-cvv"
-                      dir="ltr"
-                      inputMode="numeric"
-                      placeholder="123"
-                      value={form.cardCvv}
-                      onChange={(e) => setField('cardCvv', e.target.value)}
-                    />
-                  </div>
-                </div>
+                <p className="cell-sub">
+                  אחרי אימות הטלפון נעביר אותך לדף התשלום המאובטח של Hyp להזנת פרטי הכרטיס. אנחנו לא
+                  רואים ולא שומרים את מספר הכרטיס.
+                </p>
               </>
             )}
 
@@ -803,7 +751,7 @@ export default function SignupPage() {
                 </button>
               ) : (
                 <button type="submit" className="btn btn-wide" disabled={busy}>
-                  {busy ? (phoneProof || phoneCode.length === 6 ? 'נרשם…' : 'שולח קוד…') : 'אישור והרשמה'}
+                  {busy ? (phoneProof || phoneCode.length === 6 ? 'נרשם…' : 'שולח קוד…') : 'הרשמה ומעבר לתשלום'}
                 </button>
               )}
             </div>

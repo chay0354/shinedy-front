@@ -20,6 +20,7 @@ export default function ExchangePage() {
   const freed = units
     .filter((u) => marked.includes(u.serial))
     .reduce((s, u) => s + (u.product.points || 0), 0);
+  const shipFee = Number(state?.nextShipFee) || 0;
 
   if (blocked) {
     return (
@@ -103,6 +104,22 @@ export default function ExchangePage() {
             </div>
           </div>
 
+          <p className="cell-sub" style={{ marginTop: 16 }}>
+            {shipFee > 0
+              ? `משלוח אחד הלוך-חזור כלול בכל חודשיים. הכלול כבר נוצל, ולכן המשלוח הבא בתשלום ₪${shipFee}${
+                  state.nextFreeShipmentAt
+                    ? ` (או ללא עלות החל מ-${new Date(state.nextFreeShipmentAt).toLocaleDateString('he-IL')})`
+                    : ''
+                }.`
+              : 'המשלוח הבא כלול במנוי.'}
+            {shipFee > 0 && state.paymentUsable === false && (
+              <>
+                {' '}
+                <Link to="/account/details" className="link-gold">יש לעדכן כרטיס אשראי בתוקף</Link>
+              </>
+            )}
+          </p>
+
           <div style={{ display: 'flex', gap: 12, marginTop: 24, flexWrap: 'wrap' }}>
             <button type="button" className="btn btn-tan" onClick={() => navigate('/catalog')}>
               החלפה, בחירת תכשיטים חדשים ←
@@ -110,13 +127,14 @@ export default function ExchangePage() {
             <button
               type="button"
               className="btn btn-outline"
-              disabled={marked.length === 0}
+              disabled={marked.length === 0 || (shipFee > 0 && state.paymentUsable === false)}
               onClick={async () => {
+                if (shipFee > 0 && !confirm(`המשלוח הכלול של החודשיים האחרונים כבר נוצל, ולכן איסוף זה בתשלום ₪${shipFee}. להמשיך?`)) return;
                 const data = await run(() => api.confirmExchange());
                 if (data) navigate('/account/returns');
               }}
             >
-              החזרה בלבד, איסוף
+              החזרה בלבד, איסוף{shipFee > 0 ? ` · ₪${shipFee}` : ''}
             </button>
             <Link to="/account/me" className="btn btn-outline">
               חזרה לאזור האישי

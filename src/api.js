@@ -78,8 +78,12 @@ export const api = {
   logout: () => request('/auth/logout', { method: 'POST', body: '{}' }),
   updateRegistration: (patch) =>
     request('/auth/registration', { method: 'PATCH', body: JSON.stringify(patch) }),
-  subscribe: (planId, payment) =>
-    request('/subscribe', { method: 'POST', body: JSON.stringify({ planId, payment }) }),
+  subscribe: (planId) =>
+    request('/subscribe', { method: 'POST', body: JSON.stringify({ planId }) }),
+  startCheckout: (payload) =>
+    request('/payments/checkout', { method: 'POST', body: JSON.stringify(payload) }),
+  completePayment: (query) =>
+    request('/payments/return', { method: 'POST', body: JSON.stringify({ query }) }),
   changePlan: (planId) =>
     request('/subscribe/change', { method: 'POST', body: JSON.stringify({ planId }) }),
   purchase: (payload) =>
@@ -179,4 +183,14 @@ export const api = {
     request('/admin/customers', { method: 'POST', body: JSON.stringify(payload) }),
   updateMembershipTerms: (terms) =>
     request('/admin/membership-terms', { method: 'PATCH', body: JSON.stringify({ terms }) }),
+  adminSubscriptionAction: (id, action, planId) =>
+    request(`/admin/customers/${encodeURIComponent(id)}/subscription`, {
+      method: 'POST',
+      body: JSON.stringify({ action, planId }),
+    }),
+  adminUpdateCustomer: (id, patch) =>
+    request(`/admin/customers/${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      body: JSON.stringify(patch),
+    }),
 };

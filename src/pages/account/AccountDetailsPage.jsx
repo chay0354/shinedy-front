@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { api } from '../../api';
 import { useApp } from '../../state/AppContext';
 import { getToken } from '../../lib/auth';
+import { goToCheckout } from '../../lib/checkout';
 import { isIsraeliMobile, toLocalIl } from '../../lib/phone';
 
 export default function AccountDetailsPage() {
@@ -18,8 +19,20 @@ export default function AccountDetailsPage() {
   });
   const [msg, setMsg] = useState('');
   const [err, setErr] = useState('');
+  const [cardBusy, setCardBusy] = useState(false);
 
   if (!getToken()) return <Navigate to="/login" replace />;
+
+  const payment = state?.payment;
+
+  async function replaceCard() {
+    setCardBusy(true);
+    try {
+      await goToCheckout({ kind: 'card' }, run);
+    } finally {
+      setCardBusy(false);
+    }
+  }
 
   async function save(e) {
     e.preventDefault();
@@ -103,6 +116,24 @@ export default function AccountDetailsPage() {
         </div>
         <button type="submit" className="btn btn-wide">שמירת פרטים</button>
       </form>
+
+      <h2 className="account-h2" style={{ marginTop: 36 }}>אמצעי תשלום</h2>
+      <p className="account-tip">
+        {payment?.onFile
+          ? `כרטיס שמור לחיובים: •••• ${payment.last4}${payment.expiry ? ` · תוקף ${payment.expiry}` : ''}`
+          : payment?.last4
+            ? `הכרטיס •••• ${payment.last4} אינו פעיל לחיובים. יש לשמור כרטיס כדי שהמנוי והמשלוחים ייגבו.`
+            : 'אין כרטיס שמור לחיובים.'}
+      </p>
+      {state?.billingIssue && (
+        <p className="form-err">חיוב אחרון בכרטיס נכשל. אחרי שמירת כרטיס חדש ננסה לחייב שוב.</p>
+      )}
+      <p className="cell-sub">
+        פרטי הכרטיס מוזנים בדף מאובטח של Hyp. בשמירת כרטיס מתבצעת בדיקת תקינות בלבד, ללא חיוב.
+      </p>
+      <button type="button" className="btn" style={{ marginTop: 12 }} disabled={cardBusy} onClick={replaceCard}>
+        {cardBusy ? 'מעביר…' : payment?.onFile ? 'החלפת כרטיס' : 'שמירת כרטיס'}
+      </button>
     </section>
   );
 }

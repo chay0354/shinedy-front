@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import Art from './Art.jsx'
 
 function savedCard(payment) {
-  if (!payment) return null;
+  if (!payment || !payment.onFile) return null;
   const last4 = String(payment.last4 || '').replace(/\D/g, '').slice(-4);
   if (last4.length < 4) return null;
   return {
@@ -28,8 +28,9 @@ export const addressLine = (a) => {
   return [street, apt, a.city, a.zip].filter(Boolean).join(', ')
 }
 
-// מסך הרכישה. ללקוחה מנויה (user) — שם, כתובת וכרטיס אשראי מתמלאים מהמערכת,
-// עם אפשרות להחליף כל אחד מהם ולממש קרדיטים. לאורחת (user=null) — טופס פרטים מלא.
+// מסך הרכישה. ללקוחה מנויה (user) — שם וכתובת מתמלאים מהמערכת, עם אפשרות לממש קרדיטים
+// ולשלם בכרטיס השמור. לאורחת (user=null) — טופס פרטים מלא. פרטי כרטיס חדש מוזנים רק
+// בדף התשלום המאובטח של Hyp.
 export default function PurchaseDialog({ open, onClose, item, price, credit, user, onConfirm }) {
   const guest = !user
   const [name, setName] = useState('')
@@ -39,12 +40,10 @@ export default function PurchaseDialog({ open, onClose, item, price, credit, use
   const [addr, setAddr] = useState({})
   const [saveAddr, setSaveAddr] = useState(true)
   const [editCard, setEditCard] = useState(false)
-  const [cardNum, setCardNum] = useState('')
-  const [cardExp, setCardExp] = useState('')
-  const [cardHolder, setCardHolder] = useState('')
   const [saveCard, setSaveCard] = useState(true)
   const [useCredit, setUseCredit] = useState(true)
   const [amount, setAmount] = useState(0)
+  const [busy, setBusy] = useState(false)
 
   const maxCredit = guest ? 0 : Math.min(Math.floor(credit || 0), price || 0)
 
@@ -59,8 +58,8 @@ export default function PurchaseDialog({ open, onClose, item, price, credit, use
     setEditAddr(!addressLine(user && user.address))
     setSaveAddr(true)
     setEditCard(!savedCard(user && user.payment))
-    setCardNum(''); setCardExp(''); setCardHolder((user && user.name) || '')
     setSaveCard(true)
+    setBusy(false)
     setUseCredit(maxCredit > 0)
     setAmount(maxCredit)
   }, [open])
@@ -77,28 +76,30 @@ export default function PurchaseDialog({ open, onClose, item, price, credit, use
   const creditUsed = useCredit ? Math.min(maxCredit, Math.max(0, Number(amount) || 0)) : 0
   const toPay = Math.max(0, price - creditUsed)
 
-  const digits = cardNum.replace(/\D/g, '')
-  const cardOk = editCard ? digits.length >= 8 && cardExp.trim() : true
-  const missingAddr = !addr.street || !addr.city || !addr.houseNo
+  const missingAddr = item.serial ? false : !addr.street || !addr.city || !addr.houseNo
   const missingName = !name.trim()
-  const canBuy = !missingAddr && !missingName && cardOk
+  const missingContact = guest && !phone.trim() && !email.trim()
+  const canBuy = !missingAddr && !missingName && !missingContact && !busy
+  const useSaved = Boolean(storedCard && !editCard)
+  const viaPage = toPay > 0 && !useSaved
 
-  function confirm() {
+  async function confirm() {
     const opts = {
       creditToUse: creditUsed,
       recipient: name.trim(),
       address: addr,
       saveAddress: !guest && editAddr && saveAddr,
-    }
-    if (editCard) {
-      opts.payment = { holder: cardHolder.trim() || name.trim(), last4: digits.slice(-4), expiry: cardExp.trim() }
-      opts.savePayment = !guest && saveCard
-    } else if (storedCard) {
-      opts.payment = storedCard
-      opts.savePayment = false
+      useSavedCard: toPay > 0 && useSaved,
+      viaPaymentPage: viaPage,
+      saveCard: !guest && saveCard,
     }
     if (guest) opts.buyer = { name: name.trim(), phone: phone.trim(), email: email.trim() }
-    onConfirm(opts)
+    setBusy(true)
+    try {
+      await onConfirm(opts)
+    } finally {
+      setBusy(false)
+    }
   }
 
   return (
@@ -159,53 +160,41 @@ export default function PurchaseDialog({ open, onClose, item, price, credit, use
           )}
         </div>
 
-        <div className="buy-sec">
-          <div className="buy-sec-head">
-            <span>אמצעי תשלום</span>
+        {toPay > 0 && (
+          <div className="buy-sec">
+            <div className="buy-sec-head">
+              <span>אמצעי תשלום</span>
+            </div>
+            {storedCard && (
+              <label className="check-row">
+                <input type="radio" name="pay-card" checked={!editCard} onChange={() => setEditCard(false)} />
+                <span>
+                  הכרטיס השמור · <span dir="ltr">•••• {storedCard.last4}</span>
+                  {storedCard.expiry ? ` · ${storedCard.expiry}` : ''}
+                </span>
+              </label>
+            )}
+            {storedCard && (
+              <label className="check-row">
+                <input type="radio" name="pay-card" checked={editCard} onChange={() => setEditCard(true)} />
+                <span>כרטיס אחר</span>
+              </label>
+            )}
+            {viaPage && (
+              <>
+                <p className="cell-sub" style={{ marginTop: 6 }}>
+                  פרטי הכרטיס מוזנים בדף התשלום המאובטח של Hyp. אנחנו לא רואים ולא שומרים את מספר הכרטיס.
+                </p>
+                {!guest && (
+                  <label className="check-row">
+                    <input type="checkbox" checked={saveCard} onChange={(e) => setSaveCard(e.target.checked)} />
+                    <span>לשמור את הכרטיס לחיובים הבאים (מנוי ומשלוחים)</span>
+                  </label>
+                )}
+              </>
+            )}
           </div>
-          {storedCard && (
-            <label className="check-row">
-              <input type="radio" name="pay-card" checked={!editCard} onChange={() => setEditCard(false)} />
-              <span>
-                הכרטיס השמור · <span dir="ltr">•••• {storedCard.last4}</span>
-                {storedCard.expiry ? ` · ${storedCard.expiry}` : ''}
-                {storedCard.holder ? ` · ${storedCard.holder}` : ''}
-              </span>
-            </label>
-          )}
-          <label className="check-row">
-            <input
-              type="radio"
-              name="pay-card"
-              checked={editCard || !storedCard}
-              onChange={() => setEditCard(true)}
-            />
-            <span>{storedCard ? 'החלפת כרטיס אשראי' : 'פרטי כרטיס אשראי'}</span>
-          </label>
-          {(editCard || !storedCard) && (
-            <>
-              <div className="buy-fields">
-                <div className="field"><label>מספר כרטיס *</label>
-                  <input className="card-number" dir="ltr" inputMode="numeric" placeholder="0000 0000 0000 0000"
-                    value={cardNum} onChange={(e) => setCardNum(e.target.value)} /></div>
-                <div className="field"><label>תוקף *</label>
-                  <input className="card-expiry" dir="ltr" placeholder="MM/YY"
-                    value={cardExp} onChange={(e) => setCardExp(e.target.value)} /></div>
-                <div className="field"><label>שם בעל/ת הכרטיס</label>
-                  <input className="card-holder" value={cardHolder} onChange={(e) => setCardHolder(e.target.value)} /></div>
-              </div>
-              {!guest && (
-                <label className="check-row">
-                  <input type="checkbox" checked={saveCard} onChange={(e) => setSaveCard(e.target.checked)} />
-                  <span>לשמור את הכרטיס החדש לרכישות הבאות</span>
-                </label>
-              )}
-              <p className="cell-sub" style={{ marginTop: 6 }}>
-                נשמרות רק 4 הספרות האחרונות והתוקף, לא מספר הכרטיס המלא.
-              </p>
-            </>
-          )}
-        </div>
+        )}
 
         {!guest && (
           <div className="buy-sec">
@@ -238,10 +227,14 @@ export default function PurchaseDialog({ open, onClose, item, price, credit, use
 
         {missingName && <p className="form-err">צריך למלא שם מלא.</p>}
         {missingAddr && <p className="form-err">צריך למלא רחוב, מספר בית ועיר כדי להמשיך.</p>}
-        {!cardOk && <p className="form-err">צריך למלא מספר כרטיס ותוקף.</p>}
+        {missingContact && <p className="form-err">צריך למלא טלפון או אימייל ליצירת קשר.</p>}
 
         <button className="btn btn-wide" disabled={!canBuy} onClick={confirm}>
-          אישור רכישה · ₪{Math.round(toPay).toLocaleString()}
+          {busy
+            ? 'רגע…'
+            : viaPage
+              ? `למעבר לתשלום · ₪${Math.round(toPay).toLocaleString()}`
+              : `אישור רכישה · ₪${Math.round(toPay).toLocaleString()}`}
         </button>
         <button type="button" className="modal-cancel" onClick={onClose}>ביטול</button>
       </div>
