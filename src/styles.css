@@ -1702,25 +1702,23 @@ button.link-gold { background: none; border: none; padding: 0; cursor: pointer; 
     gap: 0;
   }
   .header-top .brand {
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    grid-column: auto;
-    padding: 0;
-    pointer-events: auto;
+    order: 2; flex: 1 1 auto; min-width: 0;
+    display: flex; justify-content: center;
+    grid-column: auto; padding: 0 4px;
   }
   .header-top .brand img {
     height: 18px;
     width: auto;
-    max-width: min(112px, 34vw);
+    max-width: 100%;
     object-fit: contain;
   }
-  .header-icons {
-    grid-column: auto; justify-self: auto; gap: 0; z-index: 1;
-  }
+  .header-icons { display: contents; }
+  .nav-toggle { order: 0; flex: none; }
+  .header-icons .search-trigger { order: 1; }
+  .header-icons .icon-link:not(.search-trigger) { order: 3; }
   .header-icons .desktop-only-icon { display: none; }
   .header-icons .icon-link {
-    width: 34px; height: 42px; align-items: center; justify-content: center;
+    flex: none; width: 32px; height: 42px; align-items: center; justify-content: center;
   }
   .header-icons .icon-link svg { width: 18px; height: 18px; }
   .mobile-only-icon { display: flex; }
