@@ -11,15 +11,28 @@ const NEXT = {
   card: { to: '/account/details', label: 'חזרה לפרטים שלי' },
 };
 
+function insideFrame() {
+  try {
+    return window.top !== window.self;
+  } catch {
+    return true;
+  }
+}
+
 // Hyp sends the customer back here after the payment page (success or failure).
 export default function PaymentReturnPage() {
   const { refresh } = useApp();
   const [result, setResult] = useState(null);
   const started = useRef(false);
+  const framed = insideFrame();
 
   useEffect(() => {
     if (started.current) return;
     started.current = true;
+    if (framed) {
+      window.top.location.replace(window.location.href);
+      return;
+    }
     const query = window.location.search.replace(/^\?/, '');
     if (!query) {
       setResult({ ok: false, message: 'לא התקבלו פרטי תשלום' });
@@ -33,7 +46,9 @@ export default function PaymentReturnPage() {
         return refresh();
       })
       .catch((e) => setResult({ ok: false, message: e.message }));
-  }, [refresh]);
+  }, [refresh, framed]);
+
+  if (framed) return null;
 
   const loggedIn = Boolean(getToken());
   const next =

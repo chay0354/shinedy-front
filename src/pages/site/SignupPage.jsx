@@ -13,14 +13,14 @@ import LegalDoc from '../../components/LegalDoc';
 import SignaturePad from '../../components/SignaturePad';
 import { heError } from '../../lib/heError';
 
-const STEPS = ['פרטים', 'בחירת מסלול', 'תקנון', 'חתימה', 'תשלום', 'אימות טלפון'];
+const STEPS = ['פרטים', 'בחירת מסלול', 'תקנון', 'חתימה', 'אימות טלפון', 'תשלום'];
 const STEP = {
   details: 0,
   plan: 1,
   terms: 2,
   sign: 3,
-  pay: 4,
-  phone: 5,
+  phone: 4,
+  pay: 5,
 };
 
 function validIsraeliId(raw) {
@@ -79,7 +79,7 @@ function signatureHasInk(dataUrl) {
 }
 
 export default function SignupPage() {
-  const { state, refresh, setError: setAppError } = useApp();
+  const { state, refresh } = useApp();
   const navigate = useNavigate();
   const location = useLocation();
   const [error, setError] = useState('');
@@ -88,6 +88,8 @@ export default function SignupPage() {
   const [step, setStep] = useState(STEP.details);
   const [phoneCode, setPhoneCode] = useState('');
   const [phoneProof, setPhoneProof] = useState('');
+  const [registered, setRegistered] = useState(false);
+  const [payUrl, setPayUrl] = useState('');
   const sentFor = useRef({ phone: '' });
   const [params] = useSearchParams();
   const intendedPlan = location.state?.plan || params.get('plan');
@@ -250,7 +252,11 @@ export default function SignupPage() {
         return;
       }
     }
-    setStep((s) => Math.min(STEPS.length - 1, s + 1));
+    if (step === STEP.phone) {
+      await registerAndPay();
+      return;
+    }
+    setStep((s) => Math.min(STEP.phone, s + 1));
   }
 
   async function onIdFile(file) {
@@ -273,8 +279,33 @@ export default function SignupPage() {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    if (step < STEPS.length - 1) {
-      await goNext();
+    if (step !== STEP.pay) await goNext();
+  }
+
+  async function openCheckout() {
+    const checkout = await api.startCheckout({
+      kind: 'subscription',
+      planId: subscribePlanId(form.plan, livePlans),
+    });
+    if (checkout.url) {
+      setPayUrl(checkout.url);
+      setStep(STEP.pay);
+      return;
+    }
+    await refresh();
+    navigate('/catalog');
+  }
+
+  async function registerAndPay() {
+    if (registered) {
+      setBusy(true);
+      try {
+        await openCheckout();
+      } catch (e) {
+        setError(heError(e.message, 'לא הצלחנו לפתוח את דף התשלום. נסי שוב'));
+      } finally {
+        setBusy(false);
+      }
       return;
     }
     const detailsErr = validateDetails();
@@ -320,7 +351,7 @@ export default function SignupPage() {
     }
     setError('');
     setBusy(true);
-    let registered = false;
+    let created = false;
     try {
       const data = await api.register({
         fullName: form.name.trim(),
@@ -344,7 +375,8 @@ export default function SignupPage() {
         planId: subscribePlanId(form.plan, livePlans),
         phoneProof: proof,
       });
-      registered = true;
+      created = true;
+      setRegistered(true);
       setField('idDocument', '');
       setField('signature', '');
       applySessionFromResponse(data);
@@ -352,21 +384,10 @@ export default function SignupPage() {
         await refresh();
         return;
       }
-      const checkout = await api.startCheckout({
-        kind: 'subscription',
-        planId: subscribePlanId(form.plan, livePlans),
-      });
-      if (checkout.url) {
-        window.location.assign(checkout.url);
-        return;
-      }
-      await refresh();
-      navigate('/catalog');
+      await openCheckout();
     } catch (e) {
-      if (registered) {
-        setAppError(heError(e.message, 'החשבון נוצר, אבל לא הצלחנו לפתוח את דף התשלום. נסי שוב מכאן'));
-        await refresh();
-        navigate('/account/plans');
+      if (created) {
+        setError(heError(e.message, 'החשבון נוצר, אבל לא הצלחנו לפתוח את דף התשלום. לחצי שוב על המשך'));
         return;
       }
       const raw = e.message || '';
@@ -383,7 +404,7 @@ export default function SignupPage() {
   const needsSignature = planRequiresSignupSignature(form.plan);
   const stepLabels = STEPS.map((label, i) => (i === STEP.sign && !needsSignature ? 'תעודת זהות' : label));
 
-  if (getToken() && state?.auth) {
+  if (getToken() && state?.auth && !registered) {
     return (
       <Navigate to={homePathForRole(state.auth.role)} replace />
     );
@@ -402,7 +423,7 @@ export default function SignupPage() {
           <ol className="signup-steps" aria-label="שלבי הרשמה">
             {stepLabels.map((label, i) => ({ label, i })).filter((item) => item.i !== STEP.terms).map((item, index) => (
               <li key={item.label} className={item.i === step ? 'on' : item.i < step ? 'done' : ''}>
-                {item.i < step ? (
+                {item.i < step && !registered ? (
                   <button
                     type="button"
                     className="step-jump"
@@ -419,7 +440,7 @@ export default function SignupPage() {
                 ) : (
                   <span>{index + 1}</span>
                 )}
-                {item.i >= step ? item.label : null}
+                {item.i >= step || registered ? item.label : null}
               </li>
             ))}
           </ol>
@@ -723,38 +744,46 @@ export default function SignupPage() {
               </>
             )}
 
-            {step === STEP.pay && (
+            {step === STEP.pay && payUrl && (
               <>
                 <p className="signup-pay-note">
                   {selectedPlan
-                    ? `מסלול ${planShowcase(selectedPlan)} · ₪${selectedPlan.price} לחודש. החודש הראשון נגבה בסיום ההרשמה, והחיוב מתחדש אוטומטית כל 30 יום עד לביטול.`
-                    : 'החודש הראשון נגבה בסיום ההרשמה.'}
+                    ? `מסלול ${planShowcase(selectedPlan)} · ₪${selectedPlan.price} לחודש. החודש הראשון נגבה עכשיו, והחיוב מתחדש אוטומטית כל 30 יום עד לביטול.`
+                    : 'החודש הראשון נגבה עכשיו, והחיוב מתחדש אוטומטית כל 30 יום עד לביטול.'}
                 </p>
+                <iframe
+                  className="signup-pay-frame"
+                  src={payUrl}
+                  title="דף תשלום מאובטח"
+                  allow="payment"
+                />
                 <p className="cell-sub">
-                  אחרי אימות הטלפון נעביר אותך לדף התשלום המאובטח של Hyp להזנת פרטי הכרטיס. אנחנו לא
-                  רואים ולא שומרים את מספר הכרטיס.
+                  התשלום מתבצע בדף המאובטח של Hyp. אנחנו לא רואים ולא שומרים את מספר הכרטיס.{' '}
+                  <a href={payUrl} target="_top" className="link-gold">פתיחת דף התשלום במסך מלא</a>
                 </p>
               </>
             )}
 
-            {error && <p className="form-err">{error}</p>}
+            {error && step !== STEP.pay && <p className="form-err">{error}</p>}
 
-            <div className="signup-nav">
-              {step > 0 && (
-                <button type="button" className="btn btn-outline" disabled={busy} onClick={() => setStep((s) => s - 1)}>
-                  חזרה
-                </button>
-              )}
-              {step < STEPS.length - 1 ? (
-                <button type="button" className="btn btn-wide" disabled={busy} onClick={goNext}>
-                  {busy ? (step === STEP.details ? 'בודק…' : 'המשך') : 'המשך'}
-                </button>
-              ) : (
-                <button type="submit" className="btn btn-wide" disabled={busy}>
-                  {busy ? (phoneProof || phoneCode.length === 6 ? 'נרשם…' : 'שולח קוד…') : 'הרשמה ומעבר לתשלום'}
-                </button>
-              )}
-            </div>
+            {step !== STEP.pay && (
+              <div className="signup-nav">
+                {step > 0 && !registered && (
+                  <button type="button" className="btn btn-outline" disabled={busy} onClick={() => setStep((s) => s - 1)}>
+                    חזרה
+                  </button>
+                )}
+                {step === STEP.phone ? (
+                  <button type="submit" className="btn btn-wide" disabled={busy}>
+                    {busy ? 'רגע…' : 'אימות והמשך לתשלום'}
+                  </button>
+                ) : (
+                  <button type="button" className="btn btn-wide" disabled={busy} onClick={goNext}>
+                    {busy && step === STEP.details ? 'בודק…' : 'המשך'}
+                  </button>
+                )}
+              </div>
+            )}
           </form>
           <p className="form-note">
             כבר יש לך חשבון?{' '}
