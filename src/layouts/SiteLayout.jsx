@@ -9,12 +9,13 @@ import { IconBag, IconClose, IconFacebook, IconHeart, IconInstagram, IconMenu, I
 import PointsBar from '../components/PointsBar';
 import ScrollToTop from '../components/ScrollToTop';
 import CookieBanner from '../components/CookieBanner';
+import ScrollReveal from '../components/ScrollReveal';
+import PalettePicker from '../components/PalettePicker';
 
 const NAV = [
   { to: '/how', label: 'איך זה עובד' },
   { to: '/plans', label: 'מסלולי מנוי' },
   { to: '/catalog', label: 'תכשיטים' },
-  { to: '/how#faq', label: 'שאלות נפוצות' },
   { to: '/about', label: 'אודות' },
   { to: '/contact', label: 'יצירת קשר' },
 ];
@@ -98,6 +99,7 @@ export default function SiteLayout() {
   return (
     <>
       <ScrollToTop />
+      <ScrollReveal />
       <header className={`site-header${isAuthPage ? ' is-auth' : ''}${navOpen ? ' nav-open' : ''}`}>
         {!isAuthPage && (
           <div className="site-topline">מנוי חודשי · החלפה חופשית · משלוח עד הבית</div>
@@ -172,16 +174,11 @@ export default function SiteLayout() {
           />
         </form>
         <nav className={`main-nav${navOpen ? ' is-open' : ''}`}>
-          {NAV.filter((n) => !(loggedIn && n.to === '/plans')).map((n) => (
+          {NAV.map((n) => (
             <NavLink
               key={n.to}
-              to={n.to}
-              className={({ isActive }) => {
-                const onFaq = location.hash === '#faq';
-                if (n.to === '/how') return isActive && !onFaq ? 'active' : '';
-                if (n.to === '/how#faq') return onFaq ? 'active' : '';
-                return isActive ? 'active' : '';
-              }}
+              to={loggedIn && n.to === '/plans' ? '/account/plans' : n.to}
+              className={({ isActive }) => (isActive ? 'active' : '')}
             >
               {n.label}
             </NavLink>
@@ -218,7 +215,7 @@ export default function SiteLayout() {
             <summary>עלינו</summary>
             <div className="footer-links">
               <Link to="/how">איך זה עובד</Link>
-              {!loggedIn && <Link to="/plans">מסלולי מנוי</Link>}
+              <Link to={loggedIn ? '/account/plans' : '/plans'}>מסלולי מנוי</Link>
               <Link to="/catalog">תכשיטים</Link>
               <Link to="/about">אודות</Link>
             </div>
@@ -268,6 +265,7 @@ export default function SiteLayout() {
         <div className="fine">© Shinedy 2026 · כל הזכויות שמורות</div>
       </footer>
       <CookieBanner />
+      <PalettePicker />
     </>
   );
 }

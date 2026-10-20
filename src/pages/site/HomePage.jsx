@@ -5,6 +5,7 @@ import { useApp } from '../../state/AppContext';
 import { getToken } from '../../lib/auth';
 import { hasActivePlan } from '../../lib/roles';
 import { planShowcase, publicCatalogPlans } from '../../lib/plans';
+import CutoutImage from '../../components/CutoutImage';
 import ProductCard from '../../components/ProductCard';
 import BrandMark from '../../components/BrandMark';
 import HeroArt, { CyclingKicker } from '../../components/HeroArt';
@@ -73,11 +74,6 @@ export default function HomePage() {
         <div className="hb-text">
           <CyclingKicker lines={HERO_LINES} className="hb-eyebrow" />
           <span className="hb-rule" aria-hidden="true" />
-          <h1>
-            מגוון מתחדש של תכשיטים יוקרתיים,
-            <br />
-            במנוי חודשי, ללא התחייבות
-          </h1>
           <div className="hb-actions">
             <Link to={loggedIn ? memberHref : '/catalog'} className="btn btn-tan hb-cta">
               {loggedIn && !subscribed ? 'לבחירת מסלול' : 'לצפייה בקולקציה'}
@@ -86,6 +82,12 @@ export default function HomePage() {
               איך זה עובד
             </Link>
           </div>
+        </div>
+      </section>
+
+      <section className="home-intro">
+        <div className="container">
+          <h1>מגוון מתחדש של תכשיטים יוקרתיים במנוי חודשי, ללא התחייבות</h1>
         </div>
       </section>
 
@@ -177,7 +179,7 @@ export default function HomePage() {
                   {plan.featured && <div className="flag">הכי פופולרי</div>}
                   {piece && (
                     <div className="plan-shot">
-                      <img src={piece.image} alt={piece.name || ''} />
+                      <CutoutImage src={piece.image} alt={piece.name || ''} />
                     </div>
                   )}
                   <div className="plan-name">{planShowcase(plan)}</div>

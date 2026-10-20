@@ -4,7 +4,18 @@ import { getToken } from '../../lib/auth';
 import { hasActivePlan } from '../../lib/roles';
 import { FAQ } from '../../lib/site';
 import PageHead from '../../components/PageHead';
-import { IconBox, IconDiamond, IconList, IconNecklace } from '../../components/icons';
+import InfoFlow from '../../components/InfoFlow';
+import {
+  IconBox,
+  IconCard,
+  IconDiamond,
+  IconList,
+  IconNecklace,
+  IconPen,
+  IconPhone,
+  IconSparkle,
+  IconUser,
+} from '../../components/icons';
 
 export const STEPS = [
   { icon: IconList, t: 'בחרי מסלול', d: 'מצאי את המסלול שמתאים לך ולסגנון שלך' },
@@ -14,12 +25,12 @@ export const STEPS = [
 ];
 
 const JOIN = [
-  { t: 'פתיחת חשבון', d: 'שם, דוא"ל וסיסמה' },
-  { t: 'אימות זהות', d: 'העלאה מאובטחת של תעודת זהות' },
-  { t: 'חתימה דיגיטלית', d: 'על הסכם המנוי' },
-  { t: 'אמצעי תשלום', d: 'כרטיס אשראי לחיוב חודשי' },
-  { t: 'בחירת מסלול', d: 'ומתחילות לבחור תכשיטים!' },
-  { t: 'אימות טלפון', d: 'קוד חד-פעמי ב-SMS' },
+  { icon: IconUser, t: 'פרטים אישיים', d: 'שם, פרטי קשר וכתובת למשלוח' },
+  { icon: IconList, t: 'בחירת מסלול', d: 'המסלול שמתאים לך' },
+  { icon: IconPen, t: 'חתימה דיגיטלית', d: 'על הסכם המנוי' },
+  { icon: IconPhone, t: 'אימות טלפון', d: 'קוד חד-פעמי ב-SMS' },
+  { icon: IconCard, t: 'תשלום מאובטח', d: 'כרטיס אשראי לחיוב חודשי' },
+  { icon: IconSparkle, t: 'מתחילות', d: 'בוחרות תכשיטים מהקטלוג' },
 ];
 
 export default function HowPage() {
@@ -35,19 +46,8 @@ export default function HowPage() {
 
       <section className="section" style={{ paddingTop: 48 }}>
         <div className="container">
-          <div className="how-steps">
-            {STEPS.map((s, i) => (
-              <div className="how-step" key={s.t}>
-                <div className="circle">
-                  <s.icon size={38} />
-                  <span className="n">{i + 1}</span>
-                </div>
-                <h3>{s.t}</h3>
-                <p>{s.d}</p>
-              </div>
-            ))}
-          </div>
-          <div style={{ textAlign: 'center', marginTop: 48 }}>
+          <InfoFlow steps={STEPS} />
+          <div className="section-action">
             <Link
               to={loggedIn ? (subscribed ? '/catalog' : '/account/plans') : '/plans'}
               className="btn btn-tan"
@@ -63,32 +63,38 @@ export default function HowPage() {
           <div className="section-head">
             <div className="section-eyebrow" dir="ltr">CREDITS</div>
             <h2>מגיע לך קרדיט</h2>
-            <p>קרדיט הוא לא נקודות. אלה שני דברים נפרדים:</p>
+            <p>נקודות וקרדיטים הם שני דברים נפרדים</p>
           </div>
-          <div className="credit-split">
-            <div>
+          <div className="credit-compare">
+            <div className="credit-card">
+              <span className="info-flow-tile" aria-hidden="true">
+                <IconDiamond size={26} />
+              </span>
               <h3>נקודות</h3>
-              <p>המכסה החודשית לבחירת תכשיטים להשאלה. כל תכשיט שווה נקודות, ובוחרים עד המכסה של המסלול.</p>
+              <p>המכסה החודשית שלך לבחירת תכשיטים להשאלה. כל תכשיט שווה נקודות.</p>
+              <span className="credit-tag">לבחירה מהקטלוג</span>
             </div>
-            <div>
+            <span className="credit-vs" aria-hidden="true">≠</span>
+            <div className="credit-card">
+              <span className="info-flow-tile" aria-hidden="true">
+                <IconSparkle size={26} />
+              </span>
               <h3>קרדיטים</h3>
-              <p>10% מדמי המנוי נצברים בכל חודש כהנחה. אם מתאהבים בתכשיט, הקרדיט מוזיל את הרכישה והוא נשאר אצלך.</p>
+              <p>10% מדמי המנוי נצברים בכל חודש, ומוזילים את הרכישה כשמתאהבים בתכשיט.</p>
+              <span className="credit-tag">הנחה ברכישה</span>
             </div>
           </div>
-          <div className="section-head" style={{ marginBottom: 8 }}>
+        </div>
+      </section>
+
+      <section className="section">
+        <div className="container">
+          <div className="section-head">
             <div className="section-eyebrow" dir="ltr">JOIN</div>
             <h2>תהליך ההצטרפות</h2>
-            <p>כדי לשמור על התכשיטים ועל הלקוחות שלנו, ההצטרפות כוללת אימות קצר:</p>
+            <p>כמה דקות, ואת בפנים</p>
           </div>
-          <div className="join-steps">
-            {JOIN.map((s, i) => (
-              <div className="join-step" key={s.t}>
-                <span className="n">{i + 1}</span>
-                <strong>{s.t}</strong>
-                <p>{s.d}</p>
-              </div>
-            ))}
-          </div>
+          <InfoFlow steps={JOIN} compact />
           {!loggedIn && (
             <div className="section-action">
               <Link to="/signup" className="btn btn-tan">להצטרפות</Link>
@@ -97,7 +103,7 @@ export default function HowPage() {
         </div>
       </section>
 
-      <section className="section" id="faq">
+      <section className="section alt" id="faq">
         <div className="container">
           <div className="section-head">
             <div className="section-eyebrow" dir="ltr">FAQ</div>

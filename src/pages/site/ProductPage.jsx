@@ -43,6 +43,7 @@ export default function ProductPage() {
   const subscribed = hasActivePlan(state);
   const inBox = (state?.cart || []).some((x) => x.id === p?.id);
   const remaining = state?.remaining ?? 0;
+  const overPoints = p.points > remaining;
   const orderable = p?.inStock !== false;
   const user = loggedIn
     ? {
@@ -125,8 +126,18 @@ export default function ProductPage() {
                   בקופסה שלך ✓
                 </Link>
               )}
+              {loggedIn && subscribed && !inBox && orderable && overPoints && (
+                <span className="points-short">
+                  חסרות {p.points - remaining} נק׳ במסלול שלך
+                </span>
+              )}
               {loggedIn && subscribed && !inBox && orderable && (
-                <button type="button" className="btn btn-sm" onClick={tryAdd}>
+                <button
+                  type="button"
+                  className="btn btn-sm"
+                  disabled={overPoints}
+                  onClick={tryAdd}
+                >
                   הוספה לקופסה
                 </button>
               )}

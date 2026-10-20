@@ -75,6 +75,14 @@ export const IconNecklace = (p) => (
   <Svg {...p}><path d="M4 4c1.5 6 5 8.5 8 8.5s6.5-2.5 8-8.5" /><path d="m12 12.5-1.8 2.5 1.8 3 1.8-3-1.8-2.5Z" /></Svg>
 )
 
+export const IconPen = (p) => (
+  <Svg {...p}><path d="M15.5 4.5 19.5 8.5 9 19H5v-4L15.5 4.5Z" /><path d="m13.5 6.5 4 4M4 21.5h16" /></Svg>
+)
+
+export const IconCard = (p) => (
+  <Svg {...p}><rect x="3" y="5.5" width="18" height="13" rx="1.5" /><path d="M3 9.5h18M6.5 14.5h4" /></Svg>
+)
+
 export const IconList = (p) => (
   <Svg {...p}><rect x="4" y="3.5" width="16" height="17" rx="1" /><path d="M8 8h8M8 12h8M8 16h5" /></Svg>
 )

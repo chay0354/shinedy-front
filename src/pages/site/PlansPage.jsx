@@ -11,6 +11,7 @@ import {
   publicCatalogPlans,
   subscribePlanId,
 } from '../../lib/plans';
+import CutoutImage from '../../components/CutoutImage';
 import PageHead from '../../components/PageHead';
 
 const PLAN_TIERS = {
@@ -190,7 +191,7 @@ export default function PlansPage() {
                   )}
                   {piece && (
                     <div className="plan-shot">
-                      <img src={piece.image} alt={piece.name || ''} />
+                      <CutoutImage src={piece.image} alt={piece.name || ''} />
                     </div>
                   )}
                   <div className="plan-name">{planShowcase(plan)}</div>
