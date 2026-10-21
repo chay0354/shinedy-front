@@ -138,7 +138,7 @@ export default function StoreHome({ guest = false, hideHero = false }) {
                   <Button
                     type="button"
                     className="btn btn-primary"
-                    style={{ width: '100%', marginTop: 18, background: '#d4b06a', color: '#1a1815' }}
+                    style={{ width: '100%', marginTop: 18, background: 'var(--ink)', color: 'var(--bg)' }}
                     onClick={goToPlans}
                   >
                     בחרי מסלול

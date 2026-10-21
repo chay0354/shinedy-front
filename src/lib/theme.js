@@ -1,5 +1,5 @@
 export const PALETTES = [
-  { id: 'high-end', label: 'High-end', colors: ['#E2D9D0', '#F4F1EC', '#0B282C'] },
+  { id: 'high-end', label: 'Brand', colors: ['#E7D8C9', '#FCFBF9', '#262626'] },
   { id: 'warm', label: 'Warm', colors: ['#D9B47A', '#ECE5DD', '#1E1711'] },
   { id: 'classic', label: 'Classic', colors: ['#4C4747', '#917F59', '#F9F9F8'] },
 ];

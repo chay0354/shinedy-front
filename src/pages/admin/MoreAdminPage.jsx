@@ -14,7 +14,7 @@ export default function MoreAdminPage() {
           {state.orders.map((o) => (
             <div
               key={o.id}
-              style={{ fontSize: 13, padding: '6px 0', borderBottom: '1px solid #F0EBE1' }}
+              style={{ fontSize: 13, padding: '6px 0', borderBottom: '1px solid var(--line)' }}
             >
               {o.id} — {o.status}
             </div>
@@ -22,16 +22,16 @@ export default function MoreAdminPage() {
         </div>
         <div className="panel" style={{ flex: 1, minWidth: 220, padding: 18 }}>
           <div style={{ fontWeight: 600, marginBottom: 10 }}>חיובים</div>
-          <div style={{ fontSize: 13, padding: '6px 0', borderBottom: '1px solid #F0EBE1' }}>
+          <div style={{ fontSize: 13, padding: '6px 0', borderBottom: '1px solid var(--line)' }}>
             חיוב חודשי — {state.plan.name} · ₪{state.plan.price}
           </div>
         </div>
         <div className="panel" style={{ flex: 1, minWidth: 220, padding: 18 }}>
           <div style={{ fontWeight: 600, marginBottom: 10 }}>משתמשים והרשאות</div>
-          <div style={{ fontSize: 13, padding: '6px 0', borderBottom: '1px solid #F0EBE1' }}>
+          <div style={{ fontSize: 13, padding: '6px 0', borderBottom: '1px solid var(--line)' }}>
             מנהלת מערכת — הרשאה מלאה
           </div>
-          <div style={{ fontSize: 13, padding: '6px 0', borderBottom: '1px solid #F0EBE1' }}>
+          <div style={{ fontSize: 13, padding: '6px 0', borderBottom: '1px solid var(--line)' }}>
             עובד מחסן — מלאי והזמנות
           </div>
         </div>

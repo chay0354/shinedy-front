@@ -24,7 +24,7 @@ export default function SignaturePad({ value, onChange }) {
       ctx.lineWidth = 2.4;
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
-      ctx.strokeStyle = '#171310';
+      ctx.strokeStyle = '#262626';
       if (valueRef.current || prev) {
         const img = new Image();
         img.onload = () => ctx.drawImage(img, 0, 0, width, height);
