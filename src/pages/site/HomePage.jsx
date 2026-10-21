@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { usePreferStillMedia } from '../../lib/media';
 import { Link } from 'react-router-dom';
 import { useApp } from '../../state/AppContext';
@@ -44,10 +44,31 @@ export default function HomePage() {
   const featured = products.slice(0, 4);
   const plans = publicCatalogPlans(state?.plans);
   const ctaVideoRef = useRef(null);
+  const trustRef = useRef(null);
+  const [trustIn, setTrustIn] = useState(false);
   const stillMedia = usePreferStillMedia();
   const loggedIn = Boolean(getToken() && state?.auth);
   const subscribed = hasActivePlan(state);
   const memberHref = subscribed ? '/catalog' : '/account/plans';
+
+  useEffect(() => {
+    const node = trustRef.current;
+    if (!node) return undefined;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setTrustIn(true);
+      return undefined;
+    }
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return;
+        setTrustIn(true);
+        io.disconnect();
+      },
+      { threshold: 0.35 },
+    );
+    io.observe(node);
+    return () => io.disconnect();
+  }, []);
 
   useEffect(() => {
     const node = ctaVideoRef.current;
@@ -72,6 +93,7 @@ export default function HomePage() {
           showKicker={false}
         />
         <div className="hb-text">
+          <div className="hb-cluster">
           <CyclingKicker lines={HERO_LINES} className="hb-eyebrow" />
           <span className="hb-rule" aria-hidden="true" />
           <div className="hb-actions">
@@ -82,6 +104,7 @@ export default function HomePage() {
               איך זה עובד
             </Link>
           </div>
+          </div>
         </div>
       </section>
 
@@ -91,10 +114,14 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="home-trust" aria-label="יתרונות השירות">
+      <section
+        ref={trustRef}
+        className={`home-trust${trustIn ? ' is-shown' : ''}`}
+        aria-label="יתרונות השירות"
+      >
         {HERO_BENEFITS.map((b) => (
           <div className="home-trust-item" key={b.t}>
-            <b.icon size={18} />
+            <b.icon size={28} />
             <span>
               {b.t.includes(' ') ? (
                 <>
@@ -115,7 +142,6 @@ export default function HomePage() {
           <div className="section-head">
             <div className="section-eyebrow" dir="ltr">THE COLLECTION</div>
             <h2>מהקטלוג שלנו</h2>
-            <BrandMark />
             <p>טעימה קטנה ממה שמחכה לך בפנים.</p>
           </div>
           <div className="products-grid">
@@ -136,7 +162,6 @@ export default function HomePage() {
           <div className="section-head">
             <div className="section-eyebrow" dir="ltr">HOW IT WORKS</div>
             <h2>איך זה עובד?</h2>
-            <BrandMark />
             <p>פשוט. גמיש. מותאם לך.</p>
           </div>
           <div className="how-steps">

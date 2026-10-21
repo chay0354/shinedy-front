@@ -14,7 +14,6 @@ const TEXT = [
   '.legal-doc > *',
 ];
 const CARDS = [
-  '.home-trust-item',
   '.how-step',
   '.plan-card',
   '.product-card',
@@ -24,6 +23,8 @@ const CARDS = [
 ];
 const IMAGES = ['.about-media', '.about-split .photo', '.plan-shot', '.product-gallery .main-art'];
 
+const SEQUENCED = '.how-step';
+
 const SKIP = '.hero-band, .site-header, .site-footer, .modal, [role="dialog"]';
 
 function mark(node, kind) {
@@ -31,7 +32,8 @@ function mark(node, kind) {
   node.dataset.reveal = kind;
   const siblings = node.parentElement ? [...node.parentElement.children] : [];
   const index = Math.max(0, siblings.indexOf(node));
-  node.style.setProperty('--reveal-delay', `${Math.min(index, 6) * 90}ms`);
+  const step = node.matches(SEQUENCED) ? 320 : 90;
+  node.style.setProperty('--reveal-delay', `${Math.min(index, 6) * step}ms`);
   return true;
 }
 

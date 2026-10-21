@@ -20,6 +20,8 @@ const NAV = [
   { to: '/contact', label: 'יצירת קשר' },
 ];
 
+const FOOTER_WIDE = '(min-width: 721px)';
+
 export default function SiteLayout() {
   const { state } = useApp();
   const navigate = useNavigate();
@@ -42,7 +44,15 @@ export default function SiteLayout() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQ, setSearchQ] = useState('');
   const [navOpen, setNavOpen] = useState(false);
+  const [footerWide, setFooterWide] = useState(() => window.matchMedia(FOOTER_WIDE).matches);
   const favUserRef = useRef(null);
+
+  useEffect(() => {
+    const mq = window.matchMedia(FOOTER_WIDE);
+    const sync = () => setFooterWide(mq.matches);
+    mq.addEventListener('change', sync);
+    return () => mq.removeEventListener('change', sync);
+  }, []);
 
   useEffect(() => {
     const userId = getToken() ? state?.auth?.userId || null : null;
@@ -205,14 +215,11 @@ export default function SiteLayout() {
               <br />
               NEW LOOK. SAME YOU.
             </p>
-            <p className="footer-contact">
-              <a href={`tel:${SERVICE_PHONE_TEL}`} dir="ltr">{SERVICE_PHONE}</a>
-              <a href={`mailto:${SERVICE_EMAIL}`} dir="ltr">{SERVICE_EMAIL}</a>
-              <span>{SERVICE_HOURS}</span>
-            </p>
           </div>
-          <details className="footer-group">
-            <summary>עלינו</summary>
+          <details className="footer-group" open={footerWide || undefined}>
+            <summary>
+              <Link to="/about" className="footer-head-link">עלינו</Link>
+            </summary>
             <div className="footer-links">
               <Link to="/how">איך זה עובד</Link>
               <Link to={loggedIn ? '/account/plans' : '/plans'}>מסלולי מנוי</Link>
@@ -220,8 +227,12 @@ export default function SiteLayout() {
               <Link to="/about">אודות</Link>
             </div>
           </details>
-          <details className="footer-group">
-            <summary>חשבון</summary>
+          <details className="footer-group" open={footerWide || undefined}>
+            <summary>
+              <Link to={loggedIn ? accountPath() : '/login'} className="footer-head-link">
+                חשבון
+              </Link>
+            </summary>
             <div className="footer-links">
               {loggedIn ? (
                 <>
@@ -236,7 +247,7 @@ export default function SiteLayout() {
               )}
             </div>
           </details>
-          <details className="footer-group">
+          <details className="footer-group" open={footerWide || undefined}>
             <summary>משפטי</summary>
             <div className="footer-links">
               <Link to="/terms">תקנון והסכם מנוי</Link>
@@ -244,13 +255,14 @@ export default function SiteLayout() {
               <Link to="/cookies">מדיניות עוגיות</Link>
             </div>
           </details>
-          <details className="footer-group">
+          <details className="footer-group" open={footerWide || undefined}>
             <summary>צריכים עזרה</summary>
             <div className="footer-links">
               <Link to="/contact">צור קשר</Link>
               <Link to="/how#faq">שאלות נפוצות</Link>
               <a href={`tel:${SERVICE_PHONE_TEL}`} dir="ltr">{SERVICE_PHONE}</a>
               <a href={`mailto:${SERVICE_EMAIL}`} dir="ltr">{SERVICE_EMAIL}</a>
+              <span className="footer-hours">{SERVICE_HOURS}</span>
             </div>
           </details>
           <div className="footer-socials">
