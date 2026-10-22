@@ -98,53 +98,17 @@ export default function PlansPage() {
 
   return (
     <>
-      <PageHead eyebrow="MEMBERSHIP" title="מסלולי מנוי">
+      <PageHead eyebrow="MEMBERSHIP" title="מסלולי מנוי" mark={false}>
         <p>
-          {checkout
-            ? `מסלול ${planShowcase(checkout)} · ממשיכים לתשלום`
-            : current
-              ? 'אפשר לשנות מסלול או לבטל, בלי הרשמה מחדש'
-              : 'בחרי את המסלול שהכי מתאים לך. אפשר לשדרג או לבטל בכל עת'}
+          {current
+            ? 'אפשר לשנות מסלול או לבטל, בלי הרשמה מחדש'
+            : 'בחרי את המסלול שהכי מתאים לך. אפשר לשדרג או לבטל בכל עת'}
         </p>
       </PageHead>
 
-      <section className="section" style={{ paddingTop: 48 }}>
+      <section className="section alt" style={{ paddingTop: 56 }}>
         <div className="container">
-          {checkout && (
-            <div className="signup-card" style={{ maxWidth: 520, margin: '0 auto 32px' }}>
-              <h2 style={{ marginTop: 0 }}>תשלום</h2>
-              <p className="signup-pay-note">
-                מסלול {planShowcase(checkout)} · ₪{checkout.price} לחודש. החודש הראשון נגבה עכשיו, והחיוב
-                מתחדש אוטומטית כל 30 יום עד לביטול.
-              </p>
-              <p className="cell-sub">
-                {savedCard
-                  ? `אפשר לשלם בכרטיס השמור •••• ${savedCard.last4}, או בכרטיס אחר בדף התשלום המאובטח.`
-                  : 'פרטי הכרטיס מוזנים בדף התשלום המאובטח של Hyp. אנחנו לא שומרים את מספר הכרטיס.'}
-              </p>
-              {(err || error) && <p className="form-err">{err || error}</p>}
-              <div className="signup-nav">
-                <button type="button" className="btn btn-outline" disabled={busyPay} onClick={() => setCheckout(null)}>
-                  חזרה למסלולים
-                </button>
-                {savedCard && (
-                  <button type="button" className="btn btn-wide" disabled={busyPay} onClick={() => confirmCheckout(true)}>
-                    {busyPay ? 'מחייב…' : `תשלום ₪${checkout.price} בכרטיס השמור`}
-                  </button>
-                )}
-                <button
-                  type="button"
-                  className={savedCard ? 'btn btn-outline' : 'btn btn-wide'}
-                  disabled={busyPay}
-                  onClick={() => confirmCheckout(false)}
-                >
-                  {busyPay ? 'מעביר לתשלום…' : savedCard ? 'כרטיס אחר' : `למעבר לתשלום ₪${checkout.price}`}
-                </button>
-              </div>
-            </div>
-          )}
-
-          {!checkout && current && (
+          {current && (
             <div className="sub-manage">
               <div className="sub-now">
                 המנוי הפעיל: {planShowcase(current)}
@@ -161,19 +125,17 @@ export default function PlansPage() {
             </div>
           )}
 
-          {!checkout && done && (
+          {done && (
             <p className="msg-ok" style={{ marginBottom: 20 }}>
               {done}
             </p>
           )}
-          {!checkout && (err || error) && (
+          {(err || error) && (
             <p className="form-err" style={{ marginBottom: 20 }}>
               {err || error}
             </p>
           )}
 
-          {!checkout && (
-          <>
           <div className="plans-grid" id="plan-cards">
             {plans.map((plan) => {
               const isCurrent = Boolean(current && matchesPlanId(current.id, plan.id));
@@ -195,11 +157,12 @@ export default function PlansPage() {
                     </div>
                   )}
                   <div className="plan-name">{planShowcase(plan)}</div>
+                  <div className="materials">{plan.materials}</div>
                   <div className="price">
                     ₪{plan.price}
                     <small> לחודש</small>
                   </div>
-                  <div className="materials">{plan.materials}</div>
+                  <div className="plan-points">{plan.points} נקודות לבחירת תכשיטים</div>
                   <ul>
                     {plan.perks.map((perk) => (
                       <li key={perk}>{perk}</li>
@@ -263,10 +226,41 @@ export default function PlansPage() {
               ))}
             </ul>
           </div>
-          </>
-          )}
         </div>
       </section>
+
+      {checkout && (
+        <div className="modal-overlay" onClick={() => { if (!busyPay) setCheckout(null); }}>
+          <div className="modal-card" role="dialog" aria-modal="true" aria-labelledby="pay-title" onClick={(e) => e.stopPropagation()}>
+            <button type="button" className="modal-x" disabled={busyPay} onClick={() => setCheckout(null)} aria-label="סגירה">
+              ×
+            </button>
+            <h2 id="pay-title">תשלום</h2>
+            <p className="modal-sub">
+              מסלול {planShowcase(checkout)} · ₪{checkout.price} לחודש. החודש הראשון נגבה עכשיו, והחיוב מתחדש אוטומטית כל 30 יום עד לביטול.
+            </p>
+            <p className="cell-sub">
+              {savedCard
+                ? `אפשר לשלם בכרטיס השמור •••• ${savedCard.last4}, או בכרטיס אחר בדף התשלום המאובטח.`
+                : 'פרטי הכרטיס מוזנים בדף התשלום המאובטח של Hyp. אנחנו לא שומרים את מספר הכרטיס.'}
+            </p>
+            {(err || error) && <p className="form-err">{err || error}</p>}
+            <div className="signup-nav">
+              {savedCard && (
+                <button type="button" className="btn btn-wide" disabled={busyPay} onClick={() => confirmCheckout(true)}>
+                  {busyPay ? 'מחייב…' : `תשלום ₪${checkout.price} בכרטיס השמור`}
+                </button>
+              )}
+              <button type="button" className={savedCard ? 'btn btn-outline' : 'btn btn-wide'} disabled={busyPay} onClick={() => confirmCheckout(false)}>
+                {busyPay ? 'מעביר לתשלום…' : savedCard ? 'כרטיס אחר' : `למעבר לתשלום ₪${checkout.price}`}
+              </button>
+            </div>
+            <button type="button" className="modal-cancel" disabled={busyPay} onClick={() => setCheckout(null)}>
+              חזרה למסלולים
+            </button>
+          </div>
+        </div>
+      )}
 
       {confirm && current && (
         <div className="modal-overlay" onClick={() => setConfirm(null)}>

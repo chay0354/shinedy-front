@@ -27,7 +27,7 @@ export default function ContactPage() {
 
   return (
     <>
-      <PageHead eyebrow="CONTACT" title="יצירת קשר">
+      <PageHead className="contact-head" eyebrow="CONTACT" title="יצירת קשר" mark={false}>
         <p>אנחנו כאן לעזור</p>
       </PageHead>
 

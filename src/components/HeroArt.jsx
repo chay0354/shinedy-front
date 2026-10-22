@@ -27,7 +27,11 @@ export function CyclingKicker({ lines, className = 'hb-kicker hb-kicker-lg' }) {
 
   return (
     <span className={`${className} ${shown ? 'is-in' : 'is-out'}`} dir="ltr">
-      {lines[index]}
+      {lines.map((line, i) => (
+        <span key={line} className={i === index ? 'is-current' : 'is-reserve'} aria-hidden={i !== index}>
+          {line}
+        </span>
+      ))}
     </span>
   );
 }

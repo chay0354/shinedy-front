@@ -96,8 +96,8 @@ export default function CatalogPage() {
 
   return (
     <>
-      <PageHead className="catalog-head" eyebrow="THE COLLECTION" title="תכשיטים">
-        {searchQ ? <p>תוצאות עבור «{searchQ}»</p> : <p>בחרי מהקולקציה לפי נקודות, או רכישה מלאה.</p>}
+      <PageHead className="catalog-head" eyebrow="THE COLLECTION" title="האוסף שלנו">
+        {searchQ ? <p>תוצאות עבור «{searchQ}»</p> : <p>באפשרותך לבחור תכשיטים להשכרה לפי נקודות, או לרכוש במחיר מלא.</p>}
       </PageHead>
 
       <section className="section catalog-section" style={{ paddingTop: 36 }}>

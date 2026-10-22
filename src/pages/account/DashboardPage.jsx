@@ -40,6 +40,7 @@ export default function DashboardPage() {
   if (!getToken()) return <Navigate to="/login" replace />;
 
   const name = state?.registration?.name || state?.registration?.fullName || 'לקוחה';
+  const firstName = name.trim().split(/\s+/)[0] || name;
   const plan = enrichPlan(state?.plan || {});
   const subscribed = hasActivePlan(state);
   const units = activeUnits(state);
@@ -122,7 +123,7 @@ export default function DashboardPage() {
       <div className="account-hero">
         <div className="container">
           <p className="account-hello">האזור האישי שלך</p>
-          <h1>שלום, {name} ✦</h1>
+          <h1>שלום, {firstName} ✦</h1>
           <div className="account-plan-line">
             {subscribed ? (
               <>
@@ -437,8 +438,31 @@ export default function DashboardPage() {
             </button>
           )}
           <Link to="/account/plans" className="btn-mini">
-            {subscribed ? 'שינוי / ביטול מנוי' : 'בחירת מסלול'}
+            {subscribed ? 'שינוי מסלול' : 'בחירת מסלול'}
           </Link>
+          {subscribed && !state?.registration?.suspended && (
+            <button
+              type="button"
+              className="btn-mini"
+              onClick={async () => {
+                if (
+                  !window.confirm(
+                    `לבטל את המנוי? התכשיטים שאצלך ייאספו בימים הקרובים. ${
+                      Number(state?.nextShipFee) > 0
+                        ? `המשלוח הכלול של החודשיים האחרונים כבר נוצל, ולכן על האיסוף יחויבו ₪${state.nextShipFee} דמי משלוח.`
+                        : 'האיסוף כלול במנוי.'
+                    }`,
+                  )
+                ) {
+                  return;
+                }
+                const data = await run(() => api.cancelSubscription());
+                if (data) navigate('/account/end-pickup');
+              }}
+            >
+              ביטול מנוי
+            </button>
+          )}
           <button type="button" className="btn-mini" onClick={logout}>
             התנתקות
           </button>

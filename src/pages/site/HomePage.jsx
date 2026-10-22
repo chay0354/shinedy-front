@@ -7,7 +7,6 @@ import { hasActivePlan } from '../../lib/roles';
 import { planShowcase, publicCatalogPlans } from '../../lib/plans';
 import CutoutImage from '../../components/CutoutImage';
 import ProductCard from '../../components/ProductCard';
-import BrandMark from '../../components/BrandMark';
 import HeroArt, { CyclingKicker } from '../../components/HeroArt';
 import { IconDiamond, IconRefresh, IconShield, IconTruck } from '../../components/icons';
 import { STEPS } from './HowPage';
@@ -193,7 +192,6 @@ export default function HomePage() {
             <div className="section-head">
               <div className="section-eyebrow" dir="ltr">MEMBERSHIP</div>
               <h2>מסלולי המנוי</h2>
-              <BrandMark />
               <p>בחרי את המסלול שהכי מתאים לך. אפשר לשדרג או לבטל בכל עת.</p>
             </div>
             <div className="plans-grid">
@@ -208,11 +206,12 @@ export default function HomePage() {
                     </div>
                   )}
                   <div className="plan-name">{planShowcase(plan)}</div>
+                  <div className="materials">{plan.materials}</div>
                   <div className="price">
                     ₪{plan.price}
                     <small> לחודש</small>
                   </div>
-                  <div className="materials">{plan.materials}</div>
+                  <div className="plan-points">{plan.points} נקודות לבחירת תכשיטים</div>
                   <ul>
                     {plan.perks.slice(0, 3).map((perk) => (
                       <li key={perk}>{perk}</li>

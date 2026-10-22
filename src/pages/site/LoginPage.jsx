@@ -40,7 +40,10 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="auth-split">
+    <div className="auth-split auth-overlay">
+      <div className="auth-photo" aria-hidden="true">
+        <HeroArt video="/hero/look.mp4" poster="/hero/look.jpg" showKicker={false} label="" />
+      </div>
       <div className="auth-form-side">
         <div className="form-card">
           <h1>התחברות</h1>
@@ -94,9 +97,6 @@ export default function LoginPage() {
             </Link>
           </p>
         </div>
-      </div>
-      <div className="auth-photo">
-        <HeroArt />
       </div>
     </div>
   );

@@ -8,7 +8,7 @@ const TEXT = [
   '.section-action',
   '.plans-note-line',
   '.cta-band > :not(video)',
-  '.about-split > :not(.about-media, .photo)',
+  '.about-prose',
   '.faq-list > *',
   '.faq-callout',
   '.legal-doc > *',
@@ -16,12 +16,13 @@ const TEXT = [
 const CARDS = [
   '.how-step',
   '.plan-card',
+  '.plans-terms',
   '.product-card',
   '.about-perks > *',
   '.credit-compare > *',
   '.info-flow-step',
 ];
-const IMAGES = ['.about-media', '.about-split .photo', '.plan-shot', '.product-gallery .main-art'];
+const IMAGES = ['.about-hero-art', '.plan-shot', '.product-gallery .main-art'];
 
 const SEQUENCED = '.how-step';
 

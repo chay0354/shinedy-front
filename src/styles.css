@@ -273,12 +273,14 @@ button { font-family: inherit; cursor: pointer; }
   gap: 26px; align-items: stretch; max-width: 1080px; margin: 0 auto;
 }
 .plan-card {
-  background: var(--bg); border: 1px solid var(--line); border-radius: 2px;
+  background: color-mix(in srgb, var(--cream) 72%, transparent);
+  border: 1px solid transparent; border-radius: 2px;
   padding: 40px 32px 34px; display: flex; flex-direction: column;
   position: relative; text-align: center; transition: border-color 0.2s;
 }
-.plan-card:hover { border-color: var(--ink); }
-.plan-card.featured { border: 1px solid var(--gold); }
+.section.alt .plan-card { background: color-mix(in srgb, var(--bg) 82%, transparent); }
+.plan-card:hover { border-color: var(--line); }
+.plan-card.featured { border: 1px solid var(--ink); }
 .plan-card .flag {
   position: absolute; top: -13px; right: 50%; transform: translateX(50%);
   background: var(--gold); color: #fff; font-size: 0.78rem; font-weight: 500;
@@ -290,23 +292,28 @@ button { font-family: inherit; cursor: pointer; }
 }
 .plan-shot img { width: 100%; height: 100%; object-fit: contain; }
 .plan-card .plan-name {
-  color: var(--ink); font-size: 0.95rem; letter-spacing: 0.2em; font-weight: 500;
-  direction: ltr;
+  color: var(--ink); font-size: 2rem; font-weight: 600; letter-spacing: 0;
+  text-transform: lowercase; line-height: 1.1; direction: ltr;
 }
-.plan-card.featured .plan-name { color: var(--gold-dark); }
-.plan-card .price { font-size: 2.6rem; font-weight: 300; margin-top: 12px; }
-.plan-card .price small { font-size: 0.95rem; color: var(--muted); font-weight: 300; letter-spacing: 0.05em; }
-.plan-card .materials { color: var(--muted); font-size: 0.9rem; font-weight: 300; margin-top: 2px; }
-.plan-card ul { list-style: none; margin: 24px auto 28px; display: grid; gap: 10px; text-align: start; }
-.plan-card li { padding-inline-start: 28px; position: relative; color: var(--ink); font-size: 0.95rem; font-weight: 300; }
+.plan-card .materials { color: var(--muted); font-size: 0.95rem; font-weight: 300; margin-top: 6px; }
+.plan-card .price { font-size: 2.3rem; font-weight: 600; margin-top: 18px; line-height: 1.1; }
+.plan-card .price small { font-size: 1.05rem; color: var(--muted); font-weight: 300; }
+.plan-card .plan-points { color: var(--ink); font-size: 0.98rem; font-weight: 600; margin-top: 6px; }
+.plan-card ul { list-style: none; margin: 26px auto 30px; display: grid; gap: 8px; text-align: start; }
+.plan-card li { padding-inline-start: 22px; position: relative; color: var(--ink); font-size: 0.95rem; font-weight: 300; }
 .plan-card li::before {
-  content: '✓'; position: absolute; inset-inline-start: 2px; color: var(--gold-dark); font-weight: 700;
+  content: ''; position: absolute; inset-inline-start: 4px; top: 0.72em;
+  width: 4px; height: 4px; border-radius: 50%; background: var(--ink);
 }
 .plan-card .btn { margin-top: auto; min-height: 45px; }
-.plan-card.featured .btn, .plan-card.featured .btn-tan {
-  background: var(--gold); border-color: var(--gold); color: #fff;
+.plan-card:not(.featured) .btn:not(.btn-outline) {
+  background: var(--cream-2); border-color: var(--cream-2); color: var(--ink);
 }
-.plan-card.featured .btn:hover { background: var(--gold-dark); border-color: var(--gold-dark); color: #fff; }
+.plan-card:not(.featured) .btn:not(.btn-outline):hover { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+.plan-card.featured .btn, .plan-card.featured .btn-tan {
+  background: var(--ink); border-color: var(--ink); color: var(--bg);
+}
+.plan-card.featured .btn:hover { background: var(--gold-dark); border-color: var(--gold-dark); color: var(--bg); }
 .plan-actions { display: grid; gap: 8px; margin-top: auto; }
 .plan-actions .btn { margin-top: 0; }
 .link-quiet {
@@ -362,7 +369,7 @@ button { font-family: inherit; cursor: pointer; }
 .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(240px, 100%), 1fr)); gap: 36px 22px; }
 .product-card { background: var(--bg); overflow: hidden; position: relative; }
 .product-card .art {
-  background: var(--cream); aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+  background: var(--bg); aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
   overflow: hidden; position: relative;
 }
 .fav-btn {
@@ -399,13 +406,13 @@ button { font-family: inherit; cursor: pointer; }
 .product-gallery { display: grid; grid-template-columns: 76px 1fr; gap: 14px; }
 .product-gallery .thumbs { display: grid; gap: 12px; align-content: start; }
 .product-gallery .thumb {
-  background: var(--cream); aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+  background: var(--bg); aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
   border: 1px solid transparent; cursor: pointer;
 }
 .product-gallery .thumb.on { border-color: var(--gold); }
 .product-gallery .thumb svg { width: 60%; height: 60%; }
 .product-gallery .main-art {
-  background: var(--cream); aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+  background: var(--bg); aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
 }
 .product-gallery .main-art svg { width: 55%; height: 55%; }
 .points-cta-row {
@@ -495,16 +502,33 @@ button.link-gold { background: none; border: none; padding: 0; cursor: pointer; 
   display: flex; align-items: center; justify-content: center; padding: 60px 28px;
   background: var(--cream);
 }
+.auth-overlay { display: block; position: relative; min-height: calc(100svh - 120px); }
+.auth-overlay .auth-photo { position: absolute; inset: 0; min-height: 0; }
+.auth-overlay .auth-photo .hero-art { position: absolute; inset: 0; height: 100%; min-height: 0; }
+.auth-overlay .auth-form-side {
+  position: relative; z-index: 2; min-height: inherit; background: transparent; padding: 48px 20px;
+}
+.auth-overlay .form-card { width: min(420px, 100%); background: #fff; }
 
 /* ===== about ===== */
-.about-split { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; }
-.about-split .photo { min-height: 420px; overflow: hidden; background: var(--cream); }
-.about-split .photo img { width: 100%; height: 100%; object-fit: cover; max-height: 540px; }
-.about-icons { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 40px; text-align: center; }
+.page-head.about-head { background: var(--bg); border-bottom: none; padding-bottom: 8px; }
+.about-head .container { display: flex; flex-direction: column; align-items: center; }
+.page-head.about-head .brand-mark { order: -1; margin: 0 0 14px; display: flex; }
+.about-head .brand-mark img { height: 88px; }
+.about-page .about-hero-art {
+  width: min(440px, 100%); margin: 0 auto 36px; overflow: hidden; background: var(--bg);
+}
+.about-prose { max-width: 640px; margin: 0 auto; text-align: center; }
+.about-prose p:first-child { font-size: 1.15rem; color: var(--ink); }
+.about-prose p:last-child { letter-spacing: 0.18em; color: var(--ink); margin-top: 6px; }
+.about-actions { text-align: center; }
+.about-icons { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 48px; text-align: center; max-width: 720px; margin-inline: auto; }
 .about-icons .it { display: flex; flex-direction: column; align-items: center; gap: 8px; font-size: 0.92rem; }
 .about-icons svg { color: var(--gold-dark); }
 
 /* ===== contact ===== */
+.page-head.contact-head,
+.page-head.favorites-head { padding: 28px 0 16px; }
 .contact-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 28px; max-width: 980px; margin: 0 auto; align-items: start; }
 .contact-card { background: #fff; border: 1px solid var(--line); padding: 34px 32px; }
 .contact-card h3 { font-weight: 600; margin-bottom: 20px; }
@@ -752,8 +776,7 @@ button.link-gold { background: none; border: none; padding: 0; cursor: pointer; 
 }
 .home h1,
 .home h2,
-.home h3,
-.home .plan-name {
+.home h3 {
   font-family: var(--font-display);
   font-weight: 400;
   letter-spacing: 0;
@@ -797,10 +820,15 @@ button.link-gold { background: none; border: none; padding: 0; cursor: pointer; 
   direction: ltr; text-align: left; max-width: 100%;
 }
 .home .hero-band .hb-eyebrow {
-  font-size: clamp(28px, 3.8vw, 54px); letter-spacing: 0.14em; line-height: 1.15;
+  display: grid; font-size: clamp(28px, 3.8vw, 54px); letter-spacing: 0.14em; line-height: 1.15;
   color: #fff; text-shadow: 0 2px 24px rgba(0, 0, 0, 0.35);
-  text-align: left; white-space: nowrap;
+  text-align: left;
 }
+.home .hero-band .hb-eyebrow > span { grid-area: 1 / 1; white-space: nowrap; }
+.home .hero-band .hb-eyebrow > .is-reserve { visibility: hidden; }
+.home .hero-band .hb-eyebrow.is-in,
+.home .hero-band .hb-eyebrow.is-out { animation: none; transform: none; transition: opacity 0.45s ease; }
+.home .hero-band .hb-eyebrow.is-out { opacity: 0; }
 .home .hero-band .hb-rule { margin: 20px 0 28px; margin-inline: 0; width: 88px; align-self: flex-start; }
 .home .hero-band .hb-actions { direction: rtl; justify-content: flex-start; }
 .home-intro { padding: 64px 0 52px; text-align: center; }
@@ -854,7 +882,7 @@ html:not([data-theme]) .hb-rule {
 }
 .hb-cta { min-height: 48px; padding: 13px 42px; letter-spacing: 0.04em; }
 .auth-photo .hero-art { height: 100%; min-height: 520px; }
-.about-hero-art .hero-art { height: 100%; min-height: 420px; }
+.about-hero-art .hero-art { height: 360px; min-height: 0; }
 @media (max-width: 900px) {
   .hero-art { height: 405px; }
   .hero-art-portrait { left: -40px; bottom: -62px; width: 282px; height: 440px; }
@@ -1739,6 +1767,10 @@ html:not([data-theme]) .hb-rule {
 .page-head-actions { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-top: 22px; }
 .page-head-actions .btn { margin-top: 0; }
 .page-head .blocked-panel { max-width: 640px; margin: 18px auto 0; text-align: start; }
+.catalog-head { background: var(--bg); border-bottom: none; }
+.catalog-head .container { display: flex; flex-direction: column; align-items: center; }
+.catalog-head .brand-mark { order: -1; margin: 0 0 16px; }
+.catalog-head .brand-mark img { height: 72px; }
 .about-cta { margin-top: 8px; }
 .mobile-only-icon { display: none; }
 .prose { display: grid; gap: 16px; color: var(--muted); font-weight: 300; }
@@ -1811,7 +1843,6 @@ html:not([data-theme]) .hb-rule {
     color: var(--ink);
   }
   .auth-photo { min-height: 180px; }
-  .about-split { grid-template-columns: 1fr; gap: 30px; }
   .about-icons { grid-template-columns: 1fr; }
   .contact-grid { grid-template-columns: 1fr; }
   .site-footer .container {
@@ -1888,6 +1919,8 @@ html:not([data-theme]) .hb-rule {
   .page-head { padding: 16px 0 12px; }
   .page-head h1 { font-size: 1.35rem; }
   .page-head .brand-mark { display: none; }
+  .catalog-head .brand-mark { display: flex; }
+  .catalog-head .brand-mark img { height: 52px; }
   .page-head .section-eyebrow { margin-bottom: 2px; }
   .page-head p { display: none; }
   .site-topline { display: none; }
@@ -2000,13 +2033,13 @@ html:not([data-theme]) .hb-rule {
   .plans-grid { grid-template-columns: 1fr; gap: 14px; }
   .plan-card { padding: 26px 20px 20px; }
   .plan-shot { margin: -26px -20px 14px; height: 150px; }
-  .plan-card .plan-name { font-size: 14px; }
-  .plan-card .price { font-size: 35px; font-weight: 300; margin-top: 8px; }
-  .plan-card .materials { font-size: 12px; margin-bottom: 15px; }
+  .plan-card .plan-name { font-size: 26px; }
+  .plan-card .price { font-size: 30px; margin-top: 12px; }
+  .plan-card .materials { font-size: 13px; }
+  .plan-card .plan-points { font-size: 14px; margin-bottom: 16px; }
   .plan-card ul { margin: 0 0 18px; gap: 8px; }
   .plan-card li { font-size: 13px; }
   .plan-card .btn { width: 100%; min-height: 45px; }
-  .plan-card.featured .btn { background: var(--gold); border-color: var(--gold); color: #fff; }
   .plans-note-line { margin-top: 18px; font-size: 12px; }
   .cta-band { padding: 62px 24px; }
   .cta-band h2 { font-size: 30px; }
@@ -2053,8 +2086,9 @@ html:not([data-theme]) .hb-rule {
   .cta-band { padding: 52px 20px; }
   .cta-band h2 { font-size: 26px; }
   .contact-card { padding: 22px 18px; }
-  .about-split .photo { min-height: 0; }
-  .about-hero-art .hero-art { min-height: 0; height: 405px; }
+  .about-head .brand-mark { display: flex; }
+  .about-head .brand-mark img { height: 64px; }
+  .about-hero-art .hero-art { height: 280px; }
   .faq-list summary { font-size: 0.95rem; }
   .feature-strip { grid-template-columns: 1fr 1fr; gap: 26px 12px; }
   .buy-fields { grid-template-columns: 1fr; }

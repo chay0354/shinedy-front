@@ -12,8 +12,8 @@ export default function FavoritesPage() {
 
   return (
     <>
-      <PageHead eyebrow="WISHLIST" title="מועדפים">
-        <p>התכשיטים שסימנת בלב, לחזרה מהירה כשתרצי להזמין.</p>
+      <PageHead className="favorites-head" eyebrow="WISHLIST" title="מועדפים" mark={false}>
+        <p>התכשיטים שסימנת בלב. מחכים לך כאן כשתרצי לחזור.</p>
       </PageHead>
 
       <section className="section" style={{ paddingTop: 36 }}>
