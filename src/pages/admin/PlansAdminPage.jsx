@@ -132,7 +132,7 @@ export default function Subscriptions() {
         <button
           type="button"
           className="btn btn-sm"
-          style={{ marginTop: 12 }}
+          style={{ display: 'block', marginTop: 12 }}
           onClick={async () => {
             setErr('')
             setMsg('')

@@ -142,11 +142,11 @@ function OrderStatsPanel({ orders }) {
       <ul className="warehouse-stats-list">
         <li>
           <span>טרם נשלחו · ממתינות לטיפול</span>
-          <b className={s.pending > 0 ? 'tone-urgent' : ''}>{s.pending}</b>
+          <b className={s.pending > 0 ? 'tone-urgent' : 'tone-ok'}>{s.pending}</b>
         </li>
         <li>
           <span>נשלחו וטרם נמסרו</span>
-          <b className={s.inTransit > 0 ? 'tone-warn' : ''}>{s.inTransit}</b>
+          <b className={s.inTransit > 0 ? 'tone-warn' : 'tone-ok'}>{s.inTransit}</b>
         </li>
         <li>
           <span>נמסרו</span>
@@ -188,10 +188,12 @@ function Outgoing() {
     const phone = (u && u.phone) || ''
     return (
       <tr key={o.id}>
-        <td dir="ltr">{o.id}</td>
-        <td><AdminUserCell db={db} user={u} name={o.customerName} details={false} /></td>
-        <td>{plan || '—'}</td>
-        <td dir="ltr">{phone || '—'}</td>
+        <td><span dir="ltr">{o.id}</span></td>
+        <td>
+          <AdminUserCell db={db} user={u} name={o.customerName} details={false} />
+          <span className="cell-sub wh-cell-line">{plan || '—'}</span>
+          {phone && <span className="cell-sub wh-cell-line" dir="ltr">{phone}</span>}
+        </td>
         <td>
           {(o.items || []).map((it) => {
             const p = db.products.find((x) => x.id === it.pid)
@@ -220,9 +222,6 @@ function Outgoing() {
             {o.needsDelivery !== false && (
               <button type="button" className="btn-mini" onClick={() => setShipLabels([orderShipLabel(db, o)])}>מדבקת משלוח</button>
             )}
-          </div>
-        </td>
-        <td>
           {(o.status === 'חדשה' || o.status === 'ליקוט' || o.status === 'בליקוט') && (
             <button type="button" className="btn-mini" disabled={busy} onClick={() => act(o.id, () => api.advanceFulfillment(o.id))}>
               {busy ? 'מקדמת…' : 'התחילי ליקוט / קדמי'}
@@ -244,18 +243,15 @@ function Outgoing() {
           {o.status === 'נמסרה' && (!o.returns || o.returns.length === 0) && (
             <button type="button" className="btn-mini" onClick={() => api.returnOrder(o.id)}>התקבלה החזרה מלאה</button>
           )}
+          </div>
         </td>
       </tr>
     )
   })
 
   return (
-    <div className="warehouse-layout">
-      <div className="warehouse-main">
-      <p className="admin-sub">
-        הזרימה: הזמנה → ליקוט → פתק + QR → אריזה → הזמנת שליח לפי סוג.
-        מסלול ראשון = ללא חתימת מסירה · שני המסלולים הגבוהים = חתימת מסירה נדרשת.
-      </p>
+    <div className="warehouse-main">
+      <OrderStatsPanel orders={db.orders} />
 
       <div className="admin-section">
         <div className="admin-head-row">
@@ -270,13 +266,16 @@ function Outgoing() {
             </button>
           )}
         </div>
-        <div className="table-wrap">
-          <table className="admin-table">
+        <p className="admin-sub" style={{ marginTop: -6 }}>
+          הזמנה → ליקוט → פתק + QR → אריזה → שליח. מסלול ראשון ללא חתימת מסירה, שני המסלולים הגבוהים עם חתימה.
+        </p>
+        <div className="table-wrap wh-table-wrap">
+          <table className="admin-table wh-table">
             <thead>
-              <tr><th>מס׳ הזמנה</th><th>לקוחה</th><th>מסלול</th><th>טלפון</th><th>פריטים ללקט (מס׳ פריט)</th><th>סוג</th><th>תאריך</th><th>סטטוס</th><th>פתק</th><th>פעולה</th></tr>
+              <tr><th>מס׳ הזמנה</th><th>לקוחה</th><th>פריטים ללקט</th><th>סוג</th><th>תאריך</th><th>סטטוס</th><th>פעולות</th></tr>
             </thead>
             <tbody>
-              {inProcess.length === 0 && <tr><td colSpan="10" style={{ color: 'var(--muted)' }}>אין הזמנות שממתינות לטיפול. הכול טופל ✓</td></tr>}
+              {inProcess.length === 0 && <tr><td colSpan="7" style={{ color: 'var(--muted)' }}>אין הזמנות שממתינות לטיפול. הכול טופל ✓</td></tr>}
               {rowsOf(inProcess)}
             </tbody>
           </table>
@@ -289,10 +288,10 @@ function Outgoing() {
           <p className="admin-sub" style={{ marginTop: -6 }}>
             מכירה = משלוח בלבד. תכשיטים שנרכשו והרוכשת עדיין לא קיבלה אותם.
           </p>
-          <div className="table-wrap">
-            <table className="admin-table">
+          <div className="table-wrap wh-table-wrap">
+            <table className="admin-table wh-table">
               <thead>
-                <tr><th>מס׳ רכישה</th><th>רוכשת</th><th>מסלול</th><th>טלפון</th><th>תכשיט</th><th>כתובת למשלוח</th><th>שולם</th><th>פעולה</th></tr>
+                <tr><th>מס׳ רכישה</th><th>רוכשת</th><th>תכשיט</th><th>כתובת למשלוח</th><th>שולם</th><th>פעולה</th></tr>
               </thead>
               <tbody>
                 {pursToShip.map((pur) => {
@@ -301,13 +300,13 @@ function Outgoing() {
                   const a = pur.address || {}
                   return (
                     <tr key={pur.id}>
-                      <td dir="ltr">{pur.id}</td>
+                      <td><span dir="ltr">{pur.id}</span></td>
                       <td>
                         <AdminUserCell db={db} user={buyer} name={buyerName} details={false} />
                         {!pur.userId && <span className="cell-sub"> (אורחת)</span>}
+                        <span className="cell-sub wh-cell-line">{userPlanLabel(db, buyer) || '—'}</span>
+                        {buyer && buyer.phone && <span className="cell-sub wh-cell-line" dir="ltr">{buyer.phone}</span>}
                       </td>
-                      <td>{userPlanLabel(db, buyer) || '—'}</td>
-                      <td dir="ltr">{(buyer && buyer.phone) || '—'}</td>
                       <td>{pur.name} <span className="cell-sub" dir="ltr">{pur.serial}</span></td>
                       <td>{[a.street, a.houseNo, a.apt && `דירה ${a.apt}`, a.city].filter(Boolean).join(', ') || '—'}</td>
                       <td>₪{Math.round(pur.paid).toLocaleString()}</td>
@@ -334,13 +333,13 @@ function Outgoing() {
           </button>
         </div>
         {showDone && (
-          <div className="table-wrap">
-            <table className="admin-table">
+          <div className="table-wrap wh-table-wrap">
+            <table className="admin-table wh-table">
               <thead>
-                <tr><th>מס׳ הזמנה</th><th>לקוחה</th><th>מסלול</th><th>טלפון</th><th>פריטים</th><th>סוג</th><th>תאריך</th><th>סטטוס</th><th>פתק</th><th>פעולה</th></tr>
+                <tr><th>מס׳ הזמנה</th><th>לקוחה</th><th>פריטים</th><th>סוג</th><th>תאריך</th><th>סטטוס</th><th>פעולות</th></tr>
               </thead>
               <tbody>
-                {onTheWay.length === 0 && <tr><td colSpan="10" style={{ color: 'var(--muted)' }}>אין הזמנות שיצאו</td></tr>}
+                {onTheWay.length === 0 && <tr><td colSpan="7" style={{ color: 'var(--muted)' }}>אין הזמנות שיצאו</td></tr>}
                 {rowsOf(onTheWay)}
               </tbody>
             </table>
@@ -359,8 +358,6 @@ function Outgoing() {
           {shipLabels.map((l) => <ShippingLabel key={l.id} {...l} />)}
         </PrintLabels>
       )}
-      </div>
-      <OrderStatsPanel orders={db.orders} />
     </div>
   )
 }

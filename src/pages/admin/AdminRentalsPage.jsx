@@ -4,7 +4,10 @@ import Art from '../../components/Art.jsx'
 import AdminUserCell from '../../components/AdminUserCell.jsx'
 
 const DAY = 86400000
-const daysBetween = (a, b) => Math.max(0, Math.round(((b ? new Date(b) : new Date()) - new Date(a)) / DAY))
+const daysBetween = (a, b) => {
+  const d = Math.round(((b ? new Date(b) : new Date()) - new Date(a)) / DAY)
+  return Number.isFinite(d) ? Math.max(0, d) : 0
+}
 const iso = (d) => new Date(d).toISOString().slice(0, 10)
 
 export default function Rentals() {

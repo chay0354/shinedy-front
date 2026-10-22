@@ -116,16 +116,19 @@ function mapReturnRows(list, idx) {
   });
 }
 
+const validDate = (...vals) => vals.find((v) => v && !Number.isNaN(new Date(v).getTime())) || null;
+
 function mapOrder(o, idx) {
+  const created = validDate(o.createdAt, o.date) || nowIso();
   const items = (o.items || o.itemIds || []).map((uid, i) => {
     const serial = typeof uid === 'string' ? uid : uid?.serial || `UNIT-${idx}-${i}`;
     const pid = typeof uid === 'string' ? uid.split('-')[0] : uid?.pid || uid?.modelId;
     return {
       pid,
       serial,
-      since: o.date || o.createdAt,
+      since: created,
       returned: o.status === 'הוחזרה',
-      returnedAt: o.status === 'הוחזרה' ? o.date : null,
+      returnedAt: o.status === 'הוחזרה' ? validDate(o.returnedAt, o.updatedAt, o.date) || nowIso() : null,
     };
   });
   const returns = mapReturnRows(o.returnItems || o.returns, idx);
@@ -139,7 +142,7 @@ function mapOrder(o, idx) {
     type: o.type || 'הזמנה',
     status: o.status,
     date: o.date,
-    createdAt: o.createdAt || o.date || nowIso(),
+    createdAt: created,
     courierConfirmedAt: o.courierConfirmedAt || null,
     courierJob,
     courierJobLabel: jobLabel,

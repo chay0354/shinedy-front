@@ -120,9 +120,9 @@ export default function Customers() {
                 return (
                   <tr key={u.id}>
                     <td>
-                      <AdminUserCell db={db} user={u} />
-                      <span className="cell-sub" dir="ltr">{u.phone}</span>
-                      <span className="cell-sub" dir="ltr">{u.email}</span>
+                      <AdminUserCell db={db} user={u} details={false} />
+                      {u.phone && <span className="cell-sub wh-cell-line" dir="ltr">{u.phone}</span>}
+                      {u.email && <span className="cell-sub wh-cell-line" dir="ltr">{u.email}</span>}
                     </td>
                     <td>
                       <b>{plan.latin}</b>
