@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { SERVICE_PHONE } from '../../lib/contact';
 import ImageSlot from '../../components/ImageSlot';
 import Button from '../../components/Button';
 import {
@@ -153,7 +154,7 @@ export default function InfoPage() {
               <ul className="contact-lines">
                 <li>
                   <IconPhone />
-                  050-9372937
+                  {SERVICE_PHONE}
                 </li>
                 <li>
                   <IconMail />

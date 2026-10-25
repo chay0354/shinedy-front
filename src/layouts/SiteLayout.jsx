@@ -2,10 +2,10 @@ import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-do
 import { useEffect, useRef, useState } from 'react';
 import { useApp } from '../state/AppContext';
 import { getToken } from '../lib/auth';
-import { SERVICE_EMAIL, SERVICE_HOURS, SERVICE_PHONE, SERVICE_PHONE_TEL, INSTAGRAM_URL, FACEBOOK_URL } from '../lib/contact';
+import { SERVICE_EMAIL, SERVICE_HOURS, SERVICE_PHONE, SERVICE_PHONE_TEL, INSTAGRAM_URL, FACEBOOK_URL, WHATSAPP_URL } from '../lib/contact';
 import { clearLocalFavorites, syncWithServer, useFavorites } from '../lib/favorites';
 import { hasActivePlan, isAdmin, isStaff } from '../lib/roles';
-import { IconBag, IconClose, IconFacebook, IconHeart, IconInstagram, IconMenu, IconSearch, IconUser, IconUserPlus } from '../components/icons';
+import { IconBag, IconClose, IconFacebook, IconHeart, IconInstagram, IconMenu, IconSearch, IconUser, IconUserPlus, IconWhatsApp } from '../components/icons';
 import PointsBar from '../components/PointsBar';
 import ScrollToTop from '../components/ScrollToTop';
 import CookieBanner from '../components/CookieBanner';
@@ -271,6 +271,9 @@ export default function SiteLayout() {
             </a>
             <a href={FACEBOOK_URL} target="_blank" rel="noreferrer" aria-label="Facebook">
               <IconFacebook size={22} />
+            </a>
+            <a href={WHATSAPP_URL} target="_blank" rel="noreferrer" aria-label="WhatsApp">
+              <IconWhatsApp size={22} />
             </a>
           </div>
         </div>

@@ -181,6 +181,8 @@ export const api = {
   adminOverview: () => request('/admin/overview'),
   createCustomer: (payload) =>
     request('/admin/customers', { method: 'POST', body: JSON.stringify(payload) }),
+  deleteCustomer: (id) =>
+    request(`/admin/customers/${encodeURIComponent(id)}`, { method: 'DELETE' }),
   updateMembershipTerms: (terms) =>
     request('/admin/membership-terms', { method: 'PATCH', body: JSON.stringify({ terms }) }),
   adminSubscriptionAction: (id, action, planId) =>
