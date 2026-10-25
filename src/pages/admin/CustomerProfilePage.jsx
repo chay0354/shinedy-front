@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
   activeUnits, creditBalance, creditMonths, heDate,
   openReturnsFor, planOf, pointsUsed, purchasesOf, useAdminDb,
@@ -19,9 +19,11 @@ const TABS = [
 
 export default function CustomerProfile() {
   const { id } = useParams()
+  const navigate = useNavigate()
   const { db, api } = useAdminDb()
   const [tab, setTab] = useState('rentals')
   const [msg, setMsg] = useState('')
+  const [deleting, setDeleting] = useState(false)
 
   const u = db.users.find((x) => x.id === id)
   if (!u) {
@@ -79,6 +81,15 @@ export default function CustomerProfile() {
     setMsg(data ? done : '')
   }
 
+  async function removeCustomer() {
+    const ok = window.confirm(`למחוק את ${u.name || u.email || 'הלקוחה'}?\nהחשבון, המנוי וההזמנות יימחקו, ואי אפשר לשחזר.`)
+    if (!ok) return
+    setDeleting(true)
+    const data = await api.deleteCustomer(u.id)
+    setDeleting(false)
+    if (data) navigate('/admin/customers')
+  }
+
   const charges = [...(u.charges || [])].sort((a, b) => String(b.at).localeCompare(String(a.at)))
   const openCharges = charges.filter((c) => c.status === 'לגבייה' || c.status === 'נכשל')
   const owed = openCharges.reduce((s, c) => s + (Number(c.amount) || 0), 0)
@@ -98,7 +109,10 @@ export default function CustomerProfile() {
             {u.phone ? <span dir="ltr">{u.phone}</span> : null}
           </p>
         </div>
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+          <button type="button" className="btn-mini danger" disabled={deleting} onClick={removeCustomer}>
+            {deleting ? 'מוחקת…' : 'מחיקת לקוחה'}
+          </button>
           {u.canceledAt
             ? <span className="pill warn">עזבה {heDate(u.canceledAt)}</span>
             : u.suspendedAt

@@ -169,6 +169,9 @@ export function useAdminDb() {
       updateCustomer(id, patch) {
         return run(() => live.adminUpdateCustomer(id, patch));
       },
+      deleteCustomer(id) {
+        return run(() => live.deleteCustomer(id));
+      },
     }),
     [local, run, refresh, state],
   );

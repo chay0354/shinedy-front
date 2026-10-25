@@ -15,7 +15,6 @@ export default function Customers() {
   const [open, setOpen] = useState(false)
   const [form, setForm] = useState(EMPTY)
   const [busy, setBusy] = useState(false)
-  const [deletingId, setDeletingId] = useState('')
   const [msg, setMsg] = useState('')
   const [err, setErr] = useState('')
   const plans = publicCatalogPlans(db.plans)
@@ -43,19 +42,6 @@ export default function Customers() {
     setMsg(`${form.name} נוספה. אפשר להתחבר עם האימייל והסיסמה הזמנית.`)
     setForm(EMPTY)
     setOpen(false)
-  }
-
-  async function removeCustomer(u) {
-    const name = u.name || u.email || 'הלקוחה'
-    const ok = window.confirm(`למחוק את ${name}?\nהחשבון, המנוי וההזמנות יימחקו, ואי אפשר לשחזר.`)
-    if (!ok) return
-    setErr('')
-    setMsg('')
-    setDeletingId(u.id)
-    const data = await run(() => liveApi.deleteCustomer(u.id))
-    setDeletingId('')
-    if (!data) return
-    setMsg(`${name} נמחקה`)
   }
 
   return (
@@ -157,19 +143,7 @@ export default function Customers() {
                       <span className="cell-sub">{u.exchangeBlocked ? 'החלפות חסומות' : 'החלפות זמינות'}</span>
                     </td>
                     <td>{u.joined}</td>
-                    <td>
-                      <div className="btn-stack">
-                        <Link className="btn-mini" to={`/admin/customers/${u.id}`}>תיק</Link>
-                        <button
-                          type="button"
-                          className="btn-mini danger"
-                          disabled={deletingId === u.id}
-                          onClick={() => removeCustomer(u)}
-                        >
-                          {deletingId === u.id ? 'מוחקת…' : 'מחיקה'}
-                        </button>
-                      </div>
-                    </td>
+                    <td><Link className="btn-mini" to={`/admin/customers/${u.id}`}>תיק</Link></td>
                   </tr>
                 )
               })}
