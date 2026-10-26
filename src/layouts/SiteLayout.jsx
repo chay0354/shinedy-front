@@ -114,19 +114,16 @@ export default function SiteLayout() {
           <div className="site-topline">מנוי חודשי · החלפה חופשית · משלוח עד הבית</div>
         )}
         <div className={`header-top${searchOpen ? ' search-open' : ''}`}>
-          <button
-            type="button"
-            className="nav-toggle"
-            aria-label={navOpen ? 'סגירת תפריט' : 'פתיחת תפריט'}
-            aria-expanded={navOpen}
-            onClick={() => setNavOpen((v) => !v)}
-          >
-            {navOpen ? <IconClose size={22} /> : <IconMenu size={22} />}
-          </button>
-          <Link to="/" className="brand" aria-label="Shinedy, דף הבית">
-            <img src="/brand/name-black.png" alt="SHINEDY" />
-          </Link>
-          <div className="header-icons">
+          <div className="header-start">
+            <button
+              type="button"
+              className="nav-toggle"
+              aria-label={navOpen ? 'סגירת תפריט' : 'פתיחת תפריט'}
+              aria-expanded={navOpen}
+              onClick={() => setNavOpen((v) => !v)}
+            >
+              {navOpen ? <IconClose size={22} /> : <IconMenu size={22} />}
+            </button>
             <button
               type="button"
               className="icon-link search-trigger"
@@ -137,6 +134,11 @@ export default function SiteLayout() {
             >
               <IconSearch size={22} />
             </button>
+          </div>
+          <Link to="/" className="brand" aria-label="Shinedy, דף הבית">
+            <img src="/brand/name-black.png" alt="SHINEDY" />
+          </Link>
+          <div className="header-icons">
             {searchOpen && (
               <form className="header-search" onSubmit={submitSearch}>
                 <input
