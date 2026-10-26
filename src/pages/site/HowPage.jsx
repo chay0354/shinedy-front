@@ -20,8 +20,18 @@ import {
 export const STEPS = [
   { icon: IconList, t: 'בחרי מסלול', d: 'מצאי את המסלול שמתאים לך ולסגנון שלך' },
   { icon: IconDiamond, t: 'בחרי תכשיטים', d: 'בחרי מהקטלוג עד מכסת הנקודות שלך' },
-  { icon: IconNecklace, t: 'ענדי ותהני', d: 'משלוח עד הבית. עונדות בלי דאגות, בלאי סביר עלינו' },
-  { icon: IconBox, t: 'החזירי והחליפי', d: 'ללא הגבלת החלפות. משלוח דו-חודשי כלול, נוסף ב-₪65' },
+  {
+    icon: IconNecklace,
+    t: 'ענדי ותהני',
+    d: (
+      <>
+        משלוח עד הבית. עונדות בלי דאגות,
+        <br />
+        בלאי סביר עלינו
+      </>
+    ),
+  },
+  { icon: IconBox, t: 'החזירי והחליפי', d: 'ללא הגבלת החלפות. משלוח דו-חודשי כלול' },
 ];
 
 const JOIN = [
@@ -40,7 +50,7 @@ export default function HowPage() {
 
   return (
     <>
-      <PageHead eyebrow="HOW IT WORKS" title="איך זה עובד?">
+      <PageHead eyebrow="HOW IT WORKS" title="איך זה עובד?" mark={false}>
         <p>פשוט. גמיש. מותאם לך.</p>
       </PageHead>
 
@@ -74,7 +84,6 @@ export default function HowPage() {
               <p>המכסה החודשית שלך לבחירת תכשיטים להשאלה. כל תכשיט שווה נקודות.</p>
               <span className="credit-tag">לבחירה מהקטלוג</span>
             </div>
-            <span className="credit-vs" aria-hidden="true">≠</span>
             <div className="credit-card">
               <span className="info-flow-tile" aria-hidden="true">
                 <IconSparkle size={26} />

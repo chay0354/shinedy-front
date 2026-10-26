@@ -5,7 +5,7 @@
 export const PLANS = [
   {
     id: 'silver',
-    latin: 'SILVER',
+    latin: 'Essential',
     name: 'מסלול כסף',
     price: 199,
     points: 100,
@@ -21,14 +21,14 @@ export const PLANS = [
   },
   {
     id: 'combined',
-    latin: 'DUO',
+    latin: 'Classic',
     name: 'מסלול משולב',
     price: 299,
     points: 170,
     featured: true,
     materials: 'כסף וזהב · יהלומי מעבדה קטנים',
     perks: [
-      'תכשיטי כסף וזהב אמיתי',
+      'תכשיטי כסף וזהב',
       'יהלומי מעבדה קטנים',
       'החלפות ללא הגבלה',
       'משלוח דו-חודשי כלול',
@@ -37,14 +37,14 @@ export const PLANS = [
   },
   {
     id: 'gold',
-    latin: 'GOLD DIAMOND',
+    latin: 'Premium',
     name: 'מסלול זהב',
     price: 499,
     points: 280,
     featured: false,
     materials: 'זהב · יהלומי מעבדה גדולים',
     perks: [
-      'תכשיטי זהב אמיתי',
+      'תכשיטי זהב',
       'יהלומי מעבדה גדולים',
       'החלפות ללא הגבלה',
       'משלוח דו-חודשי כלול',

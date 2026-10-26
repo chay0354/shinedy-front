@@ -141,7 +141,6 @@ export default function HomePage() {
           <div className="section-head">
             <div className="section-eyebrow" dir="ltr">THE COLLECTION</div>
             <h2>מהקטלוג שלנו</h2>
-            <p>טעימה קטנה ממה שמחכה לך בפנים.</p>
           </div>
           <div className="products-grid">
             {featured.map((p) => (
@@ -164,11 +163,10 @@ export default function HomePage() {
             <p>פשוט. גמיש. מותאם לך.</p>
           </div>
           <div className="how-steps">
-            {STEPS.map((s, i) => (
+            {STEPS.map((s) => (
               <div className="how-step" key={s.t}>
                 <div className="circle">
                   <s.icon size={38} />
-                  <span className="n">{i + 1}</span>
                 </div>
                 <h3>{s.t}</h3>
                 <p>{s.d}</p>
@@ -250,7 +248,7 @@ export default function HomePage() {
           <source src="/hero/look.mp4" type="video/mp4" />
         </video>
         )}
-        <div className="section-eyebrow" dir="ltr">NEW LOOK. SAME YOU.</div>
+        <div className="section-eyebrow" dir="ltr">NEW LOOK · SAME YOU</div>
         {loggedIn ? (
           <>
             <h2>{subscribed ? 'מוכנה לבחור תכשיטים?' : 'נשאר רק לבחור מסלול'}</h2>

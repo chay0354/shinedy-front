@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { api as liveApi } from '../../api.js'
-import { matchesPlanId, publicCatalogPlans, subscribePlanId } from '../../lib/plans.js'
+import { matchesPlanId, planShowcase, publicCatalogPlans, subscribePlanId } from '../../lib/plans.js'
 import { useAdminDb } from '../../lib/useAdminDb.js'
 import { useApp } from '../../state/AppContext'
 
@@ -56,7 +56,7 @@ export default function Subscriptions() {
       setErr('השמירה נכשלה — נסי שוב')
       return
     }
-    setMsg(`${plan.latin} עודכן ✓ — המחיר והנקודות מתעדכנים מיד באתר ובהרשמה`)
+    setMsg(`${planShowcase(plan)} עודכן ✓ — המחיר והנקודות מתעדכנים מיד באתר ובהרשמה`)
   }
 
   return (
@@ -76,7 +76,7 @@ export default function Subscriptions() {
           return (
             <article key={plan.id} className={`admin-plan-card${plan.featured ? ' featured' : ''}`}>
               {plan.featured ? <div className="flag">הכי פופולרי</div> : null}
-              <div className="plan-name">{plan.latin}</div>
+              <div className="plan-name">{planShowcase(plan)}</div>
               <div className="admin-plan-he">{plan.name}</div>
               <p className="materials">{plan.materials}</p>
               <div className="admin-plan-count">

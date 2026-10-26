@@ -272,6 +272,8 @@ function mapUser(c, i, plans, patch) {
     idDocumentUploaded: Boolean(c.idDocumentUploaded || c.idDocumentUrl),
     signatureCompleted: Boolean(c.signatureCompleted),
     termsAcceptedAt: c.termsAcceptedAt || null,
+    noticesAcceptedAt: c.noticesAcceptedAt || null,
+    marketingOptIn: Boolean(c.marketingOptIn ?? c.noticesAcceptedAt),
   };
   return { ...base, ...(patch || {}) };
 }

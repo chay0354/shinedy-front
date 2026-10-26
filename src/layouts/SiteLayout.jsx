@@ -62,17 +62,16 @@ export default function SiteLayout() {
   }, [state?.auth?.userId]);
 
   useEffect(() => {
-    if (!getToken() || !state?.auth) return;
+    if (!getToken() || !state?.auth || !isAuthPage) return;
+    // Staff may browse the public site (e.g. «לאתר»); only bounce off login/signup.
     if (isAdmin(state)) {
-      if (!location.pathname.startsWith('/admin')) navigate('/admin', { replace: true });
+      navigate('/admin', { replace: true });
       return;
     }
     if (isStaff(state)) {
-      if (!location.pathname.startsWith('/admin')) navigate('/admin/warehouse', { replace: true });
-      return;
+      navigate('/admin/warehouse', { replace: true });
     }
-    if (isAuthPage) return;
-  }, [state, navigate, isAuthPage, location.pathname]);
+  }, [state, navigate, isAuthPage]);
 
   useEffect(() => {
     setNavOpen(false);
@@ -211,10 +210,23 @@ export default function SiteLayout() {
           <div className="footer-brand">
             <img src="/brand/name-white.png" alt="SHINEDY" />
             <p>
-              תכשיטים יוקרתיים במודל מנוי. בוחרות, עונדות, מחליפות.
+              תכשיטים יוקרתיים במודל מנוי.
               <br />
-              NEW LOOK. SAME YOU.
+              בוחרות, עונדות, מחליפות.
+              <br />
+              NEW LOOK · SAME YOU
             </p>
+            <div className="footer-socials">
+              <a href={INSTAGRAM_URL} target="_blank" rel="noreferrer" aria-label="Instagram">
+                <IconInstagram size={22} />
+              </a>
+              <a href={FACEBOOK_URL} target="_blank" rel="noreferrer" aria-label="Facebook">
+                <IconFacebook size={22} />
+              </a>
+              <a href={WHATSAPP_URL} target="_blank" rel="noreferrer" aria-label="WhatsApp">
+                <IconWhatsApp size={22} />
+              </a>
+            </div>
           </div>
           <details className="footer-group" open={footerWide || undefined}>
             <summary>
@@ -265,17 +277,6 @@ export default function SiteLayout() {
               <span className="footer-hours">{SERVICE_HOURS}</span>
             </div>
           </details>
-          <div className="footer-socials">
-            <a href={INSTAGRAM_URL} target="_blank" rel="noreferrer" aria-label="Instagram">
-              <IconInstagram size={22} />
-            </a>
-            <a href={FACEBOOK_URL} target="_blank" rel="noreferrer" aria-label="Facebook">
-              <IconFacebook size={22} />
-            </a>
-            <a href={WHATSAPP_URL} target="_blank" rel="noreferrer" aria-label="WhatsApp">
-              <IconWhatsApp size={22} />
-            </a>
-          </div>
         </div>
         <div className="fine">© Shinedy 2026 · כל הזכויות שמורות</div>
       </footer>

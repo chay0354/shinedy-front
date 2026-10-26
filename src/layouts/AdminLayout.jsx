@@ -60,7 +60,7 @@ export default function AdminLayout() {
                 ⚙ הגדרות
               </Link>
             )}
-            <Link to="/" className="admin-bar-link">
+            <Link to="/" className="admin-bar-link" target="_blank" rel="noreferrer">
               לאתר ↗
             </Link>
             <button type="button" className="admin-bar-link link-btn-plain" onClick={handleLogout}>

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { usePreferStillMedia } from '../lib/media';
 
-const DEFAULT_KICKER = 'NEW LOOK. SAME YOU.';
+const DEFAULT_KICKER = 'NEW LOOK · SAME YOU';
 
 export function CyclingKicker({ lines, className = 'hb-kicker hb-kicker-lg' }) {
   const [index, setIndex] = useState(0);

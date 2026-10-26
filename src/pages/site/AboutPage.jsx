@@ -27,7 +27,7 @@ export default function AboutPage() {
                 שצברת יעזרו לך להפוך אותו לשלך.</strong>
               </p>
               <p>
-                <strong>NEW LOOK. SAME YOU.</strong>
+                <strong>NEW LOOK · SAME YOU</strong>
               </p>
         </div>
         <div className="about-actions">
