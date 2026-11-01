@@ -123,29 +123,26 @@ export default function DashboardPage() {
       <div className="account-hero">
         <div className="container">
           <p className="account-hello">האזור האישי שלך</p>
-          <h1>שלום, {firstName} ✦</h1>
-          <div className="account-plan-line">
-            {subscribed ? (
-              <>
-                <span className="plan-chip">{planLatin(plan)}</span>
-                <span className="plan-meta">
-                  {plan.name} · ₪{plan.price} לחודש
-                </span>
-              </>
-            ) : (
-              <span className="plan-meta">עדיין לא בחרת מסלול מנוי</span>
-            )}
+          <div className="account-hero-row">
+            <h1>שלום, {firstName}</h1>
+            <Link to="/account/plans" className="btn btn-tan">
+              עדכון מסלול
+            </Link>
           </div>
+          {subscribed && (
+            <div className="account-plan-line">
+              <span className="plan-chip">{planLatin(plan)}</span>
+              <span className="plan-meta">
+                {plan.name} · ₪{plan.price} לחודש
+              </span>
+            </div>
+          )}
         </div>
       </div>
 
       <section className="container account-body">
+        {(subscribed || state?.registration?.suspended) && (
         <div className="account-actions">
-          {!subscribed && (
-            <Link to="/account/plans" className="btn btn-tan">
-              לבחירת מסלול מנוי
-            </Link>
-          )}
           {subscribed && !state?.registration?.suspended && (
             <>
               {!isTopPlan(state) && (
@@ -170,6 +167,7 @@ export default function DashboardPage() {
             </button>
           )}
         </div>
+        )}
         {subscribed && (
           <p className="account-tip">
             מחליפות פשוט: מסמנות מה מחזירות, בוחרות חדשים בקטלוג, ונרתיק ההחזרה מגיע עם המשלוח.
@@ -188,7 +186,7 @@ export default function DashboardPage() {
             <div className="value">{units.length}</div>
             <div className="hint">ללא הגבלת פריטים, רק נקודות</div>
           </div>
-          <div className="stat-card credit-card">
+          <div className="stat-card">
             <div className="label">קרדיטים לרכישה</div>
             <div className="value">₪{Math.round(credits).toLocaleString()}</div>
             <div className="hint">
@@ -227,10 +225,10 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {lastShip && (
-          <>
-            <h2 className="account-h2 first">המשלוח האחרון</h2>
-            <div className="ship-card">
+        <h2 className="account-h2">סטטוס משלוח</h2>
+        <div className="ship-card">
+          {lastShip ? (
+            <>
               <div className="ship-head">
                 <span>
                   הזמנה {lastShip.id} · {lastShip.type}
@@ -254,9 +252,11 @@ export default function DashboardPage() {
                   {lastShip.trackingStatus ? ` · ${lastShip.trackingStatus}` : ''}
                 </div>
               )}
-            </div>
-          </>
-        )}
+            </>
+          ) : (
+            <p className="account-empty">אין משלוח פעיל כרגע.</p>
+          )}
+        </div>
 
         <h2 className="account-h2">התכשיטים שאצלך</h2>
         {units.length === 0 ? (
@@ -438,7 +438,7 @@ export default function DashboardPage() {
             </button>
           )}
           <Link to="/account/plans" className="btn-mini">
-            {subscribed ? 'שינוי מסלול' : 'בחירת מסלול'}
+            עדכון מסלול
           </Link>
           {subscribed && !state?.registration?.suspended && (
             <button
@@ -447,11 +447,7 @@ export default function DashboardPage() {
               onClick={async () => {
                 if (
                   !window.confirm(
-                    `לבטל את המנוי? התכשיטים שאצלך ייאספו בימים הקרובים. ${
-                      Number(state?.nextShipFee) > 0
-                        ? `המשלוח הכלול של החודשיים האחרונים כבר נוצל, ולכן על האיסוף יחויבו ₪${state.nextShipFee} דמי משלוח.`
-                        : 'האיסוף כלול במנוי.'
-                    }`,
+                    'לבטל את המנוי? מיד אחר כך ייפתח מסך הזמנת משלוח ההחזרה.',
                   )
                 ) {
                   return;

@@ -4,6 +4,7 @@ export default function InfoFlow({ steps, compact = false }) {
     <ol className={`info-flow${compact ? ' is-compact' : ''}`} style={{ '--flow-count': steps.length }}>
       {steps.map((step, i) => (
         <li className="info-flow-step" key={step.t}>
+          {i < steps.length - 1 ? <span className="info-flow-join" aria-hidden="true" /> : null}
           <span className="info-flow-tile" aria-hidden="true">
             <step.icon size={compact ? 22 : 26} />
             <span className="info-flow-n">{i + 1}</span>

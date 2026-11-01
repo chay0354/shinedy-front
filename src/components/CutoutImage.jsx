@@ -1,17 +1,22 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
-/**
- * The catalog shots are JPGs on an off-white studio background. Flood-fill from
- * the edges and clear those pixels, so the jewelry sits on the card color.
- * Highlights inside the piece are not connected to the edge, so they stay.
- */
+const cache = new Map();
+const inflight = new Map();
+
+function maxEdge() {
+  return window.matchMedia('(max-width: 720px)').matches ? 420 : 720;
+}
+
 function cutout(img) {
+  const limit = maxEdge();
+  const scale = Math.min(1, limit / Math.max(img.naturalWidth, img.naturalHeight));
+  const width = Math.max(1, Math.round(img.naturalWidth * scale));
+  const height = Math.max(1, Math.round(img.naturalHeight * scale));
   const canvas = document.createElement('canvas');
-  canvas.width = img.naturalWidth;
-  canvas.height = img.naturalHeight;
+  canvas.width = width;
+  canvas.height = height;
   const ctx = canvas.getContext('2d', { willReadFrequently: true });
-  ctx.drawImage(img, 0, 0);
-  const { width, height } = canvas;
+  ctx.drawImage(img, 0, 0, width, height);
   const frame = ctx.getImageData(0, 0, width, height);
   const data = frame.data;
   const count = width * height;
@@ -25,8 +30,7 @@ function cutout(img) {
     if (x < 0 || y < 0 || x >= width || y >= height) return;
     const pixel = y * width + x;
     if (seen[pixel]) return;
-    const index = pixel * 4;
-    if (!isBackground(index)) return;
+    if (!isBackground(pixel * 4)) return;
     seen[pixel] = 1;
     stack.push(pixel);
   };
@@ -44,7 +48,7 @@ function cutout(img) {
     const pixel = stack.pop();
     data[pixel * 4 + 3] = 0;
     const x = pixel % width;
-    const y = Math.floor(pixel / width);
+    const y = (pixel - x) / width;
     push(x + 1, y);
     push(x - 1, y);
     push(x, y + 1);
@@ -55,27 +59,99 @@ function cutout(img) {
   return new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
 }
 
-export default function CutoutImage({ src, alt }) {
-  const [url, setUrl] = useState(null);
+function whenIdle(fn) {
+  if (typeof requestIdleCallback === 'function') {
+    const id = requestIdleCallback(fn, { timeout: 1200 });
+    return () => cancelIdleCallback(id);
+  }
+  const id = setTimeout(fn, 48);
+  return () => clearTimeout(id);
+}
 
-  useEffect(() => {
-    let alive = true;
-    let objectUrl = null;
+function process(src) {
+  if (cache.has(src)) return Promise.resolve(cache.get(src));
+  if (inflight.has(src)) return inflight.get(src);
+
+  const job = new Promise((resolve) => {
     const img = new Image();
+    img.decoding = 'async';
     img.onload = () => {
-      cutout(img).then((blob) => {
-        if (!alive || !blob) return;
-        objectUrl = URL.createObjectURL(blob);
-        setUrl(objectUrl);
+      whenIdle(() => {
+        cutout(img)
+          .then((blob) => {
+            if (!blob) {
+              resolve(src);
+              return;
+            }
+            const url = URL.createObjectURL(blob);
+            cache.set(src, url);
+            resolve(url);
+          })
+          .catch(() => resolve(src))
+          .finally(() => inflight.delete(src));
       });
     };
+    img.onerror = () => {
+      inflight.delete(src);
+      resolve(src);
+    };
     img.src = src;
+  });
+
+  inflight.set(src, job);
+  return job;
+}
+
+export default function CutoutImage({ src, alt, className = '' }) {
+  const [url, setUrl] = useState(() => cache.get(src) || src);
+  const nodeRef = useRef(null);
+
+  useEffect(() => {
+    if (!src) return undefined;
+    if (cache.has(src)) {
+      setUrl(cache.get(src));
+      return undefined;
+    }
+    setUrl(src);
+    let alive = true;
+    const node = nodeRef.current;
+
+    const start = () => {
+      process(src).then((ready) => {
+        if (alive) setUrl(ready);
+      });
+    };
+
+    if (!node || typeof IntersectionObserver === 'undefined') {
+      start();
+      return () => {
+        alive = false;
+      };
+    }
+
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return;
+        io.disconnect();
+        start();
+      },
+      { rootMargin: '160px 0px' },
+    );
+    io.observe(node);
     return () => {
       alive = false;
-      if (objectUrl) URL.revokeObjectURL(objectUrl);
+      io.disconnect();
     };
   }, [src]);
 
-  if (!url) return null;
-  return <img src={url} alt={alt} />;
+  return (
+    <img
+      ref={nodeRef}
+      src={url}
+      alt={alt}
+      className={className || undefined}
+      loading="lazy"
+      decoding="async"
+    />
+  );
 }

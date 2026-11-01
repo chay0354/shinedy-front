@@ -49,7 +49,7 @@ export default function HowPage() {
   const subscribed = hasActivePlan(state);
 
   return (
-    <>
+    <div className="how-page">
       <PageHead eyebrow="HOW IT WORKS" title="איך זה עובד?" mark={false}>
         <p>פשוט. גמיש. מותאם לך.</p>
       </PageHead>
@@ -78,19 +78,17 @@ export default function HowPage() {
           <div className="credit-compare">
             <div className="credit-card">
               <span className="info-flow-tile" aria-hidden="true">
-                <IconDiamond size={26} />
-              </span>
-              <h3>נקודות</h3>
-              <p>המכסה החודשית שלך לבחירת תכשיטים להשאלה. כל תכשיט שווה נקודות.</p>
-              <span className="credit-tag">לבחירה מהקטלוג</span>
-            </div>
-            <div className="credit-card">
-              <span className="info-flow-tile" aria-hidden="true">
                 <IconSparkle size={26} />
               </span>
               <h3>קרדיטים</h3>
               <p>10% מדמי המנוי נצברים בכל חודש, ומוזילים את הרכישה כשמתאהבים בתכשיט.</p>
-              <span className="credit-tag">הנחה ברכישה</span>
+            </div>
+            <div className="credit-card">
+              <span className="info-flow-tile" aria-hidden="true">
+                <IconDiamond size={26} />
+              </span>
+              <h3>נקודות</h3>
+              <p>המכסה החודשית שלך לבחירת תכשיטים להשאלה. כל תכשיט שווה נקודות.</p>
             </div>
           </div>
         </div>
@@ -104,11 +102,14 @@ export default function HowPage() {
             <p>כמה דקות, ואת בפנים</p>
           </div>
           <InfoFlow steps={JOIN} compact />
-          {!loggedIn && (
-            <div className="section-action">
-              <Link to="/signup" className="btn btn-tan">להצטרפות</Link>
-            </div>
-          )}
+          <div className="section-action">
+            <Link
+              to={loggedIn ? (subscribed ? '/catalog' : '/plans') : '/signup'}
+              className="btn btn-tan how-join-cta"
+            >
+              להצטרפות
+            </Link>
+          </div>
         </div>
       </section>
 
@@ -138,6 +139,6 @@ export default function HowPage() {
           </div>
         </div>
       </section>
-    </>
+    </div>
   );
 }

@@ -261,7 +261,7 @@ export default function ProductPage() {
 
         {products.filter((x) => x.id !== p.id && x.category === p.category).length > 0 && (
           <div className="related-products">
-            <h2>אופציות נוספות</h2>
+            <h2>עוד מהקטלוג</h2>
             <div className="products-grid">
               {products
                 .filter((x) => x.id !== p.id && x.category === p.category)

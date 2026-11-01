@@ -12,6 +12,7 @@ const TEXT = [
   '.faq-list > *',
   '.faq-callout',
   '.legal-doc > *',
+  '.how-join-cta',
 ];
 const CARDS = [
   '.how-step',
@@ -31,6 +32,8 @@ const SKIP = '.hero-band, .site-header, .site-footer, .modal, [role="dialog"]';
 function mark(node, kind) {
   if (node.dataset.reveal || node.dataset.revealDone || node.closest(SKIP)) return false;
   if (node.closest('.home') && node.matches('.product-card')) return false;
+  if (node.closest('.how-page') && !node.matches('.how-join-cta')) return false;
+  if (node.closest('.catalog-page')) return false;
   node.dataset.reveal = kind;
   const siblings = node.parentElement ? [...node.parentElement.children] : [];
   const index = Math.max(0, siblings.indexOf(node));
@@ -46,6 +49,7 @@ export default function ScrollReveal() {
   useEffect(() => {
     if (typeof IntersectionObserver === 'undefined') return undefined;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return undefined;
+    if (window.matchMedia('(max-width: 720px)').matches) return undefined;
     const root = document.querySelector('main');
     if (!root) return undefined;
 
@@ -88,11 +92,19 @@ export default function ScrollReveal() {
     };
 
     scan();
-    const mo = new MutationObserver(scan);
+    let frame = 0;
+    const mo = new MutationObserver(() => {
+      if (frame) return;
+      frame = requestAnimationFrame(() => {
+        frame = 0;
+        scan();
+      });
+    });
     mo.observe(root, { childList: true, subtree: true });
     return () => {
       mo.disconnect();
       io.disconnect();
+      if (frame) cancelAnimationFrame(frame);
       timers.forEach(clearTimeout);
       root.querySelectorAll('[data-reveal]').forEach((node) => {
         delete node.dataset.reveal;

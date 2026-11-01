@@ -95,7 +95,7 @@ export default function CatalogPage() {
   }, [products, cat, type, sort, searchQ]);
 
   return (
-    <>
+    <div className="catalog-page">
       <PageHead className="catalog-head" eyebrow="THE COLLECTION" title="האוסף שלנו">
         {searchQ ? <p>תוצאות עבור «{searchQ}»</p> : <p>באפשרותך לבחור תכשיטים להשכרה לפי נקודות, או לרכוש במחיר מלא.</p>}
       </PageHead>
@@ -154,6 +154,6 @@ export default function CatalogPage() {
           )}
         </div>
       </section>
-    </>
+    </div>
   );
 }
