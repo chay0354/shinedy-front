@@ -218,7 +218,6 @@ function Outgoing() {
         <td><span className={`pill ${orderPill(o.status)}`}>{o.status}</span></td>
         <td>
           <div className="btn-stack">
-            <button type="button" className="btn-mini" onClick={() => setSlipOrder(o)}>פתק + QR</button>
             {o.needsDelivery !== false && (
               <button type="button" className="btn-mini" onClick={() => setShipLabels([orderShipLabel(db, o)])}>מדבקת משלוח</button>
             )}

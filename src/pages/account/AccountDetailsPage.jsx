@@ -119,20 +119,22 @@ export default function AccountDetailsPage() {
 
       <h2 className="account-h2" style={{ marginTop: 36 }}>אמצעי תשלום</h2>
       <p className="account-tip">
-        {payment?.onFile
-          ? `כרטיס שמור לחיובים: •••• ${payment.last4}${payment.expiry ? ` · תוקף ${payment.expiry}` : ''}`
-          : payment?.last4
-            ? `הכרטיס •••• ${payment.last4} אינו פעיל לחיובים. יש לשמור כרטיס כדי שהמנוי והמשלוחים ייגבו.`
-            : 'אין כרטיס שמור לחיובים.'}
+        {payment?.onFile ? (
+          <>
+            כרטיס שמור <span dir="ltr">•••• {payment.last4}</span>
+            {payment.expiry ? <> · תוקף <span dir="ltr">{payment.expiry}</span></> : null}
+          </>
+        ) : payment?.last4 ? (
+          <>הכרטיס <span dir="ltr">•••• {payment.last4}</span> לא פעיל. צריך לעדכן אמצעי תשלום.</>
+        ) : (
+          'אין אמצעי תשלום שמור.'
+        )}
       </p>
       {state?.billingIssue && (
-        <p className="form-err">חיוב אחרון בכרטיס נכשל. אחרי שמירת כרטיס חדש ננסה לחייב שוב.</p>
+        <p className="form-err">החיוב האחרון נכשל. אחרי עדכון אמצעי התשלום ננסה לחייב שוב.</p>
       )}
-      <p className="cell-sub">
-        פרטי הכרטיס מוזנים בדף מאובטח של Hyp. בשמירת כרטיס מתבצעת בדיקת תקינות בלבד, ללא חיוב.
-      </p>
       <button type="button" className="btn" style={{ marginTop: 12 }} disabled={cardBusy} onClick={replaceCard}>
-        {cardBusy ? 'מעביר…' : payment?.onFile ? 'החלפת כרטיס' : 'שמירת כרטיס'}
+        {cardBusy ? 'מעביר…' : 'עדכון אמצעי תשלום'}
       </button>
     </section>
   );

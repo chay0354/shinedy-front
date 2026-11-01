@@ -7,11 +7,9 @@ import { hasActivePlan } from '../../lib/roles';
 import { planShowcase, publicCatalogPlans } from '../../lib/plans';
 import CutoutImage from '../../components/CutoutImage';
 import ProductCard from '../../components/ProductCard';
-import HeroArt, { CyclingKicker } from '../../components/HeroArt';
+import HeroArt from '../../components/HeroArt';
 import { IconDiamond, IconRefresh, IconShield, IconTruck } from '../../components/icons';
 import { STEPS } from './HowPage';
-
-const HERO_LINES = ['UNLIMIT YOUR LOOK', 'NEW LOOK, UNLIMITED'];
 
 const PLAN_TIERS = {
   silver: ['silver'],
@@ -93,15 +91,10 @@ export default function HomePage() {
         />
         <div className="hb-text">
           <div className="hb-cluster">
-          <CyclingKicker lines={HERO_LINES} className="hb-eyebrow" />
+          <span className="hb-eyebrow" dir="ltr">UNLIMIT YOUR LOOK</span>
           <span className="hb-rule" aria-hidden="true" />
           <div className="hb-actions">
-            <Link to={loggedIn ? memberHref : '/catalog'} className="btn btn-tan hb-cta">
-              {loggedIn && !subscribed ? 'לבחירת מסלול' : 'לצפייה בקולקציה'}
-            </Link>
-            <Link to="/how" className="btn hb-cta hb-cta-ghost">
-              איך זה עובד
-            </Link>
+            <Link to="/catalog" className="btn btn-tan hb-cta">לקטלוג</Link>
           </div>
           </div>
         </div>

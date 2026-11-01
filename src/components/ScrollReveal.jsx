@@ -30,6 +30,7 @@ const SKIP = '.hero-band, .site-header, .site-footer, .modal, [role="dialog"]';
 
 function mark(node, kind) {
   if (node.dataset.reveal || node.dataset.revealDone || node.closest(SKIP)) return false;
+  if (node.closest('.home') && node.matches('.product-card')) return false;
   node.dataset.reveal = kind;
   const siblings = node.parentElement ? [...node.parentElement.children] : [];
   const index = Math.max(0, siblings.indexOf(node));

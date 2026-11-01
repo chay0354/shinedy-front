@@ -93,6 +93,7 @@ export default function SignupPage() {
   const sentFor = useRef({ phone: '' });
   const [params] = useSearchParams();
   const intendedPlan = location.state?.plan || params.get('plan');
+  const arrivedWithPlan = Boolean(intendedPlan);
   const livePlans = Array.isArray(state?.plans) ? state.plans : [];
   const plans = publicCatalogPlans(livePlans);
   const defaultPlan = plans.some((p) => p.id === intendedPlan)
@@ -402,7 +403,11 @@ export default function SignupPage() {
 
   const selectedPlan = plans.find((p) => p.id === form.plan);
   const needsSignature = planRequiresSignupSignature(form.plan);
-  const stepLabels = STEPS.map((label, i) => (i === STEP.sign && !needsSignature ? 'תעודת זהות' : label));
+  const stepLabels = STEPS.map((label, i) => {
+    if (i === STEP.plan && arrivedWithPlan) return 'המסלול שבחרת';
+    if (i === STEP.sign && !needsSignature) return 'תעודת זהות';
+    return label;
+  });
 
   if (getToken() && state?.auth && !registered) {
     return (
@@ -543,6 +548,7 @@ export default function SignupPage() {
                     onChange={(e) => setField('zip', e.target.value)}
                   />
                 </div>
+                <p className="signup-pay-note">בחירת סיסמה</p>
                 <div className="field">
                   <label htmlFor="s-pass">סיסמה</label>
                   <input
@@ -610,16 +616,25 @@ export default function SignupPage() {
 
             {step === STEP.plan && (
               <>
-                <p className="signup-pay-note">בחרי את המסלול שהכי מתאים לך. אפשר לשנות אחר כך.</p>
+                <p className="signup-pay-note">
+                  {arrivedWithPlan
+                    ? 'זה המסלול שבחרת. אם התחרטת, אפשר לבחור מסלול אחר.'
+                    : 'בחרי את המסלול שהכי מתאים לך. אפשר לשנות אחר כך.'}
+                </p>
                 <div className="signup-plan-grid">
-                  {plans.map((plan) => (
+                  {plans.map((plan) => {
+                    const chosen = form.plan === plan.id
+                    const popular = plan.featured && !chosen
+                    return (
                     <button
                       key={plan.id}
                       type="button"
-                      className={`plan-card${plan.featured ? ' featured' : ''}${form.plan === plan.id ? ' mine' : ''}`}
+                      className={`plan-card${plan.featured ? ' featured' : ''}${chosen ? ' mine' : ''}`}
                       onClick={() => setField('plan', plan.id)}
                     >
-                      {plan.featured && <div className="flag">הכי פופולרי</div>}
+                      <div className={`flag${chosen ? ' is-yours' : popular ? ' is-popular' : ' is-empty'}`}>
+                        {chosen ? 'המסלול שבחרת' : popular ? 'הכי פופולרי' : '\u00a0'}
+                      </div>
                       <div className="signup-plan-copy">
                         <div className="plan-name">{planShowcase(plan)}</div>
                         <div className="materials">{plan.materials}</div>
@@ -630,7 +645,8 @@ export default function SignupPage() {
                         <small> / חודש</small>
                       </div>
                     </button>
-                  ))}
+                    )
+                  })}
                 </div>
                 <label className="check-row legal-agree">
                   <input
@@ -768,7 +784,7 @@ export default function SignupPage() {
 
             {step !== STEP.pay && (
               <div className="signup-nav">
-                {step > 0 && !registered && (
+                {step > 0 && !registered && !(arrivedWithPlan && step === STEP.plan) && (
                   <button type="button" className="btn btn-outline" disabled={busy} onClick={() => setStep((s) => s - 1)}>
                     חזרה
                   </button>

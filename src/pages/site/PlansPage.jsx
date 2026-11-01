@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { api } from '../../api';
-import { getToken } from '../../lib/auth';
-import { goToCheckout } from '../../lib/checkout';
+import { clearSession, getToken } from '../../lib/auth';
 import { useApp } from '../../state/AppContext';
 import { SHARED_TERMS } from '../../lib/site';
 import {
@@ -32,7 +31,7 @@ function pieceForPlan(products, planId) {
 }
 
 export default function PlansPage() {
-  const { state, run, error } = useApp();
+  const { state, run, error, setError } = useApp();
   const navigate = useNavigate();
   const plans = publicCatalogPlans(state?.plans);
   const inAccount = window.location.pathname.startsWith('/account');
@@ -49,6 +48,7 @@ export default function PlansPage() {
   const [err, setErr] = useState('');
 
   function guestSignup(planId) {
+    setError(null);
     navigate('/signup', { state: { plan: planId } });
   }
 
@@ -65,14 +65,35 @@ export default function PlansPage() {
 
   async function confirmCheckout(useSaved) {
     if (!checkout) return;
+    if (!getToken() || !state?.auth?.userId) {
+      guestSignup(checkout.id);
+      return;
+    }
     setErr('');
+    setError(null);
     setBusyPay(true);
     try {
       const planId = subscribePlanId(checkout.id, state?.plans);
-      const data = useSaved
-        ? await run(() => api.subscribe(planId))
-        : await goToCheckout({ kind: 'subscription', planId }, run);
-      if (!data) return;
+      let data;
+      try {
+        data = useSaved
+          ? await api.subscribe(planId)
+          : await api.startCheckout({ kind: 'subscription', planId });
+      } catch (e) {
+        if (e.status === 401 || /יש להתחבר/.test(e.message || '')) {
+          clearSession();
+          guestSignup(checkout.id);
+          return;
+        }
+        setError(e.message);
+        setErr(e.message);
+        return;
+      }
+      if (data?.url) {
+        window.location.assign(data.url);
+        return;
+      }
+      await run(async () => data);
       setCheckout(null);
       navigate(inAccount ? '/account/me' : '/catalog');
     } finally {
@@ -231,19 +252,11 @@ export default function PlansPage() {
 
       {checkout && (
         <div className="modal-overlay" onClick={() => { if (!busyPay) setCheckout(null); }}>
-          <div className="modal-card" role="dialog" aria-modal="true" aria-labelledby="pay-title" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-card pay-modal" role="dialog" aria-modal="true" aria-labelledby="pay-title" onClick={(e) => e.stopPropagation()}>
             <button type="button" className="modal-x" disabled={busyPay} onClick={() => setCheckout(null)} aria-label="סגירה">
               ×
             </button>
-            <h2 id="pay-title">תשלום</h2>
-            <p className="modal-sub">
-              מסלול {planShowcase(checkout)} · ₪{checkout.price} לחודש. החודש הראשון נגבה עכשיו, והחיוב מתחדש אוטומטית כל 30 יום עד לביטול.
-            </p>
-            <p className="cell-sub">
-              {savedCard
-                ? `אפשר לשלם בכרטיס השמור •••• ${savedCard.last4}, או בכרטיס אחר בדף התשלום המאובטח.`
-                : 'פרטי הכרטיס מוזנים בדף התשלום המאובטח של Hyp. אנחנו לא שומרים את מספר הכרטיס.'}
-            </p>
+            <h2 id="pay-title">מסלול {planShowcase(checkout)}</h2>
             {(err || error) && <p className="form-err">{err || error}</p>}
             <div className="signup-nav">
               {savedCard && (
@@ -255,9 +268,6 @@ export default function PlansPage() {
                 {busyPay ? 'מעביר לתשלום…' : savedCard ? 'כרטיס אחר' : `למעבר לתשלום ₪${checkout.price}`}
               </button>
             </div>
-            <button type="button" className="modal-cancel" disabled={busyPay} onClick={() => setCheckout(null)}>
-              חזרה למסלולים
-            </button>
           </div>
         </div>
       )}
