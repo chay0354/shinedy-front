@@ -3,6 +3,24 @@ import Art from './Art';
 import { IconHeart } from './icons';
 import { useFavorites } from '../lib/favorites';
 
+const DEMO_WORN = [
+  '/catalog/worn/m5.jpg',
+  '/catalog/worn/m1.jpg',
+  '/hero/look.jpg',
+  '/catalog/worn/m6.jpg',
+];
+
+function wornPhoto(product) {
+  if (product.modelImage) return product.modelImage;
+  const extra = Array.isArray(product.images) ? product.images.filter(Boolean) : [];
+  const own = extra.find((src) => src && src !== product.image);
+  if (own) return own;
+  const key = String(product.id || '');
+  let n = 0;
+  for (let i = 0; i < key.length; i += 1) n += key.charCodeAt(i);
+  return DEMO_WORN[n % DEMO_WORN.length];
+}
+
 export default function ProductCard({ product, products = [], showRelated = false }) {
   const { has, toggle } = useFavorites();
   const liked = has(product.id);
@@ -28,6 +46,9 @@ export default function ProductCard({ product, products = [], showRelated = fals
             <IconHeart size={18} filled={liked} />
           </button>
           <Art product={product} />
+          {wornPhoto(product) ? (
+            <img className="art-worn" src={wornPhoto(product)} alt="" />
+          ) : null}
         </div>
         <div className="info">
           <div className="name">{product.name}</div>
