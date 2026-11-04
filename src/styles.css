@@ -1545,20 +1545,20 @@ html:not([data-theme]) .hb-rule {
 }
 .product-photo { width: 100%; height: 100%; object-fit: contain; background: transparent; display: block; }
 .product-card .art .product-photo,
-.product-card .art img {
+.product-card .art img:not(.art-worn) {
   width: 100%;
   height: 100%;
   transform: scale(0.78);
   transition: none;
 }
 .product-card:hover .art .product-photo,
-.product-card:hover .art img { transform: scale(0.78); }
+.product-card:hover .art img:not(.art-worn) { transform: scale(0.78); }
 .catalog-page .product-card,
 .catalog-page .product-card .art,
 .catalog-page .product-card .info { background: #f2f1ee; }
-.catalog-page .product-card .art img,
+.catalog-page .product-card .art img:not(.art-worn),
 .catalog-page .product-card .art .product-photo,
-.catalog-page .product-card:hover .art img,
+.catalog-page .product-card:hover .art img:not(.art-worn),
 .catalog-page .product-card:hover .art .product-photo {
   width: 100%;
   height: 100%;
@@ -2567,18 +2567,18 @@ html:not([data-theme]) .hb-rule {
   [data-reveal='card']:not(.is-revealed) { opacity: 0; transform: translateY(30px); }
   [data-reveal='image']:not(.is-revealed) { opacity: 0; clip-path: inset(10% 6% 10% 6%); }
   [data-reveal='image'].is-revealed { clip-path: inset(0); }
-  .product-card .art img,
+  .product-card .art img:not(.art-worn),
   .product-gallery .main-art img,
   .product-photo {
     transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
   }
-  .product-card:hover .art img,
+  .product-card:hover .art img:not(.art-worn),
   .product-gallery .main-art:hover img {
     transform: scale(1.04);
   }
-  .home .product-card .art img,
+  .home .product-card .art img:not(.art-worn),
   .home .product-card .art .product-photo,
-  .home .product-card:hover .art img,
+  .home .product-card:hover .art img:not(.art-worn),
   .home .product-card:hover .art .product-photo {
     transform: scale(0.78);
     transition: none;
@@ -2593,11 +2593,11 @@ html:not([data-theme]) .hb-rule {
       transform 0.9s cubic-bezier(0.22, 1, 0.36, 1) var(--reveal-delay, 0ms);
   }
 }
-.catalog-page .product-card .art .art-worn {
-  position: absolute;
+.product-card .art .art-worn {
+  position: absolute !important;
   inset: 0;
-  width: 100%;
-  height: 100%;
+  width: 100% !important;
+  height: 100% !important;
   object-fit: cover;
   opacity: 0;
   transform: none !important;
@@ -2605,7 +2605,7 @@ html:not([data-theme]) .hb-rule {
   z-index: 1;
 }
 @media (hover: hover) and (pointer: fine) {
-  .catalog-page .product-card:hover .art .art-worn {
+  .product-card:hover .art .art-worn {
     opacity: 1;
   }
 }
