@@ -12,6 +12,7 @@ import { PRIVACY, TERMS } from '../../lib/legal';
 import LegalDoc from '../../components/LegalDoc';
 import SignaturePad from '../../components/SignaturePad';
 import { heError } from '../../lib/heError';
+import AddressField from '../../components/AddressField';
 
 const STEPS = ['פרטים', 'בחירת מסלול', 'תקנון', 'חתימה', 'אימות טלפון', 'תשלום'];
 const STEP = {
@@ -96,10 +97,6 @@ export default function SignupPage() {
   const arrivedWithPlan = Boolean(intendedPlan);
   const livePlans = Array.isArray(state?.plans) ? state.plans : [];
   const plans = publicCatalogPlans(livePlans);
-  const defaultPlan = plans.some((p) => p.id === intendedPlan)
-    ? intendedPlan
-    : plans.find((p) => p.featured)?.id || plans[0]?.id || '';
-
   const [form, setForm] = useState({
     name: '',
     phone: '',
@@ -113,18 +110,13 @@ export default function SignupPage() {
     apt: '',
     city: '',
     zip: '',
+    addressChosen: false,
     agreeLegal: false,
     agreeMarketing: false,
     signature: '',
     idFileName: '',
     idDocument: '',
   });
-
-  useEffect(() => {
-    if (defaultPlan) {
-      setForm((prev) => (prev.plan ? prev : { ...prev, plan: defaultPlan }));
-    }
-  }, [defaultPlan]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -149,9 +141,10 @@ export default function SignupPage() {
     if (form.pass.length < 8) return 'הסיסמה חייבת לפחות 8 תווים';
     if (form.pass !== form.pass2) return 'הסיסמאות אינן תואמות. נסי שוב';
     if (!validIsraeliId(form.nationalId)) return 'מספר תעודת הזהות אינו תקין';
-    if (!form.street.trim()) return 'יש למלא רחוב';
+    if (!form.addressChosen || !form.street.trim() || !form.city.trim()) {
+      return 'יש לבחור יישוב ואחר כך רחוב מתוך הרשימה';
+    }
     if (!form.houseNo.trim()) return 'יש למלא מספר בית';
-    if (!form.city.trim()) return 'יש למלא עיר';
     return '';
   }
 
@@ -404,7 +397,7 @@ export default function SignupPage() {
   const selectedPlan = plans.find((p) => p.id === form.plan);
   const needsSignature = planRequiresSignupSignature(form.plan);
   const stepLabels = STEPS.map((label, i) => {
-    if (i === STEP.plan && arrivedWithPlan) return 'המסלול שבחרת';
+    if (i === STEP.plan && arrivedWithPlan && form.plan) return 'המסלול שבחרת';
     if (i === STEP.sign && !needsSignature) return 'תעודת זהות';
     return label;
   });
@@ -502,14 +495,21 @@ export default function SignupPage() {
                   />
                 </div>
                 <p className="signup-pay-note">כתובת למשלוח</p>
-                <div className="field signup-span">
-                  <label htmlFor="s-street">רחוב</label>
-                  <input
-                    id="s-street"
-                    required
-                    placeholder="שם הרחוב"
-                    value={form.street}
-                    onChange={(e) => setField('street', e.target.value)}
+                <div className="signup-span">
+                  <AddressField
+                    street={form.street}
+                    city={form.city}
+                    chosen={form.addressChosen}
+                    onPick={({ street, city }) => {
+                      setForm((prev) => ({ ...prev, street, city, addressChosen: true }));
+                    }}
+                    onClear={() => {
+                      setForm((prev) => (
+                        prev.addressChosen || prev.street || prev.city
+                          ? { ...prev, street: '', city: '', addressChosen: false }
+                          : prev
+                      ));
+                    }}
                   />
                 </div>
                 <div className="field">
@@ -527,15 +527,6 @@ export default function SignupPage() {
                     id="s-apt"
                     value={form.apt}
                     onChange={(e) => setField('apt', e.target.value)}
-                  />
-                </div>
-                <div className="field">
-                  <label htmlFor="s-city">עיר</label>
-                  <input
-                    id="s-city"
-                    required
-                    value={form.city}
-                    onChange={(e) => setField('city', e.target.value)}
                   />
                 </div>
                 <div className="field">
@@ -618,7 +609,7 @@ export default function SignupPage() {
             {step === STEP.plan && (
               <>
                 <p className="signup-pay-note">
-                  {arrivedWithPlan
+                  {form.plan
                     ? 'זה המסלול שבחרת. אם התחרטת, אפשר לבחור מסלול אחר.'
                     : 'בחרי את המסלול שהכי מתאים לך. אפשר לשנות אחר כך.'}
                 </p>

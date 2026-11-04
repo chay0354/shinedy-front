@@ -1,11 +1,19 @@
 import { Link } from 'react-router-dom';
 import { IconDiamond, IconInfinity, IconUser } from '../../components/icons';
 import BrandMark from '../../components/BrandMark';
+import HeroArt from '../../components/HeroArt';
 
 export default function AboutPage() {
   return (
     <section className="section about-page">
       <div className="container">
+        <div className="about-hero-art">
+          <HeroArt
+            poster="/hero/look.jpg"
+            showKicker={false}
+            label="דוגמנית עונדת שרשרת יוקרתית"
+          />
+        </div>
         <BrandMark />
         <div className="prose about-prose">
           <p>

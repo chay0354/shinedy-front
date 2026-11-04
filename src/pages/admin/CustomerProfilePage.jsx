@@ -9,6 +9,26 @@ import Art from '../../components/Art.jsx'
 const DAY = 86400000
 const daysBetween = (a, b) => Math.max(0, Math.round(((b ? new Date(b) : new Date()) - new Date(a)) / DAY))
 
+const MONTHS = ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני', 'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר']
+
+function birthLabel(user) {
+  const iso = user?.address?.birthDate
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(iso || '')) {
+    return user?.idDocumentUploaded ? 'עדיין לא זוהה מצילום תעודת הזהות' : 'אין צילום תעודת זהות'
+  }
+  const [year, month, day] = iso.split('-')
+  return `${Number(day)}.${Number(month)}.${year}`
+}
+
+function birthdaySmsLabel(user) {
+  const iso = user?.address?.birthDate
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(iso || '')) return 'תישלח אחרי שתאריך הלידה יזוהה'
+  const yearSent = Number(user.address?.birthdaySmsYear)
+  const nowYear = Number(new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Jerusalem', year: 'numeric' }).format(new Date()))
+  if (yearSent === nowYear) return `נשלחה ב-${yearSent}`
+  return `תישלח בתחילת ${MONTHS[Number(iso.slice(5, 7)) - 1]}`
+}
+
 const TABS = [
   { id: 'rentals', label: 'היסטוריית השכרות' },
   { id: 'purchases', label: 'רכישות' },
@@ -424,6 +444,14 @@ export default function CustomerProfile() {
               </div>
               <div><span className="il">חתימה אלקטרונית</span><b>{u.signatureCompleted ? 'הושלמה' : 'חסרה'}</b></div>
               <div><span className="il">אישור תקנון ומדיניות</span><b>{u.termsAcceptedAt ? heDate(u.termsAcceptedAt) : '—'}</b></div>
+              <div>
+                <span className="il">תאריך לידה</span>
+                <b>{birthLabel(u)}</b>
+              </div>
+              <div>
+                <span className="il">הודעת יום הולדת</span>
+                <b>{birthdaySmsLabel(u)}</b>
+              </div>
             </div>
           </div>
           <div style={{ marginTop: 18, display: 'flex', gap: 10, flexWrap: 'wrap' }}>

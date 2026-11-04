@@ -58,6 +58,9 @@ export const api = {
     request('/auth/register', { method: 'POST', body: JSON.stringify(payload) }),
   checkSignup: (payload) =>
     request('/auth/check-signup', { method: 'POST', body: JSON.stringify(payload) }),
+  suggestCities: (q) => request(`/addresses/cities?q=${encodeURIComponent(q)}`),
+  suggestStreets: (city, q) =>
+    request(`/addresses/streets?city=${encodeURIComponent(city)}&q=${encodeURIComponent(q)}`),
   login: (payload) =>
     request('/auth/login', {
       method: 'POST',

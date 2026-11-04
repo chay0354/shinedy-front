@@ -25,7 +25,8 @@ export default function Customers() {
   const [listCount, setListCount] = useState(null)
   const plans = publicCatalogPlans(db.plans)
   const active = db.users.filter((u) => isActiveSubscriber(u)).length
-  const localOptIn = db.users.filter((u) => u.marketingOptIn && u.email).length
+  const mailing = db.users.filter((u) => u.marketingOptIn)
+  const localOptIn = mailing.filter((u) => u.email).length
   const term = q.trim().toLowerCase()
   const list = term
     ? db.users.filter((u) => [u.name, u.phone, u.email].some((v) => (v || '').toLowerCase().includes(term)))
@@ -114,8 +115,44 @@ export default function Customers() {
         </div>
       </div>
       <p className="admin-sub">
-        {db.users.length} חשבונות · {active} מנויות פעילות. לחיצה על השם פותחת את התיק המלא.
+        {db.users.length} חשבונות · {active} מנויות פעילות · {localOptIn} ברשימת התפוצה. לחיצה על השם פותחת את התיק המלא.
       </p>
+
+      <div className="admin-section" style={{ marginTop: 0 }}>
+        <h2>רשימת תפוצה ודיוור</h2>
+        <p className="admin-sub">
+          {localOptIn === 0
+            ? 'אין כרגע לקוחות שאישרו דיוור ויש להן אימייל.'
+            : `${localOptIn} לקוחות שאישרו דיוור שיווקי ויש להן אימייל. אליהן נשלחת ההודעה.`}
+        </p>
+        <div className="table-wrap">
+          <table className="admin-table cust-table">
+            <thead>
+              <tr>
+                <th>לקוחה</th>
+                <th>טלפון</th>
+                <th>אימייל</th>
+                <th>הצטרפה</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {mailing.length === 0 && (
+                <tr><td colSpan="5" style={{ color: 'var(--muted)' }}>אף לקוחה לא אישרה דיוור</td></tr>
+              )}
+              {mailing.map((u) => (
+                <tr key={u.id}>
+                  <td><AdminUserCell db={db} user={u} details={false} /></td>
+                  <td dir="ltr">{u.phone || '—'}</td>
+                  <td dir="ltr">{u.email || <span className="pill warn">אין אימייל</span>}</td>
+                  <td>{u.joined || heDate(u.joinedAt)}</td>
+                  <td><Link className="btn-mini" to={`/admin/customers/${u.id}`}>תיק</Link></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
 
       {msg && <p className="msg-ok">{msg}</p>}
       {err && <p className="form-err">{err}</p>}
