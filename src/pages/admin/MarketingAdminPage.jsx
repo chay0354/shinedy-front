@@ -108,42 +108,61 @@ export default function MarketingAdminPage() {
   }
 
   const smsLength = mail.body.trim().length + SMS_LINK_CHARS
+  const smsParts = Math.max(1, Math.ceil(smsLength / 67))
 
   return (
     <>
       <div className="admin-head-row">
         <h1>ניהול דיוור</h1>
       </div>
-      <p className="admin-sub">
-        {data
-          ? `${subscribed.length} לקוחות ברשימת הדיוור · ${withEmail} עם אימייל · ${withPhone} עם טלפון · ${unsubscribed.length} הסירו את עצמן.`
-          : 'טוען…'}
-      </p>
+
+      <div className="account-grid">
+        <div className="stat-card">
+          <div className="label">ברשימת הדיוור</div>
+          <div className="value">{data ? subscribed.length : '—'}</div>
+          <div className="hint">אישרו דיוור ולא הסירו את עצמן</div>
+        </div>
+        <div className="stat-card">
+          <div className="label">מקבלות מייל</div>
+          <div className="value">{data ? withEmail : '—'}</div>
+          <div className="hint">יש להן כתובת אימייל</div>
+        </div>
+        <div className="stat-card">
+          <div className="label">מקבלות SMS</div>
+          <div className="value">{data ? withPhone : '—'}</div>
+          <div className="hint">יש להן מספר טלפון</div>
+        </div>
+        <div className="stat-card">
+          <div className="label">הוסרו מהדיוור</div>
+          <div className="value">{data ? unsubscribed.length : '—'}</div>
+          <div className="hint">אפשר להחזיר רק לפי בקשתן</div>
+        </div>
+      </div>
       {loadErr && <p className="form-err">{loadErr}</p>}
 
-      <div className="admin-section" style={{ marginTop: 0 }}>
-        <h2>שליחת הודעה</h2>
-        <form className="admin-form" onSubmit={send}>
-          <div className="field">
-            <label>לשלוח ב</label>
-            <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap' }}>
-              <label className="check-row" style={{ margin: 0 }}>
-                <input
-                  type="checkbox"
-                  checked={mail.email}
-                  onChange={(e) => setMail((m) => ({ ...m, email: e.target.checked }))}
-                />
-                <span>מייל ({withEmail})</span>
-              </label>
-              <label className="check-row" style={{ margin: 0 }}>
-                <input
-                  type="checkbox"
-                  checked={mail.sms}
-                  onChange={(e) => setMail((m) => ({ ...m, sms: e.target.checked }))}
-                />
-                <span>SMS ({withPhone})</span>
-              </label>
-            </div>
+      <div className="mk-layout">
+        <form className="mk-card" onSubmit={send}>
+          <h2>שליחת הודעה</h2>
+          <p className="admin-sub">לכל הודעה מתווסף אוטומטית קישור אישי להסרה מהרשימה.</p>
+          <div className="mk-channels">
+            <button
+              type="button"
+              className={`mk-channel${mail.email ? ' on' : ''}`}
+              aria-pressed={mail.email}
+              onClick={() => setMail((m) => ({ ...m, email: !m.email }))}
+            >
+              <b>מייל</b>
+              <span>{withEmail} נמענות</span>
+            </button>
+            <button
+              type="button"
+              className={`mk-channel${mail.sms ? ' on' : ''}`}
+              aria-pressed={mail.sms}
+              onClick={() => setMail((m) => ({ ...m, sms: !m.sms }))}
+            >
+              <b>SMS</b>
+              <span>{withPhone} נמענות</span>
+            </button>
           </div>
           {mail.email && (
             <div className="field">
@@ -167,42 +186,40 @@ export default function MarketingAdminPage() {
               onChange={(e) => setMail((m) => ({ ...m, body: e.target.value }))}
               placeholder="כתבי כאן את העדכון…"
             />
-            <span className="cell-sub">
-              לכל הודעה מתווסף אוטומטית קישור אישי להסרה מהרשימה.
-              {mail.sms ? ` אורך ה-SMS כולל הקישור: כ-${smsLength} תווים (${Math.max(1, Math.ceil(smsLength / 67))} הודעות).` : ''}
-            </span>
           </div>
           {err && <p className="form-err">{err}</p>}
           {msg && <p className="msg-ok">{msg}</p>}
-          <div className="form-actions">
+          <div className="mk-foot">
+            <span className="cell-sub">
+              {mail.sms
+                ? `כ-${smsLength} תווים ב-SMS, כולל קישור ההסרה · ${smsParts} ${smsParts === 1 ? 'הודעה' : 'הודעות'}`
+                : 'ההודעה תישלח רק בערוצים שנבחרו'}
+            </span>
             <button className="btn btn-sm" disabled={busy || subscribed.length === 0}>
               {busy ? 'שולחת…' : 'שליחה לרשימה'}
             </button>
           </div>
         </form>
-      </div>
 
-      <div className="admin-section">
-        <h2>הודעת יום הולדת</h2>
-        <p className="admin-sub">
-          נשלחת ב-SMS בתחילת חודש יום ההולדת, רק ללקוחות שברשימת הדיוור. קישור ההסרה מתווסף אוטומטית.
-        </p>
-        <form className="admin-form" onSubmit={saveBirthday}>
+        <form className="mk-card" onSubmit={saveBirthday}>
+          <h2>הודעת יום הולדת</h2>
+          <p className="admin-sub">
+            נשלחת ב-SMS בתחילת חודש יום ההולדת, רק למי שברשימה. קישור ההסרה מתווסף לבד.
+          </p>
           <div className="field">
             <label htmlFor="mk-birthday">נוסח ההודעה</label>
             <textarea
               id="mk-birthday"
-              rows={4}
+              rows={8}
               value={birthday}
               onChange={(e) => setBirthday(e.target.value)}
             />
           </div>
-          {birthdayMsg && <p className="cell-sub">{birthdayMsg}</p>}
-          <div className="form-actions" style={{ gap: 10 }}>
-            <button className="btn btn-sm" disabled={birthdayBusy}>
-              {birthdayBusy ? 'שומרת…' : 'שמירת ההודעה'}
-            </button>
-            {data?.birthdayDefault && birthday !== data.birthdayDefault && (
+          {birthdayMsg && (
+            <p className={birthdayMsg.startsWith('ההודעה נשמרה') ? 'msg-ok' : 'form-err'}>{birthdayMsg}</p>
+          )}
+          <div className="mk-foot">
+            {data?.birthdayDefault && birthday !== data.birthdayDefault ? (
               <button
                 type="button"
                 className="btn btn-sm btn-outline"
@@ -210,12 +227,15 @@ export default function MarketingAdminPage() {
               >
                 חזרה לנוסח המקורי
               </button>
-            )}
+            ) : <span />}
+            <button className="btn btn-sm" disabled={birthdayBusy || !birthday.trim()}>
+              {birthdayBusy ? 'שומרת…' : 'שמירת ההודעה'}
+            </button>
           </div>
         </form>
       </div>
 
-      <div className="admin-section">
+      <div className="mk-list">
         <h2>ברשימת הדיוור</h2>
         <div className="table-wrap">
           <table className="admin-table cust-table">
@@ -256,7 +276,7 @@ export default function MarketingAdminPage() {
       </div>
 
       {unsubscribed.length > 0 && (
-        <div className="admin-section">
+        <div className="mk-list">
           <h2>הוסרו מהדיוור</h2>
           <div className="table-wrap">
             <table className="admin-table cust-table">

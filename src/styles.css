@@ -1652,6 +1652,30 @@ html:not([data-theme]) .hb-rule {
 /* ===== admin ===== */
 .admin-section { margin-top: 44px; }
 .admin-section h2 { font-size: 1.3rem; margin-bottom: 14px; font-weight: 500; }
+
+.mk-layout { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(280px, 1fr); gap: 18px; align-items: start; }
+.mk-card { background: #fff; border: 1px solid var(--line); padding: 22px 24px; }
+.mk-card h2 { font-size: 1.15rem; font-weight: 600; margin: 0 0 6px; }
+.mk-card .admin-sub { margin: 0 0 16px; }
+.mk-channels { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+.mk-channel {
+  border: 1px solid var(--line); background: #fff; padding: 12px 14px; cursor: pointer;
+  text-align: start; font-family: inherit; color: var(--ink); transition: border-color 0.15s, background 0.15s;
+}
+.mk-channel b { display: block; font-size: 0.98rem; font-weight: 600; }
+.mk-channel span { display: block; margin-top: 2px; font-size: 0.8rem; color: var(--muted); font-weight: 300; }
+.mk-channel.on { background: var(--ink); border-color: var(--ink); color: #fff; }
+.mk-channel.on span { color: rgba(255, 255, 255, 0.72); }
+.mk-card .field { margin-bottom: 14px; }
+.mk-card textarea { width: 100%; min-height: 150px; resize: vertical; }
+.mk-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: 4px; }
+.mk-foot .cell-sub { margin: 0; }
+.mk-list { margin-top: 28px; }
+.mk-list h2 { font-size: 1.15rem; font-weight: 600; margin: 0 0 12px; }
+@media (max-width: 900px) {
+  .mk-layout { grid-template-columns: 1fr; }
+  .mk-card { padding: 18px 16px; }
+}
 .table-wrap { overflow-x: auto; border: 1px solid var(--line); }
 .admin-table { width: 100%; border-collapse: collapse; background: #fff; font-size: 0.92rem; }
 .admin-table th {
