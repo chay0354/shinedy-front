@@ -36,6 +36,8 @@ import AdminReportsPage from './pages/admin/AdminReportsPage';
 import ExpensesAdminPage from './pages/admin/ExpensesAdminPage';
 import SettingsAdminPage from './pages/admin/SettingsAdminPage';
 import CustomerProfilePage from './pages/admin/CustomerProfilePage';
+import MarketingAdminPage from './pages/admin/MarketingAdminPage';
+import UnsubscribePage from './pages/site/UnsubscribePage';
 
 export default function App() {
   const { loading, error, setError, state } = useApp();
@@ -79,6 +81,7 @@ export default function App() {
           <Route path="contact" element={<ContactPage />} />
           <Route path="favorites" element={<FavoritesPage />} />
           <Route path="payment/return" element={<PaymentReturnPage />} />
+          <Route path="u/:token" element={<UnsubscribePage />} />
           <Route path="info" element={<Navigate to="/how#faq" replace />} />
           <Route path="box" element={<CartPage />} />
           <Route path="exchange" element={<ExchangePage />} />
@@ -113,6 +116,7 @@ export default function App() {
           <Route path="favorites" element={<AdminFavoritesPage />} />
           <Route path="customers" element={<CustomersPage />} />
           <Route path="customers/:id" element={<CustomerProfilePage />} />
+          <Route path="marketing" element={<MarketingAdminPage />} />
           <Route path="subscriptions" element={<PlansAdminPage />} />
           <Route path="expenses" element={<ExpensesAdminPage />} />
           <Route path="reports" element={<AdminReportsPage />} />

@@ -172,6 +172,9 @@ export function useAdminDb() {
       deleteCustomer(id) {
         return run(() => live.deleteCustomer(id));
       },
+      setCustomerMarketing(id, optIn) {
+        return run(() => live.setCustomerMarketing(id, optIn));
+      },
     }),
     [local, run, refresh, state],
   );

@@ -7,6 +7,7 @@ export const ADMIN_NAV = [
   { path: '/admin/inventory', label: 'ניהול מלאי' },
   { path: '/admin/rentals', label: 'ניהול השכירות' },
   { path: '/admin/customers', label: 'ניהול לקוחות' },
+  { path: '/admin/marketing', label: 'ניהול דיוור' },
   {
     label: 'ניהול עסק',
     children: [

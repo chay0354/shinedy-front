@@ -274,6 +274,7 @@ function mapUser(c, i, plans, patch) {
     termsAcceptedAt: c.termsAcceptedAt || null,
     noticesAcceptedAt: c.noticesAcceptedAt || null,
     marketingOptIn: Boolean(c.marketingOptIn ?? c.noticesAcceptedAt),
+    marketingOptOutAt: c.marketingOptOutAt || null,
   };
   return { ...base, ...(patch || {}) };
 }

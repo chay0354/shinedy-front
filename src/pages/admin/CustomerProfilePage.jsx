@@ -452,6 +452,16 @@ export default function CustomerProfile() {
                 <span className="il">הודעת יום הולדת</span>
                 <b>{birthdaySmsLabel(u)}</b>
               </div>
+              <div>
+                <span className="il">דיוור שיווקי</span>
+                <b>
+                  {u.marketingOptIn
+                    ? 'רשומה'
+                    : u.marketingOptOutAt
+                      ? `הוסרה ${heDate(u.marketingOptOutAt)}`
+                      : 'לא אישרה דיוור'}
+                </b>
+              </div>
             </div>
           </div>
           <div style={{ marginTop: 18, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
@@ -464,6 +474,12 @@ export default function CustomerProfile() {
             {!u.canceledAt
               ? <button className="btn-mini" onClick={() => { if (confirm(`לבטל את המנוי של ${u.name}? התכשיטים שאצלה ייאספו.`)) subscriptionAction(() => api.cancelSubscription(u.id), 'המנוי בוטל ✓') }}>ביטול מנוי</button>
               : <button className="btn-mini" onClick={() => subscriptionAction(() => api.reactivateSubscription(u.id, u.lastPlanId || u.plan), 'המנוי חודש ✓')}>חידוש מנוי</button>}
+            {u.marketingOptIn && (
+              <button className="btn-mini" onClick={() => { if (confirm(`להסיר את ${u.name} מרשימת הדיוור? לא יישלחו אליה יותר מבצעים והודעת יום הולדת.`)) subscriptionAction(() => api.setCustomerMarketing(u.id, false), 'הוסרה מהדיוור ✓') }}>ביטול דיוור</button>
+            )}
+            {!u.marketingOptIn && u.marketingOptOutAt && (
+              <button className="btn-mini" onClick={() => { if (confirm('להחזיר לדיוור רק אם הלקוחה ביקשה זאת. להמשיך?')) subscriptionAction(() => api.setCustomerMarketing(u.id, true), 'הוחזרה לדיוור ✓') }}>החזרה לדיוור</button>
+            )}
           </div>
         </div>
       )}

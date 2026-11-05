@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api as liveApi } from '../../api.js'
 import { publicCatalogPlans } from '../../lib/plans.js'
@@ -7,7 +7,6 @@ import { useApp } from '../../state/AppContext'
 import AdminUserCell from '../../components/AdminUserCell.jsx'
 
 const EMPTY = { name: '', phone: '', email: '', planId: 'silver', password: '' }
-const MAIL_EMPTY = { subject: '', body: '' }
 
 export default function Customers() {
   const { db } = useAdminDb()
@@ -18,35 +17,12 @@ export default function Customers() {
   const [busy, setBusy] = useState(false)
   const [msg, setMsg] = useState('')
   const [err, setErr] = useState('')
-  const [mailOpen, setMailOpen] = useState(false)
-  const [mail, setMail] = useState(MAIL_EMPTY)
-  const [mailBusy, setMailBusy] = useState(false)
-  const [mailErr, setMailErr] = useState('')
-  const [listCount, setListCount] = useState(null)
   const plans = publicCatalogPlans(db.plans)
   const active = db.users.filter((u) => isActiveSubscriber(u)).length
-  const mailing = db.users.filter((u) => u.marketingOptIn)
-  const localOptIn = mailing.filter((u) => u.email).length
   const term = q.trim().toLowerCase()
   const list = term
     ? db.users.filter((u) => [u.name, u.phone, u.email].some((v) => (v || '').toLowerCase().includes(term)))
     : db.users
-
-  useEffect(() => {
-    if (!mailOpen) return undefined
-    let cancelled = false
-    liveApi
-      .marketingRecipientCount()
-      .then((data) => {
-        if (!cancelled) setListCount(typeof data?.count === 'number' ? data.count : localOptIn)
-      })
-      .catch(() => {
-        if (!cancelled) setListCount(localOptIn)
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [mailOpen, localOptIn])
 
   function setField(key, value) {
     setForm((prev) => ({ ...prev, [key]: value }))
@@ -68,91 +44,19 @@ export default function Customers() {
     setOpen(false)
   }
 
-  async function sendBroadcast(e) {
-    e.preventDefault()
-    setMailErr('')
-    setMsg('')
-    setMailBusy(true)
-    try {
-      const data = await liveApi.broadcastMarketing(mail)
-      const sent = data?.sent ?? 0
-      const failed = data?.failed ?? 0
-      const total = data?.recipients ?? 0
-      if (total === 0) {
-        setMailErr('אין נמענות ברשימת הדיוור (לקוחות שאישרו דיוור שיווקי).')
-      } else {
-        setMsg(`נשלח ל-${sent} מתוך ${total}${failed ? ` · ${failed} נכשלו` : ''}`)
-        setMail(MAIL_EMPTY)
-        setMailOpen(false)
-      }
-    } catch (e) {
-      setMailErr(e.message || 'שליחת הדיוור נכשלה')
-    } finally {
-      setMailBusy(false)
-    }
-  }
-
   return (
     <>
       <div className="admin-head-row">
         <h1>ניהול לקוחות</h1>
         <div className="admin-head-actions">
-          <button
-            type="button"
-            className="btn btn-sm btn-outline"
-            onClick={() => {
-              setMailOpen(true)
-              setMailErr('')
-              setErr('')
-              setMsg('')
-            }}
-          >
-            שליחת הודעה לרשימת התפוצה
-          </button>
           <button type="button" className="btn btn-sm" onClick={() => { setOpen((v) => !v); setErr(''); setMsg('') }}>
             {open ? 'סגירה' : 'הוספת לקוחה'}
           </button>
         </div>
       </div>
       <p className="admin-sub">
-        {db.users.length} חשבונות · {active} מנויות פעילות · {localOptIn} ברשימת התפוצה. לחיצה על השם פותחת את התיק המלא.
+        {db.users.length} חשבונות · {active} מנויות פעילות. לחיצה על השם פותחת את התיק המלא.
       </p>
-
-      <div className="admin-section" style={{ marginTop: 0 }}>
-        <h2>רשימת תפוצה ודיוור</h2>
-        <p className="admin-sub">
-          {localOptIn === 0
-            ? 'אין כרגע לקוחות שאישרו דיוור ויש להן אימייל.'
-            : `${localOptIn} לקוחות שאישרו דיוור שיווקי ויש להן אימייל. אליהן נשלחת ההודעה.`}
-        </p>
-        <div className="table-wrap">
-          <table className="admin-table cust-table">
-            <thead>
-              <tr>
-                <th>לקוחה</th>
-                <th>טלפון</th>
-                <th>אימייל</th>
-                <th>הצטרפה</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {mailing.length === 0 && (
-                <tr><td colSpan="5" style={{ color: 'var(--muted)' }}>אף לקוחה לא אישרה דיוור</td></tr>
-              )}
-              {mailing.map((u) => (
-                <tr key={u.id}>
-                  <td><AdminUserCell db={db} user={u} details={false} /></td>
-                  <td dir="ltr">{u.phone || '—'}</td>
-                  <td dir="ltr">{u.email || <span className="pill warn">אין אימייל</span>}</td>
-                  <td>{u.joined || heDate(u.joinedAt)}</td>
-                  <td><Link className="btn-mini" to={`/admin/customers/${u.id}`}>תיק</Link></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
 
       {msg && <p className="msg-ok">{msg}</p>}
       {err && <p className="form-err">{err}</p>}
@@ -187,59 +91,6 @@ export default function Customers() {
             <button className="btn btn-sm" disabled={busy}>{busy ? 'שומרת…' : 'שמירת לקוחה'}</button>
           </div>
         </form>
-      )}
-
-      {mailOpen && (
-        <div className="modal-overlay" role="presentation" onClick={() => !mailBusy && setMailOpen(false)}>
-          <div
-            className="modal-card"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="mail-title"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button type="button" className="modal-x" aria-label="סגירה" onClick={() => !mailBusy && setMailOpen(false)}>
-              ×
-            </button>
-            <h2 id="mail-title">שליחת הודעה לרשימת התפוצה</h2>
-            <p className="modal-sub">
-              המייל יישלח רק ללקוחות שאישרו דיוור שיווקי
-              {listCount != null ? ` · ${listCount} נמענות` : ''}.
-            </p>
-            <form onSubmit={sendBroadcast}>
-              <div className="field">
-                <label htmlFor="mail-subject">נושא</label>
-                <input
-                  id="mail-subject"
-                  required
-                  value={mail.subject}
-                  onChange={(e) => setMail((m) => ({ ...m, subject: e.target.value }))}
-                  placeholder="למשל: קולקציה חדשה ב-Shinedy"
-                />
-              </div>
-              <div className="field">
-                <label htmlFor="mail-body">תוכן ההודעה</label>
-                <textarea
-                  id="mail-body"
-                  required
-                  rows={8}
-                  value={mail.body}
-                  onChange={(e) => setMail((m) => ({ ...m, body: e.target.value }))}
-                  placeholder="כתבי כאן את העדכון…"
-                />
-              </div>
-              {mailErr && <p className="form-err">{mailErr}</p>}
-              <div className="form-actions" style={{ marginTop: 16, gap: 10 }}>
-                <button type="submit" className="btn btn-sm" disabled={mailBusy || listCount === 0}>
-                  {mailBusy ? 'שולחת…' : 'שליחה לרשימה'}
-                </button>
-                <button type="button" className="btn btn-sm btn-outline" disabled={mailBusy} onClick={() => setMailOpen(false)}>
-                  ביטול
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
       )}
 
       <div className="admin-section">

@@ -185,8 +185,18 @@ export const api = {
   createCustomer: (payload) =>
     request('/admin/customers', { method: 'POST', body: JSON.stringify(payload) }),
   marketingRecipientCount: () => request('/admin/marketing/recipients'),
+  marketingOverview: () => request('/admin/marketing'),
   broadcastMarketing: (payload) =>
     request('/admin/marketing/broadcast', { method: 'POST', body: JSON.stringify(payload) }),
+  saveBirthdayText: (text) =>
+    request('/admin/marketing/birthday', { method: 'PUT', body: JSON.stringify({ text }) }),
+  setCustomerMarketing: (id, optIn) =>
+    request(`/admin/customers/${encodeURIComponent(id)}/marketing`, {
+      method: 'POST',
+      body: JSON.stringify({ optIn }),
+    }),
+  unsubscribe: (token) =>
+    request('/unsubscribe', { method: 'POST', body: JSON.stringify({ token }) }),
   deleteCustomer: (id) =>
     request(`/admin/customers/${encodeURIComponent(id)}`, { method: 'DELETE' }),
   updateMembershipTerms: (terms) =>
