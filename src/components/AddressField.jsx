@@ -197,7 +197,7 @@ export default function AddressField({ street, city, chosen, onPick, onClear }) 
       <Combo
         id="s-street"
         label="רחוב"
-        placeholder={cityChosen ? 'הקלידי ובחרי רחוב מהרשימה' : 'קודם בוחרים יישוב'}
+        placeholder="הקלידי ובחרי רחוב מהרשימה"
         value={streetText}
         chosen={streetChosen}
         disabled={!cityChosen}

@@ -1,3 +1,4 @@
+import { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Art from './Art';
 import { IconHeart } from './icons';
@@ -24,6 +25,10 @@ function wornPhoto(product) {
 export default function ProductCard({ product, products = [], showRelated = false }) {
   const { has, toggle } = useFavorites();
   const liked = has(product.id);
+  const worn = wornPhoto(product);
+  const slidesRef = useRef(null);
+  const scrollStart = useRef(0);
+  const [slide, setSlide] = useState(0);
   const options = showRelated
     ? products.filter((x) => x.id !== product.id && x.category === product.category).slice(0, 4)
     : [];
@@ -32,6 +37,38 @@ export default function ProductCard({ product, products = [], showRelated = fals
     <article className="product-card">
       <Link to={`/catalog/${product.id}`}>
         <div className="art">
+          <div
+            className="art-slides"
+            ref={slidesRef}
+            onTouchStart={() => {
+              scrollStart.current = slidesRef.current?.scrollLeft || 0;
+            }}
+            onScroll={(e) => {
+              const el = e.currentTarget;
+              const next = Math.round(el.scrollLeft / Math.max(el.clientWidth, 1));
+              setSlide(next);
+            }}
+            onClick={(e) => {
+              if (Math.abs((slidesRef.current?.scrollLeft || 0) - scrollStart.current) > 6) {
+                e.preventDefault();
+                e.stopPropagation();
+              }
+            }}
+          >
+            <div className="art-slide">
+              <Art product={product} />
+            </div>
+            {worn ? (
+              <div className="art-slide">
+                <img className="art-worn" src={worn} alt="" />
+              </div>
+            ) : null}
+          </div>
+          {worn ? (
+            <div className="art-bar" aria-hidden="true">
+              <span style={{ transform: `translateX(${slide * 100}%)` }} />
+            </div>
+          ) : null}
           <button
             type="button"
             className={`fav-btn${liked ? ' on' : ''}`}
@@ -45,10 +82,6 @@ export default function ProductCard({ product, products = [], showRelated = fals
           >
             <IconHeart size={18} filled={liked} />
           </button>
-          <Art product={product} />
-          {wornPhoto(product) ? (
-            <img className="art-worn" src={wornPhoto(product)} alt="" />
-          ) : null}
         </div>
         <div className="info">
           <div className="name">{product.name}</div>

@@ -61,8 +61,7 @@ export default function VerifyPhonePage() {
         <div className="form-card">
           <h1>אימות טלפון</h1>
           <p className="sub">
-            שלחנו קוד ב-SMS אל {phone || 'המספר שלך'} מהשולח Shinedy. אם הוא לא בתיבה הראשית, בדקי גם
-            הודעות ממספרים לא מוכרים.
+            שלחנו קוד ב-SMS אל {phone || 'המספר שלך'}.
           </p>
           <form onSubmit={handleSubmit}>
             <div className="field">

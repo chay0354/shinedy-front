@@ -435,7 +435,7 @@ button { font-family: inherit; cursor: pointer; }
   background: none; color: var(--ink);
   display: grid; place-items: center; cursor: pointer;
 }
-.fav-btn.on { color: var(--danger); }
+.fav-btn.on { color: var(--ink); }
 .fav-btn.inline { position: static; box-shadow: none; background: var(--cream); }
 .product-title-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
 .product-options { padding: 12px 6px 2px; text-align: center; }
@@ -2028,7 +2028,6 @@ html:not([data-theme]) .hb-rule {
     background: var(--bg);
   }
   .product-card,
-  .plan-card,
   .credit-card,
   .faq-list details {
     content-visibility: auto;
@@ -2258,7 +2257,7 @@ html:not([data-theme]) .hb-rule {
   .product-card .meta { font-size: 12px; }
   .product-card .row { justify-content: flex-start; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
   .points-badge, .price-tag { font-size: 11px; color: var(--gold-dark); font-weight: 400; }
-  .plans-grid { grid-template-columns: 1fr; gap: 14px; overflow-x: visible; }
+  .plans-grid { grid-template-columns: 1fr; gap: 22px; overflow-x: visible; padding-top: 8px; }
   .home .hero-band { min-height: calc(100svh - 168px); justify-content: flex-end; }
   .home .hero-band .hb-text { padding: 0 20px 18px; width: 100%; }
   .home .hero-band .hb-cluster { width: 100%; align-items: flex-start; }
@@ -2522,7 +2521,7 @@ html:not([data-theme]) .hb-rule {
   min-height: 20px; line-height: 20px;
 }
 .signup-plan-grid .plan-card .flag.is-empty { visibility: hidden; }
-.signup-plan-grid .plan-card .flag.is-popular { background: var(--gold-dark); color: #fff; }
+.signup-plan-grid .plan-card .flag.is-popular { background: var(--ink); color: #fff; }
 .signup-plan-grid .plan-card .flag.is-yours { background: var(--ink); color: var(--bg); }
 .signup-plan-grid .plan-card .signup-plan-copy { min-width: 0; }
 .signup-plan-grid .plan-card .plan-name { font-size: 0.82rem; letter-spacing: 0.12em; }
@@ -2614,6 +2613,9 @@ html:not([data-theme]) .hb-rule {
       transform 0.9s cubic-bezier(0.22, 1, 0.36, 1) var(--reveal-delay, 0ms);
   }
 }
+.product-card .art-slides { position: absolute; inset: 0; }
+.product-card .art-slide { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+.product-card .art-bar { display: none; }
 .product-card .art .art-worn {
   position: absolute !important;
   inset: 0;
@@ -2624,6 +2626,46 @@ html:not([data-theme]) .hb-rule {
   transform: none !important;
   pointer-events: none;
   z-index: 1;
+}
+@media (max-width: 720px) {
+  .product-card .art-slides {
+    display: flex;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    direction: ltr;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+  .product-card .art-slides::-webkit-scrollbar { display: none; }
+  .product-card .art-slide {
+    position: relative;
+    inset: auto;
+    flex: 0 0 100%;
+    width: 100%;
+    height: 100%;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
+  .product-card .art .art-worn { opacity: 1; }
+  .product-card .art-bar {
+    display: block;
+    position: absolute;
+    z-index: 3;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 2px;
+    background: rgba(255, 255, 255, 0.72);
+    pointer-events: none;
+  }
+  .product-card .art-bar span {
+    display: block;
+    width: 50%;
+    height: 100%;
+    background: var(--ink);
+  }
 }
 @media (hover: hover) and (pointer: fine) {
   .product-card:hover .art .art-worn {

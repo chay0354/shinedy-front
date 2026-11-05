@@ -572,8 +572,7 @@ export default function SignupPage() {
             {step === STEP.phone && (
               <>
                 <p className="signup-pay-note">
-                  קוד בן 6 ספרות נשלח ב-SMS אל {toLocalIl(form.phone) || 'המספר שלך'} מהשולח Shinedy.
-                  אם הוא לא בתיבה הראשית, בדקי גם הודעות ממספרים לא מוכרים.
+                  קוד בן 6 ספרות נשלח ב-SMS אל {toLocalIl(form.phone) || 'המספר שלך'}.
                 </p>
                 <div className="field">
                   <label htmlFor="s-phone-code">קוד אימות</label>
