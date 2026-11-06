@@ -4,7 +4,6 @@ import { api } from '../../api';
 import { useApp } from '../../state/AppContext';
 import { applySessionFromResponse } from '../../lib/auth';
 import { planRequiresSignupSignature, planShowcase, publicCatalogPlans, subscribePlanId } from '../../lib/plans';
-import { nextAfterAuth } from '../../lib/verify';
 import { isIsraeliMobile, toLocalIl } from '../../lib/phone';
 import { getToken } from '../../lib/auth';
 import { homePathForRole } from '../../lib/roles';
@@ -93,6 +92,7 @@ export default function SignupPage() {
   const [registered, setRegistered] = useState(false);
   const [payUrl, setPayUrl] = useState('');
   const sentFor = useRef({ phone: '' });
+  const registeredRef = useRef(false);
   const [params] = useSearchParams();
   const intendedPlan = location.state?.plan || params.get('plan');
   const arrivedWithPlan = Boolean(intendedPlan);
@@ -302,7 +302,7 @@ export default function SignupPage() {
       return;
     }
     await refresh();
-    navigate('/catalog');
+    navigate('/');
   }
 
   async function registerAndPay() {
@@ -385,20 +385,19 @@ export default function SignupPage() {
         phoneProof: proof,
       });
       created = true;
+      registeredRef.current = true;
       setRegistered(true);
       setField('idDocument', '');
       setField('signature', '');
       applySessionFromResponse(data);
-      if (nextAfterAuth(data, navigate, { email: form.email.trim(), phone: toLocalIl(form.phone) })) {
-        await refresh();
+      sessionStorage.setItem('shinedy_after_signup', '1');
+      const mustPay = paymentsRequired === true && !data?.subscribed && !data?.paymentCompleted;
+      if (mustPay) {
+        await openCheckout();
         return;
       }
-      if (paymentsRequired === false || data?.subscribed || data?.paymentCompleted) {
-        await refresh();
-        navigate('/catalog');
-        return;
-      }
-      await openCheckout();
+      navigate('/', { replace: true });
+      await refresh();
     } catch (e) {
       if (created) {
         setError(heError(e.message, 'החשבון נוצר, אבל לא הצלחנו לפתוח את דף התשלום. לחצי שוב על המשך'));
@@ -422,7 +421,12 @@ export default function SignupPage() {
     return label;
   });
 
-  if (getToken() && state?.auth && !registered) {
+  if (sessionStorage.getItem('shinedy_after_signup')) {
+    sessionStorage.removeItem('shinedy_after_signup');
+    return <Navigate to="/" replace />;
+  }
+
+  if (getToken() && state?.auth && !registered && !registeredRef.current) {
     return (
       <Navigate to={homePathForRole(state.auth.role)} replace />
     );

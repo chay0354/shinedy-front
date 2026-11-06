@@ -32,7 +32,8 @@ export default function VerifyEmailPage() {
       await refresh();
       sessionStorage.removeItem('shinedy_verify_email');
       if (nextAfterAuth(data, navigate, { phone: data.registration?.phone || location.state?.phone })) return;
-      navigate(homePathForRole(data.auth?.role), { replace: true });
+      const role = data.auth?.role;
+      navigate(role === 'admin' || role === 'warehouse' ? homePathForRole(role) : '/', { replace: true });
     } catch (err) {
       setError(heError(err.message, 'האימות נכשל'));
     } finally {

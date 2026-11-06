@@ -33,7 +33,8 @@ export default function VerifyPhonePage() {
       applySessionFromResponse(data);
       await refresh();
       sessionStorage.removeItem('shinedy_verify_phone');
-      navigate(homePathForRole(data.auth?.role), { replace: true });
+      const role = data.auth?.role;
+      navigate(role === 'admin' || role === 'warehouse' ? homePathForRole(role) : '/', { replace: true });
     } catch (err) {
       setError(heError(err.message, 'האימות נכשל'));
     } finally {

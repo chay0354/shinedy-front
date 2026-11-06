@@ -4,7 +4,7 @@ import { api } from '../../api.js'
 import { heDate } from '../../lib/useAdminDb.js'
 
 const MAIL_EMPTY = { subject: '', body: '', email: true, sms: false }
-const SMS_LINK_CHARS = 66
+const SMS_OPT_OUT_CHARS = 16
 
 function sentLine(label, part) {
   if (!part) return ''
@@ -107,7 +107,7 @@ export default function MarketingAdminPage() {
     }
   }
 
-  const smsLength = mail.body.trim().length + SMS_LINK_CHARS
+  const smsLength = mail.body.trim().length + (mail.sms ? SMS_OPT_OUT_CHARS : 0)
   const smsParts = Math.max(1, Math.ceil(smsLength / 67))
 
   return (
@@ -143,7 +143,7 @@ export default function MarketingAdminPage() {
       <div className="mk-layout">
         <form className="mk-card" onSubmit={send}>
           <h2>שליחת הודעה</h2>
-          <p className="admin-sub">לכל הודעה מתווסף אוטומטית קישור אישי להסרה מהרשימה.</p>
+          <p className="admin-sub">במייל מתווסף קישור הסרה. ב-SMS הלקוחה משיבה הסר, ויוצאת מהרשימה.</p>
           <div className="mk-channels">
             <button
               type="button"
@@ -192,7 +192,7 @@ export default function MarketingAdminPage() {
           <div className="mk-foot">
             <span className="cell-sub">
               {mail.sms
-                ? `כ-${smsLength} תווים ב-SMS, כולל קישור ההסרה · ${smsParts} ${smsParts === 1 ? 'הודעה' : 'הודעות'}`
+                ? `כ-${smsLength} תווים ב-SMS, כולל "להסרה השיבי הסר" · ${smsParts} ${smsParts === 1 ? 'הודעה' : 'הודעות'}`
                 : 'ההודעה תישלח רק בערוצים שנבחרו'}
             </span>
             <button className="btn btn-sm" disabled={busy || subscribed.length === 0}>
@@ -204,7 +204,7 @@ export default function MarketingAdminPage() {
         <form className="mk-card" onSubmit={saveBirthday}>
           <h2>הודעת יום הולדת</h2>
           <p className="admin-sub">
-            נשלחת ב-SMS בתחילת חודש יום ההולדת, רק למי שברשימה. קישור ההסרה מתווסף לבד.
+            נשלחת ב-SMS בתחילת חודש יום ההולדת, רק למי שברשימה. להסרה משיבים הסר.
           </p>
           <div className="field">
             <label htmlFor="mk-birthday">נוסח ההודעה</label>
