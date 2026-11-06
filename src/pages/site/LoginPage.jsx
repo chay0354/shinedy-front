@@ -31,7 +31,8 @@ export default function LoginPage() {
       const data = await api.login({ email, password });
       await run(async () => data);
       applySessionFromResponse(data);
-      navigate(homePathForRole(data.auth?.role));
+      const role = data.auth?.role;
+      navigate(role === 'admin' || role === 'warehouse' ? homePathForRole(role) : '/', { replace: true });
     } catch (e) {
       setError(heError(e.message, 'פרטי ההתחברות שגויים או שהשרת לא אישר את הכניסה'));
     } finally {
