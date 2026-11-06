@@ -87,6 +87,7 @@ export default function SignupPage() {
   const [info, setInfo] = useState('');
   const [busy, setBusy] = useState(false);
   const [step, setStep] = useState(STEP.details);
+  const [paymentsRequired, setPaymentsRequired] = useState(null);
   const [phoneCode, setPhoneCode] = useState('');
   const [phoneProof, setPhoneProof] = useState('');
   const [registered, setRegistered] = useState(false);
@@ -121,6 +122,20 @@ export default function SignupPage() {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [step]);
+
+  useEffect(() => {
+    let cancelled = false;
+    api.health()
+      .then((health) => {
+        if (!cancelled) setPaymentsRequired(health?.paymentsRequired === true);
+      })
+      .catch(() => {
+        if (!cancelled) setPaymentsRequired(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   function setField(key, value) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -281,7 +296,7 @@ export default function SignupPage() {
       kind: 'subscription',
       planId: subscribePlanId(form.plan, livePlans),
     });
-    if (checkout.url) {
+    if (checkout.url && !checkout.paymentCompleted) {
       setPayUrl(checkout.url);
       setStep(STEP.pay);
       return;
@@ -378,6 +393,11 @@ export default function SignupPage() {
         await refresh();
         return;
       }
+      if (paymentsRequired === false || data?.subscribed || data?.paymentCompleted) {
+        await refresh();
+        navigate('/catalog');
+        return;
+      }
       await openCheckout();
     } catch (e) {
       if (created) {
@@ -419,7 +439,7 @@ export default function SignupPage() {
           </p>
 
           <ol className="signup-steps" aria-label="שלבי הרשמה">
-            {stepLabels.map((label, i) => ({ label, i })).filter((item) => item.i !== STEP.terms).map((item, index) => (
+            {stepLabels.map((label, i) => ({ label, i })).filter((item) => item.i !== STEP.terms && (paymentsRequired === true || item.i !== STEP.pay)).map((item, index) => (
               <li key={item.label} className={item.i === step ? 'on' : item.i < step ? 'done' : ''}>
                 {item.i < step && !registered ? (
                   <button
@@ -782,7 +802,7 @@ export default function SignupPage() {
                 )}
                 {step === STEP.phone ? (
                   <button type="submit" className="btn btn-wide" disabled={busy}>
-                    {busy ? 'רגע…' : 'אימות והמשך לתשלום'}
+                    {busy ? 'רגע…' : paymentsRequired === false ? 'סיום הרשמה' : 'אימות והמשך לתשלום'}
                   </button>
                 ) : (
                   <button type="button" className="btn btn-wide" disabled={busy} onClick={goNext}>

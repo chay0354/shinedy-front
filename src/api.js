@@ -52,6 +52,7 @@ async function request(path, options = {}) {
 }
 
 export const api = {
+  health: () => request('/health'),
   getState: () => request('/state'),
   clearFlash: () => request('/flash/clear', { method: 'POST', body: '{}' }),
   register: (payload) =>
