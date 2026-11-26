@@ -2283,6 +2283,7 @@ html:not([data-theme]) .hb-rule {
   .points-badge, .price-tag { font-size: 11px; color: var(--gold-dark); font-weight: 400; }
   .plans-grid { grid-template-columns: 1fr; gap: 22px; overflow-x: visible; padding-top: 8px; }
   .home .hero-band { min-height: calc(100svh - 168px); justify-content: flex-end; }
+  .home .hero-band .hero-video { object-position: center center; }
   .home .hero-band .hb-text { padding: 0 20px 18px; width: 100%; }
   .home .hero-band .hb-cluster { width: 100%; align-items: flex-start; }
   .home .hero-band .hb-cta { width: auto; align-self: flex-start; }

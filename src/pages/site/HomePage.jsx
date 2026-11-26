@@ -85,6 +85,7 @@ export default function HomePage() {
       <section className="hero-band">
         <HeroArt
           video="/hero/shandy.mp4"
+          mobileVideo="/hero/shandy-v.mp4"
           poster="/hero/look.jpg"
           label="דוגמנית עונדת עגילי זהב"
           showKicker={false}

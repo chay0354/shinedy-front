@@ -36,16 +36,35 @@ export function CyclingKicker({ lines, className = 'hb-kicker hb-kicker-lg' }) {
   );
 }
 
+function useNarrowScreen() {
+  const [narrow, setNarrow] = useState(() => (
+    typeof window !== 'undefined' && window.matchMedia('(max-width: 720px)').matches
+  ));
+
+  useEffect(() => {
+    const query = window.matchMedia('(max-width: 720px)');
+    const update = () => setNarrow(query.matches);
+    update();
+    query.addEventListener('change', update);
+    return () => query.removeEventListener('change', update);
+  }, []);
+
+  return narrow;
+}
+
 export default function HeroArt({
   label = 'דוגמנית עונדת שרשרת יוקרתית',
   video = null,
+  mobileVideo = null,
   poster = null,
   showKicker = true,
   lines = null,
 }) {
   const videoRef = useRef(null);
   const still = usePreferStillMedia();
-  const showVideo = Boolean(video) && !still;
+  const narrow = useNarrowScreen();
+  const activeVideo = narrow && mobileVideo ? mobileVideo : video;
+  const showVideo = Boolean(activeVideo) && (!still || (narrow && Boolean(mobileVideo)));
 
   useEffect(() => {
     const node = videoRef.current;
@@ -58,12 +77,13 @@ export default function HeroArt({
     sync();
     motion.addEventListener('change', sync);
     return () => motion.removeEventListener('change', sync);
-  }, [showVideo]);
+  }, [showVideo, activeVideo]);
 
   return (
     <div className={showVideo ? 'hero-art has-video' : 'hero-art'} role="img" aria-label={label}>
       {showVideo ? (
         <video
+          key={activeVideo}
           ref={videoRef}
           className="hero-video"
           autoPlay
@@ -73,7 +93,7 @@ export default function HeroArt({
           poster={poster || undefined}
           aria-hidden="true"
         >
-          <source src={video} type="video/mp4" />
+          <source src={activeVideo} type="video/mp4" />
         </video>
       ) : poster ? (
         <img className="hero-video" src={poster} alt="" />
