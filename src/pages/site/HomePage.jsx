@@ -84,7 +84,7 @@ export default function HomePage() {
     <div className="home">
       <section className="hero-band">
         <HeroArt
-          video="/hero/look.mp4"
+          video="/hero/shandy.mp4"
           poster="/hero/look.jpg"
           label="דוגמנית עונדת עגילי זהב"
           showKicker={false}
