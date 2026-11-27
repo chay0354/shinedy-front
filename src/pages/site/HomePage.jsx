@@ -44,6 +44,11 @@ export default function HomePage() {
   const trustRef = useRef(null);
   const [trustIn, setTrustIn] = useState(false);
   const stillMedia = usePreferStillMedia();
+  const [narrow, setNarrow] = useState(() => (
+    typeof window !== 'undefined' && window.matchMedia('(max-width: 720px)').matches
+  ));
+  const ctaVideo = narrow ? '/hero/shandy-v.mp4' : '/hero/shandy.mp4';
+  const showCtaVideo = !stillMedia || narrow;
   const loggedIn = Boolean(getToken() && state?.auth);
   const subscribed = hasActivePlan(state);
   const memberHref = subscribed ? '/catalog' : '/account/plans';
@@ -68,6 +73,14 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
+    const query = window.matchMedia('(max-width: 720px)');
+    const update = () => setNarrow(query.matches);
+    update();
+    query.addEventListener('change', update);
+    return () => query.removeEventListener('change', update);
+  }, []);
+
+  useEffect(() => {
     const node = ctaVideoRef.current;
     if (!node) return undefined;
     const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -78,7 +91,7 @@ export default function HomePage() {
     sync();
     motion.addEventListener('change', sync);
     return () => motion.removeEventListener('change', sync);
-  }, []);
+  }, [showCtaVideo, ctaVideo]);
 
   return (
     <div className="home">
@@ -227,9 +240,10 @@ export default function HomePage() {
         </section>
       )}
 
-      <section className={`cta-band${stillMedia ? ' has-still' : ' has-video'}`}>
-        {!stillMedia && (
+      <section className={`cta-band${showCtaVideo ? ' has-video' : ' has-still'}`}>
+        {showCtaVideo && (
         <video
+          key={ctaVideo}
           ref={ctaVideoRef}
           className="cta-video"
           autoPlay
@@ -239,7 +253,7 @@ export default function HomePage() {
           poster="/hero/look.jpg"
           aria-hidden="true"
         >
-          <source src="/hero/look.mp4" type="video/mp4" />
+          <source src={ctaVideo} type="video/mp4" />
         </video>
         )}
         <div className="section-eyebrow" dir="ltr">NEW LOOK · SAME YOU</div>

@@ -2298,6 +2298,7 @@ html:not([data-theme]) .hb-rule {
   .plan-card .btn { width: 100%; min-height: 45px; }
   .plans-note-line { margin-top: 18px; font-size: 12px; }
   .cta-band { padding: 62px 24px; }
+  .cta-video { object-position: center center; }
   .cta-band h2 { font-size: 30px; }
   .cta-band p { font-size: 14px; }
   .site-header.is-auth .nav-toggle,
