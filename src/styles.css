@@ -2282,7 +2282,7 @@ html:not([data-theme]) .hb-rule {
   .product-card .row { justify-content: flex-start; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
   .points-badge, .price-tag { font-size: 11px; color: var(--gold-dark); font-weight: 400; }
   .plans-grid { grid-template-columns: 1fr; gap: 22px; overflow-x: visible; padding-top: 8px; }
-  .home .hero-band { min-height: calc(100svh - 168px); justify-content: flex-end; }
+  .home .hero-band { min-height: calc(100svh - 72px); justify-content: flex-end; }
   .home .hero-band .hero-video { object-position: center center; }
   .home .hero-band .hb-text { padding: 0 20px 18px; width: 100%; }
   .home .hero-band .hb-cluster { width: 100%; align-items: flex-start; }
@@ -2298,6 +2298,7 @@ html:not([data-theme]) .hb-rule {
   .plan-card .btn { width: 100%; min-height: 45px; }
   .plans-note-line { margin-top: 18px; font-size: 12px; }
   .cta-band { padding: 62px 24px; }
+  .cta-band.has-video { min-height: 360px; padding: 36px 24px; }
   .cta-video { object-position: center center; }
   .cta-band h2 { font-size: 30px; }
   .cta-band p { font-size: 14px; }
@@ -2332,7 +2333,7 @@ html:not([data-theme]) .hb-rule {
   .section { padding: 40px 0 42px; }
   .section-head h2 { font-size: 26px; }
   .section-action { margin-top: 26px; }
-  .home .hero-band { min-height: calc(100svh - 168px); justify-content: flex-end; }
+  .home .hero-band { min-height: calc(100svh - 72px); justify-content: flex-end; }
   .home .plans-grid {
     grid-template-columns: 1fr;
     grid-auto-flow: row;
@@ -2360,7 +2361,7 @@ html:not([data-theme]) .hb-rule {
   .hb-text h1 { font-size: 32px; }
   .hb-text p { font-size: 15px; }
   .hb-cta { padding: 13px 18px; width: 100%; }
-  .home .hero-band { min-height: calc(100svh - 168px); }
+  .home .hero-band { min-height: calc(100svh - 72px); }
   .home .hero-band .hb-text { padding: 0 20px 18px; width: 100%; }
   .home .hero-band .hb-cluster { width: 100%; align-items: flex-start; }
   .hb-eyebrow { font-size: 11px; letter-spacing: 0.32em; }
